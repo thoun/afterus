@@ -72,19 +72,67 @@ $basicGameStates = [
 
 $playerActionsGameStates = [
 
-    ST_MULTIPLAYER_CHOOSE_CARD => [
-        "name" => "chooseCard",
-        "description" => clienttranslate('Waiting for other players'),
-        "descriptionmyturn" => clienttranslate('${you} must choose a card'),
+    ST_MULTIPLAYER_PHASE1 => [
+        "name" => "phase1",
+        "description" => clienttranslate('Players must TODO'),
+        "descriptionmyturn" => '',
         "type" => "multipleactiveplayer",
-        "action" => "stChooseCard",
-        "args" => "argChooseCard",
+        "initialprivate" => ST_PRIVATE_ORDER_CARDS,
+        "action" => "stPlayCard",
+        "possibleactions" => [ "cancelLastMove", "cancelResolutions", "cancelAll" ],
+        "transitions" => [
+            "next" => ST_END_PHASE1,
+        ],
+    ],
+
+    ST_PRIVATE_ORDER_CARDS => [
+        "name" => "orderCards",
+        "descriptionmyturn" => clienttranslate('${you} must order the picked cards'),
+        "type" => "private",
+        "args" => "argOrderCards",
+        "possibleactions" => [ "moveCard", "validateCardOrder" ],
+        "transitions" => [
+          'next' => ST_PRIVATE_ACTIVATE_EFFECT,
+        ],
+    ],
+
+    ST_PRIVATE_ACTIVATE_EFFECT => [
+        "name" => "activateEffect",
+        "descriptionmyturn" => clienttranslate('${you} can activate an effect'),
+        "type" => "private",
+        "args" => "argActivateEffect",
+        "possibleactions" => [ "activate", "cancelLastMove", "cancelResolutions", "cancelAll" ],
+        "transitions" => [
+          'next' => ST_PRIVATE_ACTIVATE_EFFECT,
+        ],
+    ],
+
+    ST_MULTIPLAYER_CHOOSE_TOKEN => [
+        "name" => "chooseToken",
+        "description" => clienttranslate('Waiting for other players'),
+        "descriptionmyturn" => clienttranslate('${you} must choose a token'),
+        "type" => "multipleactiveplayer",
+        "action" => "stChooseToken",
+        "args" => "argChooseToken",
         "possibleactions" => [ 
-            "chooseCard",
-            "cancelChooseCard",
+            "chooseToken",
+            "cancelChooseToken",
         ],
         "transitions" => [
-            "end" => ST_REVEAL_CARDS,
+            "next" => ST_REVEAL_TOKENS,
+        ],
+    ],
+
+    ST_MULTIPLAYER_PHASE2 => [ // TODO allow copy/apply effect in any order, then copy/recruit
+        "name" => "phase2",
+        "description" => clienttranslate('Waiting for other players'),
+        "descriptionmyturn" => '',
+        "type" => "multipleactiveplayer",
+        "initialprivate" => ST_PRIVATE_ACTIVATE_EFFECT,
+        //"action" => "stPlayCard",
+    "possibleactions" => [ /*"cancelPlaceShape"*/ ],
+        "transitions" => [
+            "next" => ST_END_ROUND,
         ],
     ],
 ];
@@ -101,38 +149,24 @@ $gameGameStates = [
         ],
     ],
 
-    ST_REVEAL_CARDS => [
-        "name" => "revealCards",
-        "description" => clienttranslate('Revealing and placing chosen cards...'),
-        "type" => "game",
-        "action" => "stRevealCards",
-        "updateGameProgression" => true,
-        "transitions" => [
-            "next" => ST_MULTIPLAYER_CHOOSE_CARD,
-            "lastCard" => ST_PLAY_LAST_CARD,
-        ],
-    ],
-
-    ST_PLAY_LAST_CARD => [
-        "name" => "playLastCard",
-        "description" => clienttranslate('Score hand last card...'),
-        "type" => "game",
-        "action" => "stPlayLastCard",
-        "updateGameProgression" => true,
-        "transitions" => [
-            "endRound" => ST_END_ROUND,
-        ],
-    ],
-
-    ST_END_ROUND => [
-        "name" => "endRound",
+    ST_END_PHASE1 => [
+        "name" => "endPhase1",
         "description" => "",
         "type" => "game",
-        "action" => "stEndRound",
-        "updateGameProgression" => true,
+        "action" => "stEndPhase1",
         "transitions" => [
-            "newRound" => ST_NEW_ROUND,
-            "endScore" => ST_END_SCORE,
+            "next" => ST_MULTIPLAYER_CHOOSE_TOKEN,
+            "enGame" => ST_END_SCORE
+        ],
+    ],
+
+    ST_REVEAL_TOKENS => [
+        "name" => "revealTokens",
+        "description" => clienttranslate('Revealing chosen tokens...'),
+        "type" => "game",
+        "action" => "stRevealTokens",
+        "transitions" => [
+            "next" => ST_MULTIPLAYER_PHASE2,
         ],
     ],
 

@@ -270,7 +270,7 @@ trait UtilTrait {
     }
 
     function getBonusObjectivesNumber() {
-        return intval($this->getGameStateValue(BONUS_OBJECTIVES_OPTION));
+        return intval($this->getGameStateValue(OBJECTS_OPTION));
     }
 
     function setBonusObjectives(bool $firstRound) {

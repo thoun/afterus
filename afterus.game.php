@@ -45,7 +45,7 @@ class AfterUs extends Table {
         parent::__construct();
         
         self::initGameStateLabels([
-            BONUS_OBJECTIVES_OPTION => BONUS_OBJECTIVES_OPTION,
+            OBJECTS_OPTION => OBJECTS_OPTION,
         ]);   
 		
         $this->cards = $this->getNew("module.common.deck");

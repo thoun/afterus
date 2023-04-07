@@ -1,26 +1,21 @@
 <?php
 
 /*
- * Colors
- */
-define('ORANGE', 1);
-define('PINK', 2);
-define('BLUE', 3);
-define('GREEN', 4);
-define('PURPLE', 5);
-
-/*
  * State constants
  */
 define('ST_BGA_GAME_SETUP', 1);
 
-define('ST_NEW_ROUND', 20);
+define('ST_NEW_ROUND', 10);
 
-define('ST_MULTIPLAYER_CHOOSE_CARD', 30);
+define('ST_MULTIPLAYER_PHASE1', 20);
+define('ST_PRIVATE_ORDER_CARDS', 25);
+define('ST_PRIVATE_ACTIVATE_EFFECT', 30);
+define('ST_END_PHASE1', 35);
 
-define('ST_REVEAL_CARDS', 50);
+define('ST_MULTIPLAYER_CHOOSE_TOKEN', 40);
+define('ST_REVEAL_TOKENS', 45);
 
-define('ST_PLAY_LAST_CARD', 60);
+define('ST_MULTIPLAYER_PHASE2', 50);
 
 define('ST_END_ROUND', 80);
 
@@ -37,13 +32,11 @@ define('END_SCORE', 100);
 /*
  * Options
  */
-define('BONUS_OBJECTIVES_OPTION', 100);
+define('OBJECTS_OPTION', 100);
 
 /*
  * Global variables
  */
-define('COSTS', 'COSTS');
-define('BONUS_OBJECTIVES', 'BONUS_OBJECTIVES');
 
 
 ?>
