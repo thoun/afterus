@@ -1,5 +1,28 @@
 <?php
 
+// resources
+define('NOTHING', 0);
+define('FLOWER', 1);
+define('FRUIT', 2);
+define('GRAIN', 3);
+define('ENERGY', 4);
+define('POINT', 5);
+define('RAGE', 6);
+define('DIFFERENT', 7);
+define('PER_TAMARINS', 8);
+
+// frames
+define('OPENED_LEFT', 1);
+define('CLOSED', 2);
+define('OPENED_RIGHT', 3);
+
+// monkey types
+define('TAMARINS', 0);
+define('ORANGUTANS', 1);
+define('CHIMPANZEES', 2);
+define('GORILLAS', 3);
+define('MANDRILLS', 4);
+
 /*
  * State constants
  */

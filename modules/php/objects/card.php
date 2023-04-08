@@ -2,94 +2,50 @@
 
 require_once(__DIR__.'/../constants.inc.php');
 
+class Frame {
+    public int $type; // OPENED_LEFT, CLOSED, OPENED_RIGHT
+    public array $left; // [[quantity, type], ...]
+    public array $right; // [[quantity, type], ...]
+    public bool $convertSign;
+  
+    public function __construct(int $type, array $left = [], array $right = [], bool $convertSign = false) {
+        $this->type = $type;
+        $this->left = $left;
+        $this->right = $right;
+        $this->convertSign = $convertSign;
+    } 
+}
 
-class Card {
+class CardType {
+    public int $number;
+    public array $rageGain; // [quantity, type]
+    public array $frames; // 3 rows (0,1,2) of frames[]
+  
+    public function __construct(int $number, array $rageGain, array $frames) {
+        $this->number = $number;
+        $this->rageGain = $rageGain;
+        $this->frames = $frames;
+    } 
+}
 
+class Card extends CardType {
     public int $id;
     public string $location;
     public int $locationArg;
-    public /*int|null*/ $number;
-    public /*int|null*/ $color;
-    public /*int|null*/ $points;
-    public /*int|null*/ $playerId;
+    public int $type; // 0: base monkey, else type * 10 + level
+    public int $subType; // index (1-18)
 
-    public function __construct($dbCard) {
-        $CARD_COLORS = [
-            1 => ORANGE,
-            2 => PINK,
-            3 => BLUE,
-            4 => GREEN,
-            5 => GREEN,
-            6 => PINK,
-            7 => PURPLE,
-            8 => ORANGE,
-            9 => PURPLE,
-            10 => PINK,
-          
-            11 => PURPLE,
-            12 => GREEN,
-            13 => BLUE,
-            14 => GREEN,
-            15 => ORANGE,
-            16 => ORANGE,
-            17 => GREEN,
-            18 => BLUE,
-            19 => PINK,
-            20 => PURPLE,
-          
-            21 => BLUE,
-            22 => PURPLE,
-            23 => ORANGE,
-            24 => BLUE,
-            25 => GREEN,
-            26 => PURPLE,
-            27 => PINK,
-            28 => BLUE,
-            29 => PINK,
-            30 => ORANGE,
-          
-            31 => ORANGE,
-            32 => PINK,
-            33 => BLUE,
-            34 => PINK,
-            35 => PURPLE,
-            36 => GREEN,
-            37 => BLUE,
-            38 => ORANGE,
-            39 => PURPLE,
-            40 => BLUE,
-          
-            41 => PURPLE,
-            42 => PINK,
-            43 => BLUE,
-            44 => GREEN,
-            45 => ORANGE,
-            46 => ORANGE,
-            47 => GREEN,
-            48 => BLUE,
-            49 => GREEN,
-            50 => PURPLE,
-          
-            51 => PINK,
-            52 => PURPLE,
-            53 => ORANGE,
-            54 => PURPLE,
-            55 => PINK,
-            56 => GREEN,
-            57 => GREEN,
-            58 => BLUE,
-            59 => PINK,
-            60 => ORANGE,
-        ];
+    public function __construct($dbCard, $CARDS) {
+        $this->id = intval($dbCard['id']);
+        $this->location = $dbCard['location'];
+        $this->locationArg = intval($dbCard['location_arg']);
+        $this->type = intval($dbCard['type']);
+        $this->subType = intval($dbCard['type_arg']);
 
-        $POINTS = [-1, 0, 1, 2, 1, 0];
-
-        $this->id = intval($dbCard['card_id'] ?? $dbCard['id']);
-        $this->location = $dbCard['card_location'] ?? $dbCard['location'];
-        $this->locationArg = intval($dbCard['card_location_arg'] ?? $dbCard['location_arg']);
-        $this->number = array_key_exists('card_type_arg', $dbCard) || array_key_exists('type_arg', $dbCard) ? intval($dbCard['card_type_arg'] ?? $dbCard['type_arg']) : null;
-        $this->color = $this->number ? $CARD_COLORS[$this->number] : null;
-        $this->points = $this->number ? $POINTS[($this->number - ($this->number >= 31 ? 0 : 1)) % 6] : null;
+        $cardType = $CARDS[$this->type][$this->subType];
+        $this->number = $cardType->number;
+        $this->rageGain = $cardType->rageGain;
+        $this->frames = $cardType->frames;
     } 
 
     public static function onlyId(Card $card) {
