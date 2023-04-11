@@ -24,7 +24,6 @@ require_once(__DIR__.'/modules/php/objects/card.php');
 
 /*
 // resources
-define('NOTHING', 0);
 define('FLOWER', 1);
 define('FRUIT', 2);
 define('GRAIN', 3);
@@ -79,14 +78,103 @@ $this->TAMARINS = [
 ];
 
 $this->ORANGUTANS1 = [ 
-    // TODO   
+    new LevelCard(137, [
+        [new LeftFrame([[1, FRUIT]], false), new RightFrame([[1, ENERGY]], false)],
+        [new LeftFrame([[2, POINT]], true), new ClosedFrame([[1, POINT]]), new RightFrame([], true)],
+        [new LeftFrame([[2, ENERGY]], true), new RightFrame([[1, FRUIT]], true)],
+    ]),
+    new LevelCard(138, [
+        [new LeftFrame([[1, FLOWER]], false), new ClosedFrame([[1, PER_TAMARINS]]), new RightFrame([[1, FRUIT]], false)],
+        [new LeftFrame([[3, POINT]], true), new RightFrame([[2, FRUIT]], true)],
+        [],
+    ]),
+    new LevelCard(139, [
+        [new LeftFrame([[1, GRAIN]], false), new ClosedFrame([[3, DIFFERENT]], [[1, FLOWER]]), new RightFrame([[2, FRUIT]], false)],
+        [new LeftFrame([[2, POINT]], true), new RightFrame([[2, FRUIT]], true)],
+        [new ClosedFrame([[1, GRAIN], [1, FLOWER]], [[2, ENERGY]]), new RightFrame([[1, FRUIT]], true)],
+    ]),
+    new LevelCard(140, [
+        [new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[1, FLOWER]]), new RightFrame([[1, ENERGY]], false)],
+        [new LeftFrame([[2, POINT]], true), new RightFrame([[1, FLOWER], [1, FRUIT]], true)],
+        [new LeftFrame([[2, ENERGY]], true), new RightFrame([[1, FRUIT]], true)],
+    ]),
+    new LevelCard(141, [
+        [new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[1, GRAIN]])],
+        [new LeftFrame([[2, POINT]], true), new RightFrame([], true)],
+        [new LeftFrame([[2, ENERGY]], true), new RightFrame([], true)],
+    ]),
+    new LevelCard(142, [
+        [new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[3, DIFFERENT]], [[2, GRAIN]]), new LeftFrame([[1, FRUIT]], false)],
+        [new LeftFrame([[2, POINT]], true), new RightFrame([[1, FLOWER], [1, FRUIT]], true)],
+        [new LeftFrame([[2, ENERGY]], true), new RightFrame([], true)],
+    ]),
+    new LevelCard(143, [
+        [new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[1, ENERGY]])],
+        [new ClosedFrame([[1, PER_TAMARINS]]), new RightFrame([[1, ENERGY]], true)],
+        [new LeftFrame([[2, ENERGY]], true)],
+    ]),
+    new LevelCard(144, [
+        [new LeftFrame([[1, GRAIN]], false), new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[3, DIFFERENT]], [[1, ENERGY]])],
+        [new ClosedFrame([[1, POINT]]), new RightFrame([[1, GRAIN]], true)],
+        [new LeftFrame([[2, ENERGY]], true), new RightFrame([[2, FRUIT]], true)],
+    ]),
+    new LevelCard(145, [
+        [new LeftFrame([[1, GRAIN]], false), new ClosedFrame([[1, FRUIT]])],
+        [new ClosedFrame([[3, DIFFERENT]], [[1, POINT]])],
+        [new ClosedFrame([[2, ENERGY]]), new RightFrame([[1, GRAIN], [1, ENERGY]], true)],
+    ]),
+    new LevelCard(146, [
+        [new LeftFrame([[1, FRUIT]], false), new ClosedFrame([[1, ENERGY]]), new ClosedFrame([[1, GRAIN]])],
+        [new LeftFrame([[2, POINT]], true), new RightFrame([[2, FRUIT]], true)],
+        [new LeftFrame([[2, ENERGY]], true), new RightFrame([[1, ENERGY]], true)],
+    ]),
+    new LevelCard(147, [
+        [new LeftFrame([[1, FLOWER]], false), new ClosedFrame([[1, FRUIT]]), new RightFrame([[1, FRUIT]], false)],
+        [new LeftFrame([[2, POINT]], true), new ClosedFrame([[3, DIFFERENT]], [[1, ENERGY]])],
+        [new LeftFrame([[2, ENERGY]], true), new RightFrame([], true)],
+    ]),
+    new LevelCard(148, [
+        [new LeftFrame([[1, FRUIT]], false), new ClosedFrame([[3, DIFFERENT]], [[1, ENERGY]]), new RightFrame([[1, GRAIN]], false)],
+        [new ClosedFrame([[1, PER_TAMARINS]]), new RightFrame([[1, GRAIN], [1, FRUIT]], true)],
+        [new LeftFrame([[2, ENERGY]], true)],
+    ]),
+    new LevelCard(149, [
+        [new LeftFrame([[1, FLOWER]], false), new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[3, DIFFERENT]], [[1, ENERGY]])],
+        [new LeftFrame([[2, POINT]], true), new ClosedFrame([[1, POINT]]), new RightFrame([[1, ENERGY]], true)],
+        [new LeftFrame([[2, ENERGY]], true)],
+    ]),
+    new LevelCard(150, [
+        [new LeftFrame([[1, GRAIN]], false), new ClosedFrame([[1, FRUIT]])],
+        [new ClosedFrame([[1, POINT]]), new RightFrame([], true)],
+        [new LeftFrame([[2, ENERGY]], true), new RightFrame([[1, FRUIT]], true)],
+    ]),
+    new LevelCard(151, [
+        [new ClosedFrame([[1, ENERGY]]), new ClosedFrame([[3, DIFFERENT]], [[2, GRAIN]]), new RightFrame([[1, FLOWER]], false)],
+        [new LeftFrame([[1, POINT]], true), new ClosedFrame([[1, ENERGY]], [[1, POINT]]), new RightFrame([[1, ENERGY]], true)],
+        [new LeftFrame([[2, ENERGY]], true)],
+    ]),
+    new LevelCard(152, [
+        [new LeftFrame([[1, ENERGY]], false), new ClosedFrame([[2, FRUIT]])],
+        [new LeftFrame([[2, POINT]], true)],
+        [new ClosedFrame([[1, ENERGY]]), new RightFrame([[1, FRUIT], [1, ENERGY]], true)],
+    ]),
+    new LevelCard(153, [
+        [new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[1, FLOWER]]), new RightFrame([[1, ENERGY]], false)],
+        [new LeftFrame([[2, POINT]], true), new ClosedFrame([[3, DIFFERENT]], [[1, POINT]])],
+        [new LeftFrame([[2, ENERGY]], true), new RightFrame([[1, FLOWER]], true)]
+    ]),
+    new LevelCard(153, [
+        [new LeftFrame([[1, FRUIT]], false), new ClosedFrame([[1, ENERGY]]), new RightFrame([[1, GRAIN]], false)],
+        [new LeftFrame([[2, POINT]], true), new RightFrame([[1, ENERGY], [1, FRUIT]], true)],
+        [new LeftFrame([[2, ENERGY]], true), new RightFrame([], true)]
+    ]),
 ];
 
 $this->CHIMPANZEES1 = [    
     new LevelCard(155, [
         [new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[1, GRAIN]])],
         [new ClosedFrame([[3, DIFFERENT]], [[2, POINT]]), new RightFrame([[1, ENERGY]], true)],
-        [new Frame(OPENED_LEFT,[], [[1, REACTIVATE]], true), new RightFrame([[1, GRAIN]], true)],
+        [new LeftFrame([[1, REACTIVATE]], true), new RightFrame([[1, GRAIN]], true)],
     ]),
     new LevelCard(156, [
         [new ClosedFrame([[1, FRUIT]]), new RightFrame([[1, FLOWER]], false)],
@@ -115,8 +203,8 @@ $this->CHIMPANZEES1 = [
     ]),
     new LevelCard(161, [
         [new LeftFrame([[1, FRUIT]], false), new ClosedFrame([[1, FLOWER]])],
-        [new LeftFrame([[2, POINT]], true), new RightFrame([[0, NOTHING]], true)],
-        [new LeftFrame([[1, REACTIVATE]], true), new RightFrame([[0, NOTHING]], true)],
+        [new LeftFrame([[2, POINT]], true), new RightFrame([], true)],
+        [new LeftFrame([[1, REACTIVATE]], true), new RightFrame([], true)],
     ]),
     new LevelCard(162, [
         [new LeftFrame([[1, FLOWER]], false), new ClosedFrame([[1, GRAIN]]), new RightFrame([[1, FRUIT]], false)],
@@ -151,7 +239,7 @@ $this->CHIMPANZEES1 = [
     new LevelCard(168, [
         [new LeftFrame([[1, FRUIT]], false), new ClosedFrame([[3, DIFFERENT]], [[1, GRAIN]])],
         [new ClosedFrame([[3, DIFFERENT]], [[1, POINT]]), new RightFrame([[1, GRAIN], [1, FRUIT]], true)],
-        [new LeftFrame([[1, REACTIVATE]], true), new ClosedFrame([[1, POINT]]), new RightFrame([[0, NOTHING]], true)],
+        [new LeftFrame([[1, REACTIVATE]], true), new ClosedFrame([[1, POINT]]), new RightFrame([], true)],
     ]),
     new LevelCard(169, [
         [new ClosedFrame([[1, FRUIT]]), new RightFrame([[1, GRAIN]], false)],
