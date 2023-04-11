@@ -78,7 +78,7 @@ $playerActionsGameStates = [
         "descriptionmyturn" => '',
         "type" => "multipleactiveplayer",
         "initialprivate" => ST_PRIVATE_ORDER_CARDS,
-        "action" => "stPlayCard",
+        "action" => "stPhase1",
         "possibleactions" => [ "cancelLastMove", "cancelResolutions", "cancelAll" ],
         "transitions" => [
             "next" => ST_END_PHASE1,
@@ -145,7 +145,7 @@ $gameGameStates = [
         "type" => "game",
         "action" => "stNewRound",
         "transitions" => [
-            "next" => ST_MULTIPLAYER_CHOOSE_CARD,
+            "next" => ST_MULTIPLAYER_PHASE1,
         ],
     ],
 
@@ -154,9 +154,10 @@ $gameGameStates = [
         "description" => "",
         "type" => "game",
         "action" => "stEndPhase1",
+        "updateGameProgression" => true,
         "transitions" => [
             "next" => ST_MULTIPLAYER_CHOOSE_TOKEN,
-            "enGame" => ST_END_SCORE
+            "endGame" => ST_END_SCORE
         ],
     ],
 
@@ -167,6 +168,18 @@ $gameGameStates = [
         "action" => "stRevealTokens",
         "transitions" => [
             "next" => ST_MULTIPLAYER_PHASE2,
+        ],
+    ],
+
+    ST_END_ROUND => [
+        "name" => "endRound",
+        "description" => "",
+        "type" => "game",
+        "action" => "stEndRound",
+        "updateGameProgression" => true,
+        "transitions" => [
+            "newRound" => ST_NEW_ROUND,
+            "endScore" => ST_END_SCORE,
         ],
     ],
 

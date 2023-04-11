@@ -7,7 +7,7 @@ class TableCenter {
     private objectives: LineStock<number>;
 
     constructor(private game: AfterUsGame, gamedatas: AfterUsGamedatas) {
-        const playersIds = (gamedatas.playerorder.length > 1 ? gamedatas.playerorder : Object.keys(gamedatas.players)).map(key => Number(key));
+        /*const playersIds = (gamedatas.playerorder.length > 1 ? gamedatas.playerorder : Object.keys(gamedatas.players)).map(key => Number(key));
         const playerCount = playersIds.length;
 
         const slotSettings: SlotStockSettings<Card> = {
@@ -36,7 +36,7 @@ class TableCenter {
         document.getElementById(`objectives`).classList.toggle('hidden', !gamedatas.objectives.length);
         this.objectivesManager = new ObjectivesManager(this.game);
         this.objectives = new LineStock<number>(this.objectivesManager, document.getElementById(`objectives`));
-        this.changeObjectives(gamedatas.objectives);
+        this.changeObjectives(gamedatas.objectives);*/
     }
 
     public createPlayerBlock(playerId: number) {

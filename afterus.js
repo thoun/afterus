@@ -1298,33 +1298,37 @@ var ObjectivesManager = /** @class */ (function (_super) {
 }(CardManager));
 var TableCenter = /** @class */ (function () {
     function TableCenter(game, gamedatas) {
-        var _this = this;
         this.game = game;
-        var playersIds = (gamedatas.playerorder.length > 1 ? gamedatas.playerorder : Object.keys(gamedatas.players)).map(function (key) { return Number(key); });
-        var playerCount = playersIds.length;
-        var slotSettings = {
+        /*const playersIds = (gamedatas.playerorder.length > 1 ? gamedatas.playerorder : Object.keys(gamedatas.players)).map(key => Number(key));
+        const playerCount = playersIds.length;
+
+        const slotSettings: SlotStockSettings<Card> = {
             wrap: 'nowrap',
             slotsIds: [],
-            mapCardToSlot: function (card) { return card.locationArg; },
+            mapCardToSlot: card => card.locationArg,
         };
-        for (var i = 0; i < playerCount; i++) {
+        for (let i=0; i<playerCount; i++) {
             slotSettings.slotsIds.push(i);
         }
-        var playerCardsDiv = document.getElementById("player-cards");
-        this.playerCards = new SlotStock(this.game.cardsManager, playerCardsDiv, {
+
+        const playerCardsDiv = document.getElementById(`player-cards`);
+        this.playerCards = new SlotStock<Card>(this.game.cardsManager, playerCardsDiv, {
             wrap: 'nowrap',
             slotsIds: playersIds,
-            mapCardToSlot: function (card) { return card.locationArg; },
+            mapCardToSlot: card => card.locationArg,
         });
-        this.tableOver = new SlotStock(this.game.cardsManager, document.getElementById("table-over"), slotSettings);
-        this.tableUnder = new SlotStock(this.game.cardsManager, document.getElementById("table-under"), slotSettings);
-        gamedatas.selected.forEach(function (card) { return _this.playerCards.addCard(card, undefined, { visible: !!card.number }); });
+        this.tableOver = new SlotStock<Card>(this.game.cardsManager, document.getElementById(`table-over`), slotSettings);
+        this.tableUnder = new SlotStock<Card>(this.game.cardsManager, document.getElementById(`table-under`), slotSettings);
+
+        gamedatas.selected.forEach(card => this.playerCards.addCard(card, undefined, { visible: !!card.number }));
         this.tableOver.addCards(gamedatas.table);
-        playersIds.forEach(function (playerId) { return playerCardsDiv.querySelector("[data-slot-id=\"".concat(playerId, "\"]")).appendChild(_this.createPlayerBlock(playerId)); });
-        document.getElementById("objectives").classList.toggle('hidden', !gamedatas.objectives.length);
+
+        playersIds.forEach(playerId => playerCardsDiv.querySelector(`[data-slot-id="${playerId}"]`).appendChild(this.createPlayerBlock(playerId)));
+
+        document.getElementById(`objectives`).classList.toggle('hidden', !gamedatas.objectives.length);
         this.objectivesManager = new ObjectivesManager(this.game);
-        this.objectives = new LineStock(this.objectivesManager, document.getElementById("objectives"));
-        this.changeObjectives(gamedatas.objectives);
+        this.objectives = new LineStock<number>(this.objectivesManager, document.getElementById(`objectives`));
+        this.changeObjectives(gamedatas.objectives);*/
     }
     TableCenter.prototype.createPlayerBlock = function (playerId) {
         var player = this.game.getPlayer(playerId);
@@ -1365,7 +1369,6 @@ var isDebug = window.location.host == 'studio.boardgamearena.com' || window.loca
 var log = isDebug ? console.log.bind(window.console) : function () { };
 var PlayerTable = /** @class */ (function () {
     function PlayerTable(game, player, costs) {
-        var _this = this;
         this.game = game;
         this.scores = [];
         this.playerId = Number(player.id);
@@ -1380,28 +1383,31 @@ var PlayerTable = /** @class */ (function () {
         }
         html += "\n            </div>\n        </div>\n        ";
         dojo.place(html, document.getElementById('tables'));
-        if (this.currentPlayer) {
-            var handDiv_1 = document.getElementById("player-table-".concat(this.playerId, "-hand"));
-            this.hand = new LineStock(this.game.cardsManager, handDiv_1, {
-                sort: function (a, b) { return a.number - b.number; },
+        /*if (this.currentPlayer) {
+            const handDiv = document.getElementById(`player-table-${this.playerId}-hand`);
+            this.hand = new LineStock<Card>(this.game.cardsManager, handDiv, {
+                sort: (a: Card, b: Card) => a.number - b.number,
             });
-            this.hand.onCardClick = function (card) {
-                if (handDiv_1.classList.contains('selectable')) {
-                    _this.game.onHandCardClick(card);
-                    _this.hand.getCards().forEach(function (c) { return _this.hand.getCardElement(c).classList.toggle('selected', c.id == card.id); });
+            this.hand.onCardClick = (card: Card) => {
+                if (handDiv.classList.contains('selectable')) {
+                    this.game.onHandCardClick(card);
+                    this.hand.getCards().forEach(c => this.hand.getCardElement(c).classList.toggle('selected', c.id == card.id));
                 }
-            };
+            }
+            
             this.hand.addCards(player.hand);
         }
+        
         this.setCosts(costs);
-        for (var i = 0; i < 5; i++) {
-            var scoreDiv = document.getElementById("player-table-".concat(this.playerId, "-score").concat(i, "-cards"));
-            this.scores[i] = new LineStock(this.game.cardsManager, scoreDiv, {
+
+        for (let i=0; i<5; i++) {
+            const scoreDiv = document.getElementById(`player-table-${this.playerId}-score${i}-cards`);
+            this.scores[i] = new LineStock<Card>(this.game.cardsManager, scoreDiv, {
                 direction: 'column',
             });
             scoreDiv.style.setProperty('--card-overlap', '125px');
             this.scores[i].addCards(player.scoresCards[i]);
-        }
+        }*/
     }
     PlayerTable.prototype.setSelectable = function (selectable) {
         document.getElementById("player-table-".concat(this.playerId, "-hand")).classList.toggle('selectable', selectable);

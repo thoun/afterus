@@ -103,7 +103,6 @@ class AfterUs extends Table {
 
         // setup the initial game situation here
         $this->setupCards(array_keys($players));
-       
 
         // Activate first player (which is in general a good idea :) )
         $this->activeNextPlayer();
@@ -135,11 +134,11 @@ class AfterUs extends Table {
   
         // Gather all information about current game situation (visible by player $current_player_id).
 
-        $isEndScore = intval($this->gamestate->state_id()) >= ST_END_SCORE;
+        //$isEndScore = intval($this->gamestate->state_id()) >= ST_END_SCORE;
         
         foreach($result['players'] as $playerId => &$player) {
             $player['playerNo'] = intval($player['playerNo']);
-            if (!$isEndScore) {
+            /*if (!$isEndScore) {
                 $player['score'] = intval($player['score']) + intval($player['scoreAux']);
             }
 
@@ -150,15 +149,15 @@ class AfterUs extends Table {
 
             if ($currentPlayerId == $playerId) {
                 $player['hand'] = $this->getCardsByLocation('hand', $playerId);
-            }
+            }*/
         }
 
-        $result['costs'] = $this->getGlobalVariable(COSTS, true);
+        /*$result['costs'] = $this->getGlobalVariable(COSTS, true);
 
         $selected = $this->getCardsByLocation('selected');
         $result['selected'] = array_map(fn($card) => $currentPlayerId == $card->locationArg ? $card : Card::onlyId($card), $selected);
         $result['table'] = $this->getCardsByLocation('table');
-        $result['objectives'] = $this->getGlobalVariable(BONUS_OBJECTIVES, true) ?? [];
+        $result['objectives'] = $this->getGlobalVariable(BONUS_OBJECTIVES, true) ?? [];*/
   
         return $result;
     }

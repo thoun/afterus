@@ -37,7 +37,7 @@ class PlayerTable {
         `;
         dojo.place(html, document.getElementById('tables'));
 
-        if (this.currentPlayer) {
+        /*if (this.currentPlayer) {
             const handDiv = document.getElementById(`player-table-${this.playerId}-hand`);
             this.hand = new LineStock<Card>(this.game.cardsManager, handDiv, {
                 sort: (a: Card, b: Card) => a.number - b.number,
@@ -61,7 +61,7 @@ class PlayerTable {
             });
             scoreDiv.style.setProperty('--card-overlap', '125px');
             this.scores[i].addCards(player.scoresCards[i]);
-        }
+        }*/
     } 
     
     public setSelectable(selectable: boolean) {

@@ -16,6 +16,24 @@ class Frame {
     } 
 }
 
+class LeftFrame extends Frame {
+    public function __construct(array $right, bool $convertSign) {
+        parent::__construct(OPENED_LEFT, [], $right, $convertSign);
+    } 
+}
+
+class ClosedFrame extends Frame {
+    public function __construct(array $left, array $right = []) {
+        parent::__construct(CLOSED, $left, $right, count($left) > 0 && count($right) > 0);
+    } 
+}
+
+class RightFrame extends Frame {
+    public function __construct(array $left, bool $convertSign) {
+        parent::__construct(OPENED_RIGHT, $left, [], $convertSign);
+    } 
+}
+
 class CardType {
     public int $number;
     public array $rageGain; // [quantity, type]
@@ -26,6 +44,12 @@ class CardType {
         $this->rageGain = $rageGain;
         $this->frames = $frames;
     } 
+}
+
+class LevelCard extends CardType {
+    public function __construct(int $number, array $frames) {
+        parent::__construct($number, [3, POINT], $frames);
+    }
 }
 
 class Card extends CardType {

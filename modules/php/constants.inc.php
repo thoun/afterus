@@ -10,6 +10,7 @@ define('POINT', 5);
 define('RAGE', 6);
 define('DIFFERENT', 7);
 define('PER_TAMARINS', 8);
+define('REACTIVATE', 10);
 
 // frames
 define('OPENED_LEFT', 1);

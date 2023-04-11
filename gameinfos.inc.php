@@ -101,17 +101,12 @@ $gameinfos = [
 
 // Colors attributed to players
   'player_colors' => [
-    'ff0000',
-    '008000',
-    '0000ff',
-    'ffa500',
-    '000000',
-    'e94190',
-    '982fff',
-    '72c3b1',
-    'f07f16',
-    'bdd002',
-    '7b7b7b',
+    'ffe400',
+    '044396',
+    'f29fc4',
+    'e7313a',
+    '98d1c6',
+    '9f79b5',
   ],
 
 // Favorite colors support : if set to "true", support attribution of favorite colors based on player's preferences (see reattributeColorsBasedOnPreferences PHP method)

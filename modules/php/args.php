@@ -12,7 +12,7 @@ trait ArgsTrait {
         game state.
     */
    
-    function argChooseCard() {
+    function argOrderCards() {
         /*$playersIds = $this->getPlayersIds();
         
         $private = [];
@@ -21,10 +21,10 @@ trait ArgsTrait {
             $private[$playerId] = [
                 'cards' => $this->getCardsByLocation('hand', $playerId),
             ];
-        }
+        }*/
 
         return [
-            '_private' => $private,
-        ];*/
+            //'_private' => $private,
+        ];
     }
 } 
