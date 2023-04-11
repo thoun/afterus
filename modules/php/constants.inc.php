@@ -1,7 +1,6 @@
 <?php
 
 // resources
-define('NOTHING', 0);
 define('FLOWER', 1);
 define('FRUIT', 2);
 define('GRAIN', 3);
