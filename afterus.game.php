@@ -148,8 +148,8 @@ class AfterUs extends Table {
             }
 
             if ($currentPlayerId == $playerId) {
-                $player['hand'] = $this->getCardsByLocation('hand', $playerId);
             }*/
+            $player['line'] = $this->getCardsByLocation('line'.$playerId);
         }
 
         /*$result['costs'] = $this->getGlobalVariable(COSTS, true);

@@ -60,11 +60,11 @@ class Card extends CardType {
     public int $subType; // index (1-18)
 
     public function __construct($dbCard, $CARDS) {
-        $this->id = intval($dbCard['id']);
-        $this->location = $dbCard['location'];
-        $this->locationArg = intval($dbCard['location_arg']);
-        $this->type = intval($dbCard['type']);
-        $this->subType = intval($dbCard['type_arg']);
+        $this->id = intval($dbCard['card_id'] ?? $dbCard['id']);
+        $this->location = $dbCard['card_location'] ?? $dbCard['location'];
+        $this->locationArg = intval($dbCard['card_location_arg'] ?? $dbCard['location_arg']);
+        $this->type = intval($dbCard['card_type'] ?? $dbCard['type']);
+        $this->subType = intval($dbCard['card_type_arg'] ?? $dbCard['type_arg']);
 
         $cardType = $CARDS[$this->type][$this->subType];
         $this->number = $cardType->number;

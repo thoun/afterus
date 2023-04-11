@@ -1369,36 +1369,35 @@ var isDebug = window.location.host == 'studio.boardgamearena.com' || window.loca
 var log = isDebug ? console.log.bind(window.console) : function () { };
 var PlayerTable = /** @class */ (function () {
     function PlayerTable(game, player, costs) {
+        var _this = this;
         this.game = game;
-        this.scores = [];
         this.playerId = Number(player.id);
         this.currentPlayer = this.playerId == this.game.getPlayerId();
-        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"name-wrapper\">").concat(player.name, "</div>\n        ");
-        if (this.currentPlayer) {
-            html += "\n            <div class=\"block-with-text hand-wrapper\">\n                <div class=\"block-label\">".concat(_('Your hand'), "</div>\n                <div id=\"player-table-").concat(this.playerId, "-hand\" class=\"hand cards\"></div>\n            </div>");
-        }
-        html += "<div class=\"score cards\">";
-        for (var i = 0; i < 5; i++) {
-            html += "\n            <div class=\"score-card-wrapper\">\n                <div id=\"player-table-".concat(this.playerId, "-score").concat(i, "\" class=\"score card\"></div>\n                <div id=\"player-table-").concat(this.playerId, "-score").concat(i, "-cards\" class=\"cards\"></div>\n            </div>");
-        }
-        html += "\n            </div>\n        </div>\n        ";
-        dojo.place(html, document.getElementById('tables'));
+        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"background\" data-color=\"").concat(player.color, "\"></div>\n            <div class=\"name-wrapper\">").concat(player.name, "</div>\n        ");
         /*if (this.currentPlayer) {
-            const handDiv = document.getElementById(`player-table-${this.playerId}-hand`);
-            this.hand = new LineStock<Card>(this.game.cardsManager, handDiv, {
-                sort: (a: Card, b: Card) => a.number - b.number,
-            });
-            this.hand.onCardClick = (card: Card) => {
-                if (handDiv.classList.contains('selectable')) {
-                    this.game.onHandCardClick(card);
-                    this.hand.getCards().forEach(c => this.hand.getCardElement(c).classList.toggle('selected', c.id == card.id));
-                }
+            html += `
+            <div class="block-with-text hand-wrapper">
+                <div class="block-label">${_('Your hand')}</div>
+                <div id="player-table-${this.playerId}-hand" class="hand cards"></div>
+            </div>`;
+        }*/
+        html += "\n        <div id=\"player-table-".concat(this.playerId, "-line\"></div>\n        </div>\n        ");
+        dojo.place(html, document.getElementById('tables'));
+        /*if (this.currentPlayer) {*/
+        var handDiv = document.getElementById("player-table-".concat(this.playerId, "-line"));
+        this.line = new SlotStock(this.game.cardsManager, handDiv, {
+            slotsIds: [0, 1, 2, 3],
+            mapCardToSlot: function (card) { return card.locationArg; },
+        });
+        this.line.onCardClick = function (card) {
+            if (handDiv.classList.contains('selectable')) {
+                _this.game.onHandCardClick(card);
+                _this.line.getCards().forEach(function (c) { return _this.line.getCardElement(c).classList.toggle('selected', c.id == card.id); });
             }
-            
-            this.hand.addCards(player.hand);
-        }
-        
-        this.setCosts(costs);
+        };
+        this.line.addCards(player.line);
+        /*}*/
+        /*this.setCosts(costs);
 
         for (let i=0; i<5; i++) {
             const scoreDiv = document.getElementById(`player-table-${this.playerId}-score${i}-cards`);

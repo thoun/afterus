@@ -91,6 +91,13 @@ trait UtilTrait {
         return count($cards) > 0 ? $cards[0] : null;
     }
 
+    function getCardFromDb(array $dbCard) {
+        if ($dbCard == null) {
+            return null;
+        }
+        return new Card($dbCard, $this->CARDS);
+    }
+
     function getCardsByLocation(string $location, /*int|null*/ $location_arg = null, /*int|null*/ $type = null, /*int|null*/ $number = null) {
         $sql = "SELECT * FROM `card` WHERE `card_location` = '$location'";
         if ($location_arg !== null) {

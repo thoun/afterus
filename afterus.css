@@ -244,8 +244,8 @@ body > .card {
 .card {
   display: inline-block;
   position: relative;
-  width: 100px;
-  height: 152px;
+  width: 142px;
+  height: 198px;
   margin: 5px;
   border-radius: 8px;
   /*&.selectable:not(.disabled) {
@@ -674,14 +674,39 @@ body > .card {
 }
 
 .player-table {
-  width: 100%;
+  width: 653px;
+  height: 420px;
   position: relative;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.5333333333);
-  border-radius: 15px;
-  margin: 5px;
-  font-size: 16pt;
-  color: white;
+  margin: 10px;
+}
+.player-table .background {
+  position: absolute;
+  height: 180px;
+  left: 0;
+  right: 0;
+  border-radius: 10px;
+  box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.5);
+}
+.player-table .background[data-color=f28700] {
+  background-image: url("img/playerboard-day.jpg");
+}
+.player-table .background[data-color=ffe400] {
+  background-image: url("img/player-board-ffe400.png");
+}
+.player-table .background[data-color="044396"] {
+  background-image: url("img/player-board-044396.png");
+}
+.player-table .background[data-color=f29fc4] {
+  background-image: url("img/player-board-f29fc4.png");
+}
+.player-table .background[data-color=e7313a] {
+  background-image: url("img/player-board-e7313a.png");
+}
+.player-table .background[data-color="98d1c6"] {
+  background-image: url("img/player-board-98d1c6.png");
+}
+.player-table .background[data-color="9f79b5"] {
+  background-image: url("img/player-board-9f79b5.png");
 }
 .player-table .name-wrapper {
   color: var(--player-color);
@@ -741,34 +766,6 @@ html, .mode_3d #game_play_area_background {
   background: url("img/background.jpg");
   background-size: 100% auto;
   background-repeat: repeat;
-}
-
-#zoom-wrapper {
-  position: relative;
-}
-#zoom-wrapper #zoom-controls {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-#zoom-wrapper #zoom-controls button {
-  width: 40px;
-  height: 40px;
-  background: url("img/zoom.svg");
-  background-size: auto 220%;
-}
-#zoom-wrapper #zoom-controls button:not(.disabled) {
-  cursor: pointer;
-}
-#zoom-wrapper #zoom-controls button.disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-#zoom-wrapper #zoom-controls #zoom-in {
-  background-position: 6% 94%;
-}
-#zoom-wrapper #zoom-controls #zoom-out {
-  background-position: 82% 94%;
 }
 
 #tables-and-center {

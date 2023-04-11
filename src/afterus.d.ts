@@ -13,8 +13,7 @@ interface Card {
 
 interface AfterUsPlayer extends Player {
     playerNo: number;
-    scoresCards: Card[][];
-    hand?: Card[];
+    line: Card[];
 }
 
 interface AfterUsGamedatas {

@@ -20,7 +20,6 @@ class AfterUs implements AfterUsGame {
     private playersTables: PlayerTable[] = [];
     private handCounters: Counter[] = [];
     private scoredCounters: Counter[] = [];
-    private selectedCardId: number;
     
     private TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
 

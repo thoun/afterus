@@ -17,6 +17,16 @@ trait StateTrait {
     }
 
     function stPhase1() {
+        $playersIds = $this->getPlayersIds();
+        foreach ($playersIds as $playerId) {
+            $line = [];
+            for ($i = 0; $i < 4; $i++) {
+                $line[] = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, $i));
+            }
+
+            // TODO notif line
+        }
+
         $this->gamestate->setAllPlayersMultiactive();
         $this->gamestate->initializePrivateStateForAllActivePlayers(); 
     }
