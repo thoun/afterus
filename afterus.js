@@ -1215,8 +1215,9 @@ var CardsManager = /** @class */ (function (_super) {
                 div.dataset.cardId = '' + card.id;
             },
             setupFrontDiv: function (card, div) {
-                div.dataset.color = '' + card.color;
-                div.dataset.number = '' + card.number;
+                div.dataset.type = '' + card.type;
+                div.dataset.subType = '' + card.subType;
+                div.dataset.playerColor = '' + game.getPlayerColor(card.playerId);
             },
         }) || this;
         _this.game = game;
@@ -1373,7 +1374,7 @@ var PlayerTable = /** @class */ (function () {
         this.game = game;
         this.playerId = Number(player.id);
         this.currentPlayer = this.playerId == this.game.getPlayerId();
-        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"background\" data-color=\"").concat(player.color, "\"></div>\n            <div class=\"name-wrapper\">").concat(player.name, "</div>\n        ");
+        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"background\" data-color=\"").concat(player.color, "\">\n                <div class=\"name-wrapper\">").concat(player.name, "</div>\n            </div>\n            \n        ");
         /*if (this.currentPlayer) {
             html += `
             <div class="block-with-text hand-wrapper">
@@ -1386,6 +1387,7 @@ var PlayerTable = /** @class */ (function () {
         /*if (this.currentPlayer) {*/
         var handDiv = document.getElementById("player-table-".concat(this.playerId, "-line"));
         this.line = new SlotStock(this.game.cardsManager, handDiv, {
+            gap: '0',
             slotsIds: [0, 1, 2, 3],
             mapCardToSlot: function (card) { return card.locationArg; },
         });
@@ -1397,16 +1399,6 @@ var PlayerTable = /** @class */ (function () {
         };
         this.line.addCards(player.line);
         /*}*/
-        /*this.setCosts(costs);
-
-        for (let i=0; i<5; i++) {
-            const scoreDiv = document.getElementById(`player-table-${this.playerId}-score${i}-cards`);
-            this.scores[i] = new LineStock<Card>(this.game.cardsManager, scoreDiv, {
-                direction: 'column',
-            });
-            scoreDiv.style.setProperty('--card-overlap', '125px');
-            this.scores[i].addCards(player.scoresCards[i]);
-        }*/
     }
     PlayerTable.prototype.setSelectable = function (selectable) {
         document.getElementById("player-table-".concat(this.playerId, "-hand")).classList.toggle('selectable', selectable);
@@ -1522,6 +1514,9 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.getPlayer = function (playerId) {
         return Object.values(this.gamedatas.players).find(function (player) { return Number(player.id) == playerId; });
+    };
+    AfterUs.prototype.getPlayerColor = function (playerId) {
+        return this.gamedatas.players[playerId].color;
     };
     AfterUs.prototype.getPlayerTable = function (playerId) {
         return this.playersTables.find(function (playerTable) { return playerTable.playerId === playerId; });

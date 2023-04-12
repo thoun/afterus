@@ -124,6 +124,10 @@ class AfterUs implements AfterUsGame {
         return Object.values(this.gamedatas.players).find(player => Number(player.id) == playerId);
     }
 
+    private getPlayerColor(playerId: number): string {
+        return this.gamedatas.players[playerId].color;
+    }
+
     private getPlayerTable(playerId: number): PlayerTable {
         return this.playersTables.find(playerTable => playerTable.playerId === playerId);
     }

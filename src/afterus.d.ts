@@ -6,8 +6,10 @@ interface Card {
     id: number;
     location: string;
     locationArg: number;
-    points: number;
-    color: number;
+    playerId: number;
+    type: number; // 0: base monkey, else 1-4
+    level: number; // 0: base monkey, else 1-2
+    subType: number;
     number: number;
 }
 
@@ -40,6 +42,7 @@ interface AfterUsGame extends Game {
 
     getPlayerId(): number;
     getPlayer(playerId: number): AfterUsPlayer;
+    getPlayerColor(playerId: number): string;
 
     setTooltip(id: string, html: string): void;
     onHandCardClick(card: Card): void;

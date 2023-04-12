@@ -13,8 +13,10 @@ class PlayerTable {
 
         let html = `
         <div id="player-table-${this.playerId}" class="player-table" style="--player-color: #${player.color};">
-            <div class="background" data-color="${player.color}"></div>
-            <div class="name-wrapper">${player.name}</div>
+            <div class="background" data-color="${player.color}">
+                <div class="name-wrapper">${player.name}</div>
+            </div>
+            
         `;
         /*if (this.currentPlayer) {
             html += `
@@ -32,6 +34,7 @@ class PlayerTable {
         /*if (this.currentPlayer) {*/
             const handDiv = document.getElementById(`player-table-${this.playerId}-line`);
             this.line = new SlotStock<Card>(this.game.cardsManager, handDiv, {
+                gap: '0',
                 slotsIds: [0, 1, 2, 3],
                 mapCardToSlot: card => card.locationArg,
             });
@@ -44,17 +47,6 @@ class PlayerTable {
             
             this.line.addCards(player.line);
         /*}*/
-        
-        /*this.setCosts(costs);
-
-        for (let i=0; i<5; i++) {
-            const scoreDiv = document.getElementById(`player-table-${this.playerId}-score${i}-cards`);
-            this.scores[i] = new LineStock<Card>(this.game.cardsManager, scoreDiv, {
-                direction: 'column',
-            });
-            scoreDiv.style.setProperty('--card-overlap', '125px');
-            this.scores[i].addCards(player.scoresCards[i]);
-        }*/
     } 
     
     public setSelectable(selectable: boolean) {

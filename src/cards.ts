@@ -6,8 +6,9 @@ class CardsManager extends CardManager<Card> {
                 div.dataset.cardId = ''+card.id;
             },
             setupFrontDiv: (card: Card, div: HTMLElement) => { 
-                div.dataset.color = ''+card.color;
-                div.dataset.number = ''+card.number;
+                div.dataset.type = ''+card.type;
+                div.dataset.subType = ''+card.subType;
+                div.dataset.playerColor = ''+game.getPlayerColor(card.playerId);
             },
         });
     }

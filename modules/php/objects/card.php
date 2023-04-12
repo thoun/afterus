@@ -56,17 +56,23 @@ class Card extends CardType {
     public int $id;
     public string $location;
     public int $locationArg;
-    public int $type; // 0: base monkey, else type * 10 + level
+    public int $playerId; // the number in locationArg
+    public int $type; // 0: base monkey, else 1-4
+    public int $level; // 0: base monkey, else 1-2
     public int $subType; // index (1-18)
 
     public function __construct($dbCard, $CARDS) {
         $this->id = intval($dbCard['card_id'] ?? $dbCard['id']);
         $this->location = $dbCard['card_location'] ?? $dbCard['location'];
         $this->locationArg = intval($dbCard['card_location_arg'] ?? $dbCard['location_arg']);
-        $this->type = intval($dbCard['card_type'] ?? $dbCard['type']);
+        preg_match('/\d+/', $this->location, $matches);
+        $this->playerId = intval($matches[0]);
+        $type = intval($dbCard['card_type'] ?? $dbCard['type']);
+        $this->type = floor($type / 10);
+        $this->level = $type % 10;
         $this->subType = intval($dbCard['card_type_arg'] ?? $dbCard['type_arg']);
 
-        $cardType = $CARDS[$this->type][$this->subType];
+        $cardType = $CARDS[$type][$this->subType];
         $this->number = $cardType->number;
         $this->rageGain = $cardType->rageGain;
         $this->frames = $cardType->frames;
