@@ -986,57 +986,13 @@ body > .card {
   align-items: center;
   margin: 5px 0;
 }
-.counters > div {
+.counters .counter {
   flex: 1;
-}
-.counters .icon {
-  margin-right: 5px;
-}
-
-.player-scored-card {
-  display: inline-block;
-  width: 32px;
-  height: 32px;
-  background-image: url("img/card-deck.svg");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  vertical-align: middle;
-}
-
-.bet-tokens {
   display: flex;
-  flex-wrap: wrap;
-  padding-left: 12px;
-  margin: 8px 0;
+  align-items: center;
 }
-.bet-tokens .bet-token {
-  background-image: url("img/bet-tokens.png");
-  background-repeat: no-repeat;
-  background-size: auto 200%;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  box-shadow: 1px 1px 3px 1px black;
-  margin-left: -12px;
-}
-.bet-tokens .bet-token[data-value="3"] {
-  background-position: 0% 0%;
-}
-.bet-tokens .bet-token[data-value="-3"] {
-  background-position: 0% 100%;
-}
-.bet-tokens .bet-token[data-value="4"] {
-  background-position: 50% 0%;
-}
-.bet-tokens .bet-token[data-value="-4"] {
-  background-position: 50% 100%;
-}
-.bet-tokens .bet-token[data-value="5"] {
-  background-position: 100% 0%;
-}
-.bet-tokens .bet-token[data-value="-5"] {
-  background-position: 100% 100%;
+.counters .counter span {
+  padding: 0 5px 0 5px;
 }
 
 .player-table {
@@ -1130,31 +1086,26 @@ html, .mode_3d #game_play_area_background {
     flex: 1;
   }
 }
-.log [data-color="1"], .dijitTooltipContents [data-color="1"] {
-  color: #f46d33;
-}
-.log [data-color="2"], .dijitTooltipContents [data-color="2"] {
-  color: #ef5c93;
-}
-.log [data-color="3"], .dijitTooltipContents [data-color="3"] {
-  color: #0079bc;
-}
-.log [data-color="4"], .dijitTooltipContents [data-color="4"] {
-  color: #6ab355;
-}
-.log [data-color="5"], .dijitTooltipContents [data-color="5"] {
-  color: #6967af;
-}
-.log .points-circle, .dijitTooltipContents .points-circle {
-  color: white;
-  border-radius: 50%;
-  background: #ffbb40;
+.icon {
   display: inline-block;
-  height: 16px;
-  width: 16px;
-  text-align: center;
-  font-size: 90%;
+  position: relative;
+  width: 32px;
+  height: 32px;
+  background-image: url("img/resources.png");
+  background-size: auto 100%;
 }
-.log .points-circle[data-negative=true], .dijitTooltipContents .points-circle[data-negative=true] {
-  background: #e94422;
+.icon.flower {
+  background-position: 0% 0%;
+}
+.icon.fruit {
+  background-position: 25% 0%;
+}
+.icon.grain {
+  background-position: 50% 0%;
+}
+.icon.energy {
+  background-position: 75% 0%;
+}
+.icon.rage {
+  background-position: 100% 0%;
 }

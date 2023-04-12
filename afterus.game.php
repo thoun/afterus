@@ -129,7 +129,7 @@ class AfterUs extends Table {
     
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score, player_score_aux scoreAux, player_no playerNo FROM player ";
+        $sql = "SELECT player_id id, player_score score, player_score_aux scoreAux, player_no playerNo, `player_flower` flower, `player_fruit` fruit, `player_grain` grain, `player_energy` energy, `player_rage` rage FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
   
         // Gather all information about current game situation (visible by player $current_player_id).
@@ -138,15 +138,12 @@ class AfterUs extends Table {
         
         foreach($result['players'] as $playerId => &$player) {
             $player['playerNo'] = intval($player['playerNo']);
-            /*if (!$isEndScore) {
-                $player['score'] = intval($player['score']) + intval($player['scoreAux']);
-            }
-
-            $player['scoresCards'] = [];
-            for ($i=0; $i<5; $i++) {
-                $player['scoresCards'][$i] = $this->getCardsByLocation('score'.$playerId, $i);
-            }
-
+            $player['flower'] = intval($player['flower']);
+            $player['fruit'] = intval($player['fruit']);
+            $player['grain'] = intval($player['grain']);
+            $player['energy'] = intval($player['energy']);
+            $player['rage'] = intval($player['rage']);
+            /*
             if ($currentPlayerId == $playerId) {
             }*/
             $player['line'] = $this->getCardsByLocation('line'.$playerId);

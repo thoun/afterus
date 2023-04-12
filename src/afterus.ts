@@ -18,8 +18,11 @@ class AfterUs implements AfterUsGame {
     private gamedatas: AfterUsGamedatas;
     private tableCenter: TableCenter;
     private playersTables: PlayerTable[] = [];
-    private handCounters: Counter[] = [];
-    private scoredCounters: Counter[] = [];
+    private flowerCounters: Counter[] = [];
+    private fruitCounters: Counter[] = [];
+    private grainCounters: Counter[] = [];
+    private energyCounters: Counter[] = [];
+    private rageCounters: Counter[] = [];
     
     private TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
 
@@ -49,6 +52,7 @@ class AfterUs implements AfterUsGame {
         this.cardsManager = new CardsManager(this);
         this.animationManager = new AnimationManager(this);
         this.tableCenter = new TableCenter(this, gamedatas);
+        this.createPlayerPanels(gamedatas); 
         this.createPlayerTables(gamedatas);
         
         this.zoomManager = new ZoomManager({
@@ -124,7 +128,7 @@ class AfterUs implements AfterUsGame {
         return Object.values(this.gamedatas.players).find(player => Number(player.id) == playerId);
     }
 
-    private getPlayerColor(playerId: number): string {
+    public getPlayerColor(playerId: number): string {
         return this.gamedatas.players[playerId].color;
     }
 
@@ -163,6 +167,71 @@ class AfterUs implements AfterUsGame {
         const playerIndex = players.findIndex(player => Number(player.id) === Number((this as any).player_id));
         const orderedPlayers = playerIndex > 0 ? [...players.slice(playerIndex), ...players.slice(0, playerIndex)] : players;
         return orderedPlayers;
+    }
+
+    private createPlayerPanels(gamedatas: AfterUsGamedatas) {
+
+        Object.values(gamedatas.players).forEach(player => {
+            const playerId = Number(player.id);  
+
+            let html = `
+            <div class="counters">
+                <div id="flower-counter-wrapper-${player.id}" class="counter">
+                    <div class="icon flower"></div> 
+                    <span id="flower-counter-${player.id}"></span>
+                </div>
+                <div id="fruit-counter-wrapper-${player.id}" class="counter">
+                    <div class="icon fruit"></div> 
+                    <span id="fruit-counter-${player.id}"></span>
+                </div>
+                <div id="grain-counter-wrapper-${player.id}" class="counter">
+                    <div class="icon grain"></div> 
+                    <span id="grain-counter-${player.id}"></span>
+                </div>
+                <div id="energy-counter-wrapper-${player.id}" class="counter">
+                    <div class="icon energy"></div> 
+                    <span id="energy-counter-${player.id}"></span>
+                </div>
+            </div>
+            <div class="counters">
+                <div id="rage-counter-wrapper-${player.id}" class="counter">
+                    <div class="icon rage"></div> 
+                    <span id="rage-counter-${player.id}"></span>
+                </div>
+            </div>`;
+            dojo.place(html, `player_board_${player.id}`);
+
+            (this as any).addTooltipHtml(`flower-counter-wrapper-${player.id}`, _("Flowers"));
+            (this as any).addTooltipHtml(`fruit-counter-wrapper-${player.id}`, _("Fruits"));
+            (this as any).addTooltipHtml(`grain-counter-wrapper-${player.id}`, _("Grains"));
+            (this as any).addTooltipHtml(`energy-counter-wrapper-${player.id}`, _("Energy"));
+            (this as any).addTooltipHtml(`rage-counter-wrapper-${player.id}`, _("Rage"));
+
+            const flowerCounter = new ebg.counter();
+            flowerCounter.create(`flower-counter-${player.id}`);
+            flowerCounter.setValue(player.flower);
+            this.flowerCounters[playerId] = flowerCounter;
+
+            const fruitCounter = new ebg.counter();
+            fruitCounter.create(`fruit-counter-${player.id}`);
+            fruitCounter.setValue(player.fruit);
+            this.fruitCounters[playerId] = fruitCounter;
+
+            const grainCounter = new ebg.counter();
+            grainCounter.create(`grain-counter-${player.id}`);
+            grainCounter.setValue(player.grain);
+            this.grainCounters[playerId] = grainCounter;
+
+            const energyCounter = new ebg.counter();
+            energyCounter.create(`energy-counter-${player.id}`);
+            energyCounter.setValue(player.energy);
+            this.energyCounters[playerId] = energyCounter;
+
+            const rageCounter = new ebg.counter();
+            rageCounter.create(`rage-counter-${player.id}`);
+            rageCounter.setValue(player.rage);
+            this.rageCounters[playerId] = rageCounter;
+        });
     }
 
     private createPlayerTables(gamedatas: AfterUsGamedatas) {

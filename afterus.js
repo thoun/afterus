@@ -1430,8 +1430,11 @@ var LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
 var AfterUs = /** @class */ (function () {
     function AfterUs() {
         this.playersTables = [];
-        this.handCounters = [];
-        this.scoredCounters = [];
+        this.flowerCounters = [];
+        this.fruitCounters = [];
+        this.grainCounters = [];
+        this.energyCounters = [];
+        this.rageCounters = [];
         this.TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
     }
     /*
@@ -1453,6 +1456,7 @@ var AfterUs = /** @class */ (function () {
         this.cardsManager = new CardsManager(this);
         this.animationManager = new AnimationManager(this);
         this.tableCenter = new TableCenter(this, gamedatas);
+        this.createPlayerPanels(gamedatas);
         this.createPlayerTables(gamedatas);
         this.zoomManager = new ZoomManager({
             element: document.getElementById('table'),
@@ -1548,6 +1552,39 @@ var AfterUs = /** @class */ (function () {
         var playerIndex = players.findIndex(function (player) { return Number(player.id) === Number(_this.player_id); });
         var orderedPlayers = playerIndex > 0 ? __spreadArray(__spreadArray([], players.slice(playerIndex), true), players.slice(0, playerIndex), true) : players;
         return orderedPlayers;
+    };
+    AfterUs.prototype.createPlayerPanels = function (gamedatas) {
+        var _this = this;
+        Object.values(gamedatas.players).forEach(function (player) {
+            var playerId = Number(player.id);
+            var html = "\n            <div class=\"counters\">\n                <div id=\"flower-counter-wrapper-".concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon flower\"></div> \n                    <span id=\"flower-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"fruit-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon fruit\"></div> \n                    <span id=\"fruit-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"grain-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon grain\"></div> \n                    <span id=\"grain-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"energy-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon energy\"></div> \n                    <span id=\"energy-counter-").concat(player.id, "\"></span>\n                </div>\n            </div>\n            <div class=\"counters\">\n                <div id=\"rage-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon rage\"></div> \n                    <span id=\"rage-counter-").concat(player.id, "\"></span>\n                </div>\n            </div>");
+            dojo.place(html, "player_board_".concat(player.id));
+            _this.addTooltipHtml("flower-counter-wrapper-".concat(player.id), _("Flowers"));
+            _this.addTooltipHtml("fruit-counter-wrapper-".concat(player.id), _("Fruits"));
+            _this.addTooltipHtml("grain-counter-wrapper-".concat(player.id), _("Grains"));
+            _this.addTooltipHtml("energy-counter-wrapper-".concat(player.id), _("Energy"));
+            _this.addTooltipHtml("rage-counter-wrapper-".concat(player.id), _("Rage"));
+            var flowerCounter = new ebg.counter();
+            flowerCounter.create("flower-counter-".concat(player.id));
+            flowerCounter.setValue(player.flower);
+            _this.flowerCounters[playerId] = flowerCounter;
+            var fruitCounter = new ebg.counter();
+            fruitCounter.create("fruit-counter-".concat(player.id));
+            fruitCounter.setValue(player.fruit);
+            _this.fruitCounters[playerId] = fruitCounter;
+            var grainCounter = new ebg.counter();
+            grainCounter.create("grain-counter-".concat(player.id));
+            grainCounter.setValue(player.grain);
+            _this.grainCounters[playerId] = grainCounter;
+            var energyCounter = new ebg.counter();
+            energyCounter.create("energy-counter-".concat(player.id));
+            energyCounter.setValue(player.energy);
+            _this.energyCounters[playerId] = energyCounter;
+            var rageCounter = new ebg.counter();
+            rageCounter.create("rage-counter-".concat(player.id));
+            rageCounter.setValue(player.rage);
+            _this.rageCounters[playerId] = rageCounter;
+        });
     };
     AfterUs.prototype.createPlayerTables = function (gamedatas) {
         var _this = this;

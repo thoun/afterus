@@ -52,35 +52,37 @@ html, .mode_3d #game_play_area_background {
   }
 }
 
+
+
+.icon {
+  display: inline-block;
+  position: relative;
+  width: 32px;
+  height: 32px;
+  background-image: url('img/resources.png');
+  background-size: auto 100%;
+
+  &.flower {
+    background-position: #{0 * 100% / 4} 0%;
+  }
+
+  &.fruit {
+    background-position: #{1 * 100% / 4} 0%;
+  }
+
+  &.grain {
+    background-position: #{2 * 100% / 4} 0%;
+  }
+
+  &.energy {
+    background-position: #{3 * 100% / 4} 0%;
+  }
+
+  &.rage {
+    background-position: #{4 * 100% / 4} 0%;
+  }
+}
+
 .log, .dijitTooltipContents {
-  [data-color="1"] {
-    color: #f46d33;
-  }
-  [data-color="2"] {
-    color: #ef5c93;
-  }
-  [data-color="3"] {
-    color: #0079bc;
-  }
-  [data-color="4"] {
-    color: #6ab355;
-  }
-  [data-color="5"] {
-    color: #6967af;
-  }
-
-  .points-circle {
-    color: white;
-    border-radius: 50%;
-    background: #ffbb40;
-    display: inline-block;
-    height: 16px;
-    width: 16px;
-    text-align: center;
-    font-size: 90%;
-
-    &[data-negative="true"] {
-      background: #e94422;
-    }
-  }
+  // TODO
 }

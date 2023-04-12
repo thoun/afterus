@@ -16,6 +16,11 @@ interface Card {
 interface AfterUsPlayer extends Player {
     playerNo: number;
     line: Card[];
+    flower: number;
+    fruit: number;
+    grain: number;
+    energy: number;
+    rage: number;
 }
 
 interface AfterUsGamedatas {
