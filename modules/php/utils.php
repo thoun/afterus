@@ -114,6 +114,10 @@ trait UtilTrait {
         return array_map(fn($dbCard) => new Card($dbCard, $this->CARDS), array_values($dbResults));
     }
 
+    function getCardByLocation(string $location, int $location_arg, /*int|null*/ $type = null, /*int|null*/ $number = null) {
+        return $this->getCardsByLocation($location, $location_arg, $type, $number)[0];
+    }
+
     function setupCards(array $playersIds) {
         // number cards
         $cards = [];
@@ -156,4 +160,53 @@ trait UtilTrait {
         $this->setGlobalVariable(OBJECTS, $objects);
     }
     
+    function getEffects(int $playerId) {
+        $line = $this->getCardsByLocation('line'.$playerId);
+
+        $effects = [];
+
+        for ($i = 0; $i < 3; $i++) {
+            $openedRightFrame = null;
+            $openedRightFrameCardIndex = null;
+
+            foreach ($line as $card) {
+                $cardIndex = $card->locationArg;
+
+                foreach ($card->frames[$i] as $frameIndex => $frame) {
+                    if ($frame->type === OPENED_LEFT && $openedRightFrame !== null && $openedRightFrameCardIndex !== null && $openedRightFrameCardIndex === $cardIndex - 1) {
+                        //$this->debug([$cardIndex, $openedRightFrameCardIndex, $openedRightFrame]);
+                        $effects[] = new Effect($i, $openedRightFrame->right, $frame->left, $openedRightFrame->convertSign || $frame->convertSign, $openedRightFrameCardIndex);
+                    }
+                    $openedRightFrame = null;
+
+                    if ($frame->type === CLOSED) {
+                        $effects[] = new Effect($i, $frame->left, $frame->right, $frame->convertSign, $cardIndex, $frameIndex);
+                    } else if ($frame->type === OPENED_RIGHT) {
+                        $openedRightFrame = $frame;
+                        $openedRightFrameCardIndex = $cardIndex;
+                    }
+                }
+            }
+        }
+
+        return $effects;
+    }
+
+    public function getRemainingEffects(int $playerId, array $allEffects) {
+        $appliedEffects = [];
+        $json_obj = $this->getUniqueValueFromDB("SELECT `applied_effects` FROM `player` WHERE `player_id` = $playerId");
+        if ($json_obj) {
+            $appliedEffects = json_decode($json_obj, true);
+        }
+
+        $remainingEffects = $allEffects;
+        foreach($appliedEffects as $effect) {
+            // TODO
+            $index = $this->array_findIndex($remainingEffects, fn($remainingEffect) => $remainingEffect[0] == $effect[0] && $remainingEffect[1] == $effect[1]);
+            unset($remainingEffects[$index]); 
+            $remainingEffects = array_values($remainingEffects);
+        }
+
+        return $remainingEffects;
+    }
 }

@@ -80,8 +80,11 @@ class AfterUs implements AfterUsGame {
         log('Entering state: ' + stateName, args.args);
 
         switch (stateName) {
-            case 'chooseCard':
-                this.getCurrentPlayerTable()?.setSelectable(true);
+            case 'orderCards':
+                this.getCurrentPlayerTable()?.setMovable(true);
+                break;
+            case 'activateEffect':
+                this.getCurrentPlayerTable()?.setActivableEffect(args.args.currentEffect);
                 break;
         }
     }
@@ -90,8 +93,8 @@ class AfterUs implements AfterUsGame {
         log( 'Leaving state: '+stateName );
 
         switch (stateName) {
-           case 'chooseCard':
-                this.getCurrentPlayerTable()?.setSelectable(false);
+           case 'orderCards':
+                this.getCurrentPlayerTable()?.setMovable(false);
                 break;
         }
     }
@@ -100,10 +103,10 @@ class AfterUs implements AfterUsGame {
     //                        action status bar (ie: the HTML links in the status bar).
     //
     public onUpdateActionButtons(stateName: string, args: any) {
-        if (stateName === 'chooseCard') {
-            if (!(this as any).isCurrentPlayerActive() && Object.keys(this.gamedatas.players).includes(''+this.getPlayerId())) { // ignore spectators
-                (this as any).addActionButton(`cancelChooseSecretMissions-button`, _("I changed my mind"), () => this.cancelChooseCard(), null, null, 'gray');
-            }
+        switch (stateName) {
+            case 'orderCards':
+                (this as any).addActionButton(`validateCardOrder-button`, _("Validate card order"), () => this.validateCardOrder());
+                 break;
         }
     }
 
@@ -243,34 +246,31 @@ class AfterUs implements AfterUsGame {
     }
 
     private createPlayerTable(gamedatas: AfterUsGamedatas, playerId: number) {
-        const table = new PlayerTable(this, gamedatas.players[playerId], gamedatas.costs);
+        const table = new PlayerTable(this, gamedatas.players[playerId]);
         this.playersTables.push(table);
     }
 
     private setScore(playerId: number, score: number) {
         (this as any).scoreCtrl[playerId]?.toValue(score);
     }
-
-    public onHandCardClick(card: Card): void {
-        this.chooseCard(card.id);
-    }
   	
-    public chooseCard(id: number) {
-        /*if(!(this as any).checkAction('chooseCard')) {
+    public moveCard(index: number, direction: number) {
+        if(!(this as any).checkAction('moveCard')) {
             return;
-        }*/
+        }
 
-        this.takeAction('chooseCard', {
-            id
+        this.takeAction('moveCard', {
+            index, 
+            direction: direction < 0,
         });
     }
   	
-    public cancelChooseCard() {
-        /*if(!(this as any).checkAction('cancelChooseCard')) {
+    public validateCardOrder() {
+        if(!(this as any).checkAction('validateCardOrder')) {
             return;
-        }*/
+        }
 
-        this.takeAction('cancelChooseCard');
+        this.takeAction('validateCardOrder');
     }
 
     public takeAction(action: string, data?: any) {
@@ -296,7 +296,7 @@ class AfterUs implements AfterUsGame {
 
         const notifs = [
             ['newRound', 1],
-            ['selectedCard', 1],
+            ['switchedCards', 1],
             ['delayBeforeReveal', ANIMATION_MS],
             ['revealCards', ANIMATION_MS * 2],
             ['placeCardUnder', ANIMATION_MS],
@@ -317,19 +317,8 @@ class AfterUs implements AfterUsGame {
         this.playersTables.forEach(table => table.newRound(notif.args.costs));
     }
 
-    notif_selectedCard(notif: Notif<NotifSelectedCardArgs>) {
-        const currentPlayer = this.getPlayerId() == notif.args.playerId;
-        if (notif.args.card.number || !currentPlayer) {
-            if (notif.args.cancel) {
-                if (currentPlayer) {
-                    this.getCurrentPlayerTable().hand.addCard(notif.args.card);
-                } else {
-                    this.tableCenter.cancelPlacedCard(notif.args.card);
-                }
-            } else {
-                this.tableCenter.setPlacedCard(notif.args.card, currentPlayer);
-            }
-        }
+    notif_switchedCards(notif: Notif<NotifSwitchedCardsArgs>) {
+        this.getPlayerTable(notif.args.playerId).switchCards([notif.args.card, notif.args.otherCard]);
     }
 
     notif_delayBeforeReveal() {}

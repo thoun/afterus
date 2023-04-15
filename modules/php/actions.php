@@ -13,31 +13,43 @@ trait ActionTrait {
 
     
 
-    public function chooseCard(int $id) {
-        //self::checkAction('chooseCard');
+    public function moveCard(int $index, int $direction /* -1 | 1 */) {
+        self::checkAction('moveCard');
 
         $playerId = intval($this->getCurrentPlayerId());
 
-        $playerHand = $this->getCardsByLocation('hand', $playerId);
+        $location = 'line'.$playerId;
+        $line = $this->getCardsByLocation($location);
 
-        if (!$this->array_some($playerHand, fn($card) => $card->id == $id)) {
-            throw new BgaUserException("You must choose a card in your hand");
+        $otherCardIndex = $index + $direction;
+        if ($otherCardIndex < 0) {
+            $otherCardIndex = count($line) - 1;
+        } else if ($otherCardIndex >= count($line)) {
+            $otherCardIndex = 0;
         }
 
-        if ($this->getPlayerSelectedCard($playerId) !== null) {
-            $this->setPlayerSelectedCard($playerId, null);
-        }
+        $card = $this->getCardByLocation($location, $index);
+        $otherCard = $this->getCardByLocation($location, $otherCardIndex);
 
-        $this->setPlayerSelectedCard($playerId, $id);
+        $this->cards->moveCard($card->id, $location, $otherCardIndex);
+        $this->cards->moveCard($otherCard->id, $location, $index);
+        $card->locationArg = $otherCardIndex;
+        $otherCard->locationArg = $index;
 
-        $this->gamestate->setPlayerNonMultiactive($playerId, 'end');
+        self::notifyAllPlayers('switchedCards', '', [
+            'playerId' => $playerId,
+            'index' => $index,
+            'otherCardIndex' => $otherCardIndex,
+            'card' => $card,
+            'otherCard' => $otherCard,
+        ]);
     }
 
-    public function cancelChooseCard() {
+    public function validateCardOrder() {
+        self::checkAction('validateCardOrder');
+
         $playerId = intval($this->getCurrentPlayerId());
 
-        $this->setPlayerSelectedCard($playerId, null);
-
-        $this->gamestate->setPlayersMultiactive([$playerId], 'end', false);
+        $this->gamestate->nextPrivateState($playerId, 'next');
     }
 }

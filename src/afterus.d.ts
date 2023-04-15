@@ -2,6 +2,19 @@
  * Your game interfaces
  */
 
+interface Frame {
+    type: number;
+    left: number[][];
+    right: number[][];
+    convertSign: boolean;
+}
+
+interface Effect extends Frame {
+    row: number;
+    cardIndex: number;
+    closedFrameIndex: number | null;
+}
+
 interface Card {
     id: number;
     location: string;
@@ -11,6 +24,7 @@ interface Card {
     level: number; // 0: base monkey, else 1-2
     subType: number;
     number: number;
+    frames: Frame[][];
 }
 
 interface AfterUsPlayer extends Player {
@@ -36,9 +50,7 @@ interface AfterUsGamedatas {
     tablespeed: string;
 
     // Add here variables you set up in getAllDatas
-    selected: Card[];
-    table: Card[];
-    costs: number[];
+    table: { [type: number]: number };
     objects: number[];
 }
 
@@ -50,7 +62,7 @@ interface AfterUsGame extends Game {
     getPlayerColor(playerId: number): string;
 
     setTooltip(id: string, html: string): void;
-    onHandCardClick(card: Card): void;
+    moveCard(index: number, direction: number): any;
 }
 
 interface EnteringChooseMarketCardArgs {
@@ -76,11 +88,13 @@ interface NotifNewRoundArgs {
     costs: number[];
 }
 
-// selectedCard
-interface NotifSelectedCardArgs {
+// switchedCards
+interface NotifSwitchedCardsArgs {
     playerId: number;
     card: Card;
-    cancel: boolean;
+    otherCard: Card;
+    index: number;
+    otherCardIndex: number;
 } 
 
 // revealCards

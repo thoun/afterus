@@ -37,21 +37,22 @@
             $this->view = "afterus_afterus";
             self::trace( "Complete reinitialization of board game" );
       }
-  	} 
+  	}
 
-    public function chooseCard() {
+    public function moveCard() {
         self::setAjaxMode();     
 
-        $id = self::getArg("id", AT_posint, true);
-        $this->game->chooseCard($id);
+        $index = self::getArg("index", AT_posint, true);
+        $backwards = self::getArg("direction", AT_bool, true);
+        $this->game->moveCard($index, $backwards ? -1 : 1);
 
         self::ajaxResponse();
     }
 
-    public function cancelChooseCard() {
+    public function validateCardOrder() {
         self::setAjaxMode();     
 
-        $this->game->cancelChooseCard();
+        $this->game->validateCardOrder();
 
         self::ajaxResponse();
     }

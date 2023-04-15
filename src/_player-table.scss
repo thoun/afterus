@@ -5,14 +5,8 @@
   margin: 10px;
 
   .background {
-    position: relative;
-    //top: 43px; // height: 
+    position: relative; 
     height: 180px;
-    //bottom: 0;
-    left: 0;
-    right: 0;
-    border-radius: 10px;
-    box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.5);
 
     &[data-color="f28700"] {
       background-image: url('img/playerboard-day.jpg');
@@ -28,18 +22,48 @@
 
   .name-wrapper {
     color: var(--player-color);
-    position: relative;
-    display: flex;
-    background: #FFFFFF88;
-    padding: 5px;
-    //border-radius: 15px 15px 0 0;
-    border-radius: 15px;
-    justify-content: center;
-    align-items: center;
-    font-size: 20pt;
+    position: absolute;
+    font-size: 18pt;
+    top: 88px;
+    left: 157px;
+    text-align: center;
+    width: 177px;
+    text-shadow: 0 0 1px white, 0 0 2px white;
   }
 
   .slot {
     position: relative;
+
+    button.move {
+      display: none;
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      z-index: 120;
+      transform-origin: center center;
+      background-color: white;
+      background-image: url('img/right-arrow.svg');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 60%;
+      box-shadow: 0 0 5px 2px #00000088;
+      cursor: pointer;
+      top: 42px;
+
+      &.left {
+        left: 5px;
+        transform: rotate(180deg);
+      }
+      &.right {
+        right: 5px;
+      }
+    }
+  }
+
+  &.move-phase {
+    button.move {
+      display: block;
+    }
   }
 }

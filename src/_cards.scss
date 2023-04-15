@@ -66,6 +66,44 @@
                         }
                     }
                 }
+
+                .frame {
+                    border: 3px dashed blue;
+                    position: absolute;
+                    width: 40px;
+                    height: 23px;
+
+                    &[data-position-index="0"] {
+                        left: 0;
+                    }
+                    &[data-position-index="1"] {
+                        left: 45px;
+                    }
+                    &[data-position-index="2"] {
+                        right: 0;
+                    }
+
+                    &[data-row="0"] {
+                        top: 92px;
+                    }
+                    &[data-row="1"] {
+                        top: 126px;
+                    }
+                    &[data-row="2"] {
+                        top: 160px;
+                    }
+
+                    &.current {
+                        border-color: lightgreen;
+                    }
+
+                    &.opened-right {
+                        border-right-width: 0;
+                    }
+                    &.opened-left {
+                        border-left-width: 0;
+                    }
+                }
             }
         }
     }    
@@ -91,7 +129,7 @@
 
     &.object {
         border-radius: 14px;
-        
+
         .card-sides {
             .card-side {
                 border-radius: 14px;

@@ -7,7 +7,7 @@ class PlayerTable {
 
     private currentPlayer: boolean;
 
-    constructor(private game: AfterUsGame, player: AfterUsPlayer, costs: number[]) {
+    constructor(private game: AfterUsGame, player: AfterUsPlayer) {
         this.playerId = Number(player.id);
         this.currentPlayer = this.playerId == this.game.getPlayerId();
 
@@ -31,47 +31,55 @@ class PlayerTable {
         `;
         dojo.place(html, document.getElementById('tables'));
 
-        /*if (this.currentPlayer) {*/
-            const handDiv = document.getElementById(`player-table-${this.playerId}-line`);
-            this.line = new SlotStock<Card>(this.game.cardsManager, handDiv, {
-                gap: '0',
-                slotsIds: [0, 1, 2, 3],
-                mapCardToSlot: card => card.locationArg,
-            });
-            this.line.onCardClick = (card: Card) => {
+        const handDiv = document.getElementById(`player-table-${this.playerId}-line`);
+        this.line = new SlotStock<Card>(this.game.cardsManager, handDiv, {
+            gap: '0',
+            slotsIds: [0, 1, 2, 3],
+            mapCardToSlot: card => card.locationArg,
+        });
+           
+        if (this.currentPlayer) {
+            /*this.line.onCardClick = (card: Card) => {
                 if (handDiv.classList.contains('selectable')) {
                     this.game.onHandCardClick(card);
                     this.line.getCards().forEach(c => this.line.getCardElement(c).classList.toggle('selected', c.id == card.id));
                 }
             }
+            */
+            handDiv.querySelectorAll('[data-slot-id]').forEach((slot, index) => {
+                slot.insertAdjacentHTML('afterbegin', `
+                    <button id="move-left-${index}" class="move left"></button>
+                    <button id="move-right-${index}" class="move right"></button>
+                `);
+
+                document.getElementById(`move-left-${index}`).addEventListener('click', () => this.game.moveCard(index, -1));
+                document.getElementById(`move-right-${index}`).addEventListener('click', () => this.game.moveCard(index, 1));
+            });
             
             this.line.addCards(player.line);
-        /*}*/
-    } 
-    
-    public setSelectable(selectable: boolean) {
-        document.getElementById(`player-table-${this.playerId}-hand`).classList.toggle('selectable', selectable);
-    }
-
-    public newRound(costs: number[]): void {
-        for (let i=0; i<5; i++) {
-            if (this.currentPlayer) {
-                this.hand.addCards(this.scores[i].getCards());
-            } else {
-                this.scores[i].removeAll();
-            }
-        }
-
-        this.setCosts(costs);
-    }
-    
-    public setCosts(costs: number[]): void {
-        for (let i=0; i<5; i++) {
-            document.getElementById(`player-table-${this.playerId}-score${i}`).dataset.cost = ''+costs[i];
         }
     }
+
+    public setMovable(movable: boolean) {
+        document.getElementById(`player-table-${this.playerId}`).classList.toggle('move-phase', movable);
+    }
     
-    public placeScoreCard(card: Card) {
-        this.scores[card.locationArg].addCard(card);
+    public switchCards(switchedCards: Card[]) {
+        switchedCards.forEach(card => this.line.addCard(card));
+    }
+    
+    public setActivableEffect(effect: Effect) {
+        // unset last current effect
+        document.getElementById(`player-table-${this.playerId}-line`).querySelectorAll('.frame.current').forEach(element => element.classList.remove('current'));
+
+        const fromClosedFrame = effect.closedFrameIndex !== null && effect.closedFrameIndex !== undefined;
+        const lineCards = this.line.getCards();
+        const card = lineCards.find(card => card.locationArg == effect.cardIndex);
+
+        this.line.getCardElement(card).querySelector(`.frame[data-row="${effect.row}"][data-index="${fromClosedFrame ? effect.closedFrameIndex : card.frames[effect.row].length - 1}"]`).classList.add('current');
+        if (!fromClosedFrame) {
+            const rightCard = lineCards.find(card => card.locationArg == effect.cardIndex + 1);
+            this.line.getCardElement(rightCard).querySelector(`.frame[data-row="${effect.row}"][data-index="0"]`).classList.add('current');
+        }
     }
 }

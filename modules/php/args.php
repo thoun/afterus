@@ -12,19 +12,13 @@ trait ArgsTrait {
         game state.
     */
    
-    function argOrderCards() {
-        /*$playersIds = $this->getPlayersIds();
-        
-        $private = [];
-
-        foreach($playersIds as $playerId) {
-            $private[$playerId] = [
-                'cards' => $this->getCardsByLocation('hand', $playerId),
-            ];
-        }*/
+    function argActivateEffect(int $playerId) {
+        $effects = $this->getEffects($playerId);
+        //$remainingEffects = $this->getRemainingEffects($playerId, $effects);
 
         return [
-            //'_private' => $private,
+            'effects' => $effects,
+            'currentEffect' => $effects[1],
         ];
     }
 } 

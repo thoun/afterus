@@ -74,7 +74,7 @@ $playerActionsGameStates = [
 
     ST_MULTIPLAYER_PHASE1 => [
         "name" => "phase1",
-        "description" => clienttranslate('Players must TODO'),
+        "description" => clienttranslate('Phase 1 : Players must order their cards'),
         "descriptionmyturn" => '',
         "type" => "multipleactiveplayer",
         "initialprivate" => ST_PRIVATE_ORDER_CARDS,
@@ -87,9 +87,9 @@ $playerActionsGameStates = [
 
     ST_PRIVATE_ORDER_CARDS => [
         "name" => "orderCards",
-        "descriptionmyturn" => clienttranslate('${you} must order the picked cards'),
+        "descriptionmyturn" => clienttranslate('Phase 1 : ${you} must order the picked cards'),
         "type" => "private",
-        "args" => "argOrderCards",
+        //"args" => "argOrderCards",
         "possibleactions" => [ "moveCard", "validateCardOrder" ],
         "transitions" => [
           'next' => ST_PRIVATE_ACTIVATE_EFFECT,
@@ -98,7 +98,7 @@ $playerActionsGameStates = [
 
     ST_PRIVATE_ACTIVATE_EFFECT => [
         "name" => "activateEffect",
-        "descriptionmyturn" => clienttranslate('${you} can activate an effect'),
+        "descriptionmyturn" => clienttranslate('Phase 1 : ${you} can activate an effect'),
         "type" => "private",
         "args" => "argActivateEffect",
         "possibleactions" => [ "activate", "cancelLastMove", "cancelResolutions", "cancelAll" ],
@@ -110,7 +110,7 @@ $playerActionsGameStates = [
     ST_MULTIPLAYER_CHOOSE_TOKEN => [
         "name" => "chooseToken",
         "description" => clienttranslate('Waiting for other players'),
-        "descriptionmyturn" => clienttranslate('${you} must choose a token'),
+        "descriptionmyturn" => clienttranslate('Phase 2 : ${you} must choose a token'),
         "type" => "multipleactiveplayer",
         "action" => "stChooseToken",
         "args" => "argChooseToken",
@@ -125,7 +125,7 @@ $playerActionsGameStates = [
 
     ST_MULTIPLAYER_PHASE2 => [ // TODO allow copy/apply effect in any order, then copy/recruit
         "name" => "phase2",
-        "description" => clienttranslate('Waiting for other players'),
+        "description" => clienttranslate('Phase 2 : Waiting for other players'),
         "descriptionmyturn" => '',
         "type" => "multipleactiveplayer",
         "initialprivate" => ST_PRIVATE_ACTIVATE_EFFECT,
@@ -156,7 +156,8 @@ $gameGameStates = [
         "action" => "stEndPhase1",
         "updateGameProgression" => true,
         "transitions" => [
-            "next" => ST_MULTIPLAYER_CHOOSE_TOKEN,
+            //"next" => ST_MULTIPLAYER_CHOOSE_TOKEN,
+            "next" => ST_END_ROUND, // TODO TEMP
             "endGame" => ST_END_SCORE
         ],
     ],

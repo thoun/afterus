@@ -6,7 +6,6 @@ class AfterUsPlayer {
     public string $color;
     public int $no;
     public int $score;
-    public /*int|null*/ $selectedCard;
 
     public function __construct($dbPlayer) {
         $this->id = intval($dbPlayer['player_id']);

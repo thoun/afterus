@@ -34,6 +34,19 @@ class RightFrame extends Frame {
     } 
 }
 
+class Effect extends Frame {
+    public int $row;
+    public int $cardIndex;
+    public /*int | null*/ $closedFrameIndex = null;
+
+    public function __construct(int $row, array $left = [], array $right = [], bool $convertSign, int $cardIndex, $closedFrameIndex = null) {
+        parent::__construct(CLOSED, $left, $right, $convertSign);
+        $this->row = $row;
+        $this->cardIndex = $cardIndex;
+        $this->closedFrameIndex = $closedFrameIndex;
+    } 
+}
+
 class CardType {
     public int $number;
     public array $rageGain; // [quantity, type]

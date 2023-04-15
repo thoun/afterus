@@ -25,11 +25,9 @@ class ObjectsManager extends CardManager<number> {
             case 7: message = _("(+2) if no colour is on the right of the green column."); break;
         }
 
-        message = message.replaceAll(/\(([+-]?\d)\)/g, (a, b) => { console.log(a, b); 
+        /*message = message.replaceAll(/\(([+-]?\d)\)/g, (a, b) => { console.log(a, b); 
             return `<div class="points-circle" data-negative="${Number(b) < 0}">${b}</div>`; 
-        });
-        //points-circle
-        console.log(message);
+        });*/
 
         return message;
         

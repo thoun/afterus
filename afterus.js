@@ -1206,6 +1206,9 @@ var CardManager = /** @class */ (function () {
     };
     return CardManager;
 }());
+var OPENED_LEFT = 1;
+var CLOSED = 2;
+var OPENED_RIGHT = 3;
 var CardsManager = /** @class */ (function (_super) {
     __extends(CardsManager, _super);
     function CardsManager(game) {
@@ -1217,12 +1220,31 @@ var CardsManager = /** @class */ (function (_super) {
             setupFrontDiv: function (card, div) {
                 div.dataset.type = '' + card.type;
                 div.dataset.subType = '' + card.subType;
-                div.dataset.playerColor = '' + game.getPlayerColor(card.playerId);
+                if (card.playerId) {
+                    div.dataset.playerColor = '' + game.getPlayerColor(card.playerId);
+                }
+                if (card.frames) {
+                    _this.createFrames(div, card.frames);
+                }
             },
         }) || this;
         _this.game = game;
         return _this;
     }
+    CardsManager.prototype.createFrame = function (div, frame, row, index, positionIndex) {
+        div.insertAdjacentHTML('beforeend', "\n        <div class=\"frame ".concat(frame.type == OPENED_LEFT ? 'opened-left' : (frame.type == OPENED_RIGHT ? 'opened-right' : ''), "\" data-row=\"").concat(row, "\" data-index=\"").concat(index, "\" data-position-index=\"").concat(positionIndex, "\" data-left=\"").concat(JSON.stringify(frame.left), "\" data-right=\"").concat(JSON.stringify(frame.right), "\" data-convert-sign=\"").concat(JSON.stringify(frame.convertSign), "\"></div>\n        "));
+    };
+    CardsManager.prototype.createFrames = function (div, frames) {
+        var _this = this;
+        var _loop_2 = function (row) {
+            frames[row].forEach(function (frame, index) {
+                return _this.createFrame(div, frame, row, index, frame.type == OPENED_RIGHT ? 2 : (frame.type == CLOSED && frames[row].length == 1 ? 1 : index));
+            });
+        };
+        for (var row = 0; row < 3; row++) {
+            _loop_2(row);
+        }
+    };
     return CardsManager;
 }(CardManager));
 var ObjectsManager = /** @class */ (function (_super) {
@@ -1266,84 +1288,43 @@ var ObjectsManager = /** @class */ (function (_super) {
                 message = _("(+2) if no colour is on the right of the green column.");
                 break;
         }
-        message = message.replaceAll(/\(([+-]?\d)\)/g, function (a, b) {
-            console.log(a, b);
-            return "<div class=\"points-circle\" data-negative=\"".concat(Number(b) < 0, "\">").concat(b, "</div>");
-        });
-        //points-circle
-        console.log(message);
+        /*message = message.replaceAll(/\(([+-]?\d)\)/g, (a, b) => { console.log(a, b);
+            return `<div class="points-circle" data-negative="${Number(b) < 0}">${b}</div>`;
+        });*/
         return message;
     };
     return ObjectsManager;
 }(CardManager));
 var TableCenter = /** @class */ (function () {
     function TableCenter(game, gamedatas) {
+        var _this = this;
         this.game = game;
-        /*const playersIds = (gamedatas.playerorder.length > 1 ? gamedatas.playerorder : Object.keys(gamedatas.players)).map(key => Number(key));
-        const playerCount = playersIds.length;
-
-        const slotSettings: SlotStockSettings<Card> = {
-            wrap: 'nowrap',
-            slotsIds: [],
-            mapCardToSlot: card => card.locationArg,
-        };
-        for (let i=0; i<playerCount; i++) {
-            slotSettings.slotsIds.push(i);
-        }
-
-        const playerCardsDiv = document.getElementById(`player-cards`);
-        this.playerCards = new SlotStock<Card>(this.game.cardsManager, playerCardsDiv, {
-            wrap: 'nowrap',
-            slotsIds: playersIds,
-            mapCardToSlot: card => card.locationArg,
+        this.playerCards = [];
+        [1, 2, 3, 4].forEach(function (monkeyType) {
+            return [1, 2].forEach(function (level) {
+                var type = monkeyType * 10 + level;
+                var count = gamedatas.table[type];
+                var block = document.createElement('div');
+                block.classList.add('player-block');
+                document.getElementById('center-board').insertAdjacentHTML('beforeend', "\n                    <div id=\"hidden-deck-".concat(type, "\" data-type=\"").concat(monkeyType, "\" data-level=\"").concat(level, "\"></div>\n                "));
+                _this.playerCards[type] = new HiddenDeck(_this.game.cardsManager, document.getElementById("hidden-deck-".concat(type)), {
+                    cardNumber: count,
+                    width: 142,
+                    height: 198,
+                });
+            });
         });
-        this.tableOver = new SlotStock<Card>(this.game.cardsManager, document.getElementById(`table-over`), slotSettings);
-        this.tableUnder = new SlotStock<Card>(this.game.cardsManager, document.getElementById(`table-under`), slotSettings);
-
-        gamedatas.selected.forEach(card => this.playerCards.addCard(card, undefined, { visible: !!card.number }));
-        this.tableOver.addCards(gamedatas.table);
-
-        playersIds.forEach(playerId => playerCardsDiv.querySelector(`[data-slot-id="${playerId}"]`).appendChild(this.createPlayerBlock(playerId)));
-*/
         this.objectsManager = new ObjectsManager(this.game);
         this.objects = new LineStock(this.objectsManager, document.getElementById("objects"));
         this.objects.addCards(gamedatas.objects);
     }
-    TableCenter.prototype.createPlayerBlock = function (playerId) {
-        var player = this.game.getPlayer(playerId);
-        var block = document.createElement('div');
-        block.classList.add('player-block');
-        var url = document.getElementById("avatar_".concat(playerId)).src;
-        // ? Custom image : Bga Image
-        //url = url.replace('_32', url.indexOf('data/avatar/defaults') > 0 ? '' : '_184');
-        block.innerHTML = "\n            <div class=\"player-block-avatar\" style=\"background-image: url('".concat(url, "');\"></div>\n            <div class=\"player-block-name\" style=\"color: #").concat(player.color, "\">").concat(player.name, "</div>\n        ");
-        return block;
-    };
-    TableCenter.prototype.setPlacedCard = function (card, currentPlayer) {
-        this.playerCards.addCard(card, currentPlayer ? undefined : { fromElement: document.getElementById("player-table-".concat(card.locationArg)) }, { visible: !!card.number });
-    };
-    TableCenter.prototype.cancelPlacedCard = function (card) {
-        this.playerCards.removeCard(card);
-    };
-    TableCenter.prototype.revealCards = function (cards) {
-        var _this = this;
-        cards.forEach(function (card) { return _this.playerCards.setCardVisible(card, true); });
-    };
-    TableCenter.prototype.placeCardUnder = function (playerId, card) {
-        this.tableUnder.addCard(card);
-        document.getElementById("table-under").querySelector("[data-slot-id=\"".concat(card.locationArg, "\"]")).appendChild(this.createPlayerBlock(playerId));
-    };
-    TableCenter.prototype.moveTableLine = function () {
-        this.tableOver.addCards(this.tableUnder.getCards());
-        Array.from(document.querySelectorAll("#table-under .player-block")).forEach(function (elem) { return elem.remove(); });
-    };
     return TableCenter;
 }());
 var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
 ;
 var log = isDebug ? console.log.bind(window.console) : function () { };
 var PlayerTable = /** @class */ (function () {
-    function PlayerTable(game, player, costs) {
+    function PlayerTable(game, player) {
         var _this = this;
         this.game = game;
         this.playerId = Number(player.id);
@@ -1358,43 +1339,46 @@ var PlayerTable = /** @class */ (function () {
         }*/
         html += "\n        <div id=\"player-table-".concat(this.playerId, "-line\"></div>\n        </div>\n        ");
         dojo.place(html, document.getElementById('tables'));
-        /*if (this.currentPlayer) {*/
         var handDiv = document.getElementById("player-table-".concat(this.playerId, "-line"));
         this.line = new SlotStock(this.game.cardsManager, handDiv, {
             gap: '0',
             slotsIds: [0, 1, 2, 3],
             mapCardToSlot: function (card) { return card.locationArg; },
         });
-        this.line.onCardClick = function (card) {
-            if (handDiv.classList.contains('selectable')) {
-                _this.game.onHandCardClick(card);
-                _this.line.getCards().forEach(function (c) { return _this.line.getCardElement(c).classList.toggle('selected', c.id == card.id); });
+        if (this.currentPlayer) {
+            /*this.line.onCardClick = (card: Card) => {
+                if (handDiv.classList.contains('selectable')) {
+                    this.game.onHandCardClick(card);
+                    this.line.getCards().forEach(c => this.line.getCardElement(c).classList.toggle('selected', c.id == card.id));
+                }
             }
-        };
-        this.line.addCards(player.line);
-        /*}*/
+            */
+            handDiv.querySelectorAll('[data-slot-id]').forEach(function (slot, index) {
+                slot.insertAdjacentHTML('afterbegin', "\n                    <button id=\"move-left-".concat(index, "\" class=\"move left\"></button>\n                    <button id=\"move-right-").concat(index, "\" class=\"move right\"></button>\n                "));
+                document.getElementById("move-left-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, -1); });
+                document.getElementById("move-right-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, 1); });
+            });
+            this.line.addCards(player.line);
+        }
     }
-    PlayerTable.prototype.setSelectable = function (selectable) {
-        document.getElementById("player-table-".concat(this.playerId, "-hand")).classList.toggle('selectable', selectable);
+    PlayerTable.prototype.setMovable = function (movable) {
+        document.getElementById("player-table-".concat(this.playerId)).classList.toggle('move-phase', movable);
     };
-    PlayerTable.prototype.newRound = function (costs) {
-        for (var i = 0; i < 5; i++) {
-            if (this.currentPlayer) {
-                this.hand.addCards(this.scores[i].getCards());
-            }
-            else {
-                this.scores[i].removeAll();
-            }
+    PlayerTable.prototype.switchCards = function (switchedCards) {
+        var _this = this;
+        switchedCards.forEach(function (card) { return _this.line.addCard(card); });
+    };
+    PlayerTable.prototype.setActivableEffect = function (effect) {
+        // unset last current effect
+        document.getElementById("player-table-".concat(this.playerId, "-line")).querySelectorAll('.frame.current').forEach(function (element) { return element.classList.remove('current'); });
+        var fromClosedFrame = effect.closedFrameIndex !== null && effect.closedFrameIndex !== undefined;
+        var lineCards = this.line.getCards();
+        var card = lineCards.find(function (card) { return card.locationArg == effect.cardIndex; });
+        this.line.getCardElement(card).querySelector(".frame[data-row=\"".concat(effect.row, "\"][data-index=\"").concat(fromClosedFrame ? effect.closedFrameIndex : card.frames[effect.row].length - 1, "\"]")).classList.add('current');
+        if (!fromClosedFrame) {
+            var rightCard = lineCards.find(function (card) { return card.locationArg == effect.cardIndex + 1; });
+            this.line.getCardElement(rightCard).querySelector(".frame[data-row=\"".concat(effect.row, "\"][data-index=\"0\"]")).classList.add('current');
         }
-        this.setCosts(costs);
-    };
-    PlayerTable.prototype.setCosts = function (costs) {
-        for (var i = 0; i < 5; i++) {
-            document.getElementById("player-table-".concat(this.playerId, "-score").concat(i)).dataset.cost = '' + costs[i];
-        }
-    };
-    PlayerTable.prototype.placeScoreCard = function (card) {
-        this.scores[card.locationArg].addCard(card);
     };
     return PlayerTable;
 }());
@@ -1450,11 +1434,14 @@ var AfterUs = /** @class */ (function () {
     //                  You can use this method to perform some user interface changes at this moment.
     //
     AfterUs.prototype.onEnteringState = function (stateName, args) {
-        var _a;
+        var _a, _b;
         log('Entering state: ' + stateName, args.args);
         switch (stateName) {
-            case 'chooseCard':
-                (_a = this.getCurrentPlayerTable()) === null || _a === void 0 ? void 0 : _a.setSelectable(true);
+            case 'orderCards':
+                (_a = this.getCurrentPlayerTable()) === null || _a === void 0 ? void 0 : _a.setMovable(true);
+                break;
+            case 'activateEffect':
+                (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.setActivableEffect(args.args.currentEffect);
                 break;
         }
     };
@@ -1462,8 +1449,8 @@ var AfterUs = /** @class */ (function () {
         var _a;
         log('Leaving state: ' + stateName);
         switch (stateName) {
-            case 'chooseCard':
-                (_a = this.getCurrentPlayerTable()) === null || _a === void 0 ? void 0 : _a.setSelectable(false);
+            case 'orderCards':
+                (_a = this.getCurrentPlayerTable()) === null || _a === void 0 ? void 0 : _a.setMovable(false);
                 break;
         }
     };
@@ -1472,10 +1459,10 @@ var AfterUs = /** @class */ (function () {
     //
     AfterUs.prototype.onUpdateActionButtons = function (stateName, args) {
         var _this = this;
-        if (stateName === 'chooseCard') {
-            if (!this.isCurrentPlayerActive() && Object.keys(this.gamedatas.players).includes('' + this.getPlayerId())) { // ignore spectators
-                this.addActionButton("cancelChooseSecretMissions-button", _("I changed my mind"), function () { return _this.cancelChooseCard(); }, null, null, 'gray');
-            }
+        switch (stateName) {
+            case 'orderCards':
+                this.addActionButton("validateCardOrder-button", _("Validate card order"), function () { return _this.validateCardOrder(); });
+                break;
         }
     };
     ///////////////////////////////////////////////////
@@ -1568,29 +1555,27 @@ var AfterUs = /** @class */ (function () {
         });
     };
     AfterUs.prototype.createPlayerTable = function (gamedatas, playerId) {
-        var table = new PlayerTable(this, gamedatas.players[playerId], gamedatas.costs);
+        var table = new PlayerTable(this, gamedatas.players[playerId]);
         this.playersTables.push(table);
     };
     AfterUs.prototype.setScore = function (playerId, score) {
         var _a;
         (_a = this.scoreCtrl[playerId]) === null || _a === void 0 ? void 0 : _a.toValue(score);
     };
-    AfterUs.prototype.onHandCardClick = function (card) {
-        this.chooseCard(card.id);
-    };
-    AfterUs.prototype.chooseCard = function (id) {
-        /*if(!(this as any).checkAction('chooseCard')) {
+    AfterUs.prototype.moveCard = function (index, direction) {
+        if (!this.checkAction('moveCard')) {
             return;
-        }*/
-        this.takeAction('chooseCard', {
-            id: id
+        }
+        this.takeAction('moveCard', {
+            index: index,
+            direction: direction < 0,
         });
     };
-    AfterUs.prototype.cancelChooseCard = function () {
-        /*if(!(this as any).checkAction('cancelChooseCard')) {
+    AfterUs.prototype.validateCardOrder = function () {
+        if (!this.checkAction('validateCardOrder')) {
             return;
-        }*/
-        this.takeAction('cancelChooseCard');
+        }
+        this.takeAction('validateCardOrder');
     };
     AfterUs.prototype.takeAction = function (action, data) {
         data = data || {};
@@ -1613,7 +1598,7 @@ var AfterUs = /** @class */ (function () {
         var _this = this;
         var notifs = [
             ['newRound', 1],
-            ['selectedCard', 1],
+            ['switchedCards', 1],
             ['delayBeforeReveal', ANIMATION_MS],
             ['revealCards', ANIMATION_MS * 2],
             ['placeCardUnder', ANIMATION_MS],
@@ -1631,21 +1616,8 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.notif_newRound = function (notif) {
         this.playersTables.forEach(function (table) { return table.newRound(notif.args.costs); });
     };
-    AfterUs.prototype.notif_selectedCard = function (notif) {
-        var currentPlayer = this.getPlayerId() == notif.args.playerId;
-        if (notif.args.card.number || !currentPlayer) {
-            if (notif.args.cancel) {
-                if (currentPlayer) {
-                    this.getCurrentPlayerTable().hand.addCard(notif.args.card);
-                }
-                else {
-                    this.tableCenter.cancelPlacedCard(notif.args.card);
-                }
-            }
-            else {
-                this.tableCenter.setPlacedCard(notif.args.card, currentPlayer);
-            }
-        }
+    AfterUs.prototype.notif_switchedCards = function (notif) {
+        this.getPlayerTable(notif.args.playerId).switchCards([notif.args.card, notif.args.otherCard]);
     };
     AfterUs.prototype.notif_delayBeforeReveal = function () { };
     AfterUs.prototype.notif_revealCards = function (notif) {

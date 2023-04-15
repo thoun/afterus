@@ -153,8 +153,14 @@ class AfterUs extends Table {
         /*$result['costs'] = $this->getGlobalVariable(COSTS, true);
 
         $selected = $this->getCardsByLocation('selected');
-        $result['selected'] = array_map(fn($card) => $currentPlayerId == $card->locationArg ? $card : Card::onlyId($card), $selected);
-        $result['table'] = $this->getCardsByLocation('table');*/
+        $result['selected'] = array_map(fn($card) => $currentPlayerId == $card->locationArg ? $card : Card::onlyId($card), $selected);*/
+        $table = [];
+        foreach ([ORANGUTANS, CHIMPANZEES, GORILLAS, MANDRILLS] as $monkeyType) {
+            foreach ([1, 2] as $level) {
+                $table[$monkeyType * 10 + $level] = intval($this->cards->countCardInLocation("deck-$monkeyType-$level"));
+            }
+        }
+        $result['table'] = $table;
         $result['objects'] = $this->getGlobalVariable(OBJECTS, true) ?? [];
   
         return $result;
