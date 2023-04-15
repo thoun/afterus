@@ -1232,7 +1232,7 @@ var CardsManager = /** @class */ (function (_super) {
         return _this;
     }
     CardsManager.prototype.createFrame = function (div, frame, row, index, positionIndex) {
-        div.insertAdjacentHTML('beforeend', "\n        <div class=\"frame ".concat(frame.type == OPENED_LEFT ? 'opened-left' : (frame.type == OPENED_RIGHT ? 'opened-right' : ''), "\" data-row=\"").concat(row, "\" data-index=\"").concat(index, "\" data-position-index=\"").concat(positionIndex, "\" data-left=\"").concat(JSON.stringify(frame.left), "\" data-right=\"").concat(JSON.stringify(frame.right), "\" data-convert-sign=\"").concat(JSON.stringify(frame.convertSign), "\"></div>\n        "));
+        div.insertAdjacentHTML('beforeend', "\n            <div class=\"frame ".concat(frame.type == OPENED_LEFT ? 'opened-left' : (frame.type == OPENED_RIGHT ? 'opened-right' : ''), "\" data-row=\"").concat(row, "\" data-index=\"").concat(index, "\" data-position-index=\"").concat(positionIndex, "\" data-left=\"").concat(JSON.stringify(frame.left), "\" data-right=\"").concat(JSON.stringify(frame.right), "\" data-convert-sign=\"").concat(JSON.stringify(frame.convertSign), "\"></div>\n        "));
     };
     CardsManager.prototype.createFrames = function (div, frames) {
         var _this = this;
@@ -1463,11 +1463,30 @@ var AfterUs = /** @class */ (function () {
             case 'orderCards':
                 this.addActionButton("validateCardOrder-button", _("Validate card order"), function () { return _this.validateCardOrder(); });
                 break;
+            case 'activateEffect':
+                var activateEffectArgs = args;
+                var currentEffect = activateEffectArgs.currentEffect;
+                var label = void 0;
+                if (!currentEffect.convertSign) {
+                    label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                }
+                else {
+                    label = _("Spend ${left} to gain ${right}").replace('${left}', this.getResourcesQuantityIcons(currentEffect.left)).replace('${right}', this.getResourcesQuantityIcons(currentEffect.right));
+                }
+                this.addActionButton("activateEffect-button", label, function () { return _this.activateEffect(); });
+                this.addActionButton("skipEffect-button", _("Skip"), function () { return _this.skipEffect(); });
+                break;
+            case 'confirmActivations':
+                this.addActionButton("confirmActivations-button", _("Confirm"), function () { return _this.confirmActivations(); });
+                break;
         }
     };
     ///////////////////////////////////////////////////
     //// Utility methods
     ///////////////////////////////////////////////////
+    AfterUs.prototype.getResourcesQuantityIcons = function (resources) {
+        return resources.map(function (resource) { return "".concat(resource[0], " [").concat(resource[1], "]"); }).join(' ');
+    };
     AfterUs.prototype.setTooltip = function (id, html) {
         this.addTooltipHtml(id, html, this.TOOLTIP_DELAY);
     };
@@ -1527,15 +1546,15 @@ var AfterUs = /** @class */ (function () {
             _this.addTooltipHtml("rage-counter-wrapper-".concat(player.id), _("Rage"));
             var flowerCounter = new ebg.counter();
             flowerCounter.create("flower-counter-".concat(player.id));
-            flowerCounter.setValue(player.flower);
+            flowerCounter.setValue(player.flowers);
             _this.flowerCounters[playerId] = flowerCounter;
             var fruitCounter = new ebg.counter();
             fruitCounter.create("fruit-counter-".concat(player.id));
-            fruitCounter.setValue(player.fruit);
+            fruitCounter.setValue(player.fruits);
             _this.fruitCounters[playerId] = fruitCounter;
             var grainCounter = new ebg.counter();
             grainCounter.create("grain-counter-".concat(player.id));
-            grainCounter.setValue(player.grain);
+            grainCounter.setValue(player.grains);
             _this.grainCounters[playerId] = grainCounter;
             var energyCounter = new ebg.counter();
             energyCounter.create("energy-counter-".concat(player.id));
@@ -1577,6 +1596,24 @@ var AfterUs = /** @class */ (function () {
         }
         this.takeAction('validateCardOrder');
     };
+    AfterUs.prototype.activateEffect = function () {
+        if (!this.checkAction('activateEffect')) {
+            return;
+        }
+        this.takeAction('activateEffect');
+    };
+    AfterUs.prototype.skipEffect = function () {
+        if (!this.checkAction('skipEffect')) {
+            return;
+        }
+        this.takeAction('skipEffect');
+    };
+    AfterUs.prototype.confirmActivations = function () {
+        if (!this.checkAction('confirmActivations')) {
+            return;
+        }
+        this.takeAction('confirmActivations');
+    };
     AfterUs.prototype.takeAction = function (action, data) {
         data = data || {};
         data.lock = true;
@@ -1599,14 +1636,7 @@ var AfterUs = /** @class */ (function () {
         var notifs = [
             ['newRound', 1],
             ['switchedCards', 1],
-            ['delayBeforeReveal', ANIMATION_MS],
-            ['revealCards', ANIMATION_MS * 2],
-            ['placeCardUnder', ANIMATION_MS],
-            ['delayAfterLineUnder', ANIMATION_MS * 2],
-            ['scoreCard', ANIMATION_MS * 2],
-            ['moveTableLine', ANIMATION_MS],
-            ['delayBeforeNewRound', ANIMATION_MS],
-            ['newCard', 1],
+            ['activatedEffect', 1],
         ];
         notifs.forEach(function (notif) {
             dojo.subscribe(notif[0], _this, "notif_".concat(notif[0]));
@@ -1619,24 +1649,14 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.notif_switchedCards = function (notif) {
         this.getPlayerTable(notif.args.playerId).switchCards([notif.args.card, notif.args.otherCard]);
     };
-    AfterUs.prototype.notif_delayBeforeReveal = function () { };
-    AfterUs.prototype.notif_revealCards = function (notif) {
-        this.tableCenter.revealCards(notif.args.cards);
-    };
-    AfterUs.prototype.notif_placeCardUnder = function (notif) {
-        this.tableCenter.placeCardUnder(notif.args.playerId, notif.args.card);
-    };
-    AfterUs.prototype.notif_delayAfterLineUnder = function () { };
-    AfterUs.prototype.notif_scoreCard = function (notif) {
-        this.getPlayerTable(notif.args.playerId).placeScoreCard(notif.args.card);
-        this.setScore(notif.args.playerId, notif.args.playerScore);
-    };
-    AfterUs.prototype.notif_moveTableLine = function () {
-        this.tableCenter.moveTableLine();
-    };
-    AfterUs.prototype.notif_delayBeforeNewRound = function () { };
-    AfterUs.prototype.notif_newCard = function (notif) {
-        this.getCurrentPlayerTable().hand.addCard(notif.args.card);
+    AfterUs.prototype.notif_activatedEffect = function (notif) {
+        var playerId = notif.args.playerId;
+        var player = notif.args.player;
+        this.flowerCounters[playerId].toValue(player.flowers);
+        this.fruitCounters[playerId].toValue(player.fruits);
+        this.grainCounters[playerId].toValue(player.grains);
+        this.energyCounters[playerId].toValue(player.energy);
+        this.setScore(playerId, +player.score);
     };
     /*private getColorName(color: number) {
         switch (color) {

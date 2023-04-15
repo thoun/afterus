@@ -52,4 +52,69 @@ trait ActionTrait {
 
         $this->gamestate->nextPrivateState($playerId, 'next');
     }
+
+    public function activateEffect() {
+        self::checkAction('activateEffect');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $args = $this->argActivateEffect($playerId);
+        $effect = $args['currentEffect'];
+        $line = $args['line'];
+
+        if (!$effect->convertSign) {
+            $resources = array_merge($effect->left, $effect->right);
+            foreach($resources as $resource) {
+                $this->gainResource($playerId, $resource, $line);
+            }
+        } else {
+            foreach($effect->left as $resource) {
+                $this->giveResource($playerId, $resource);
+            }
+            foreach($effect->right as $resource) {
+                $this->gainResource($playerId, $resource, $line);
+            }
+        }
+
+        $this->markedPlayedEffect($playerId, $effect);
+
+        
+        $message = _('${player_name} activates effect TODO');
+        self::notifyAllPlayers('activatedEffect', $message, [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'player' => $this->getPlayer($playerId),
+        ]);
+
+        $args = $this->argActivateEffect($playerId);
+        $effect = $args['currentEffect'];
+
+        $this->gamestate->nextPrivateState($playerId, $effect != null ? 'stay' : 'next');
+    }
+
+    public function skipEffect() {
+        self::checkAction('skipEffect');
+
+        $playerId = intval($this->getCurrentPlayerId());
+        
+        $args = $this->argActivateEffect($playerId);
+        $effect = $args['currentEffect'];
+
+        $this->markedPlayedEffect($playerId, $effect);
+
+        // TODO notif ?
+
+        $args = $this->argActivateEffect($playerId);
+        $effect = $args['currentEffect'];
+
+        $this->gamestate->nextPrivateState($playerId, $effect != null ? 'stay' : 'next');
+    }
+
+    public function confirmActivations() {
+        self::checkAction('confirmActivations');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+    }
 }

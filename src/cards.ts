@@ -25,7 +25,7 @@ class CardsManager extends CardManager<Card> {
 
     private createFrame(div: HTMLElement, frame: Frame, row: number, index: number, positionIndex: number) {
         div.insertAdjacentHTML('beforeend', `
-        <div class="frame ${frame.type == OPENED_LEFT ? 'opened-left' : (frame.type == OPENED_RIGHT ? 'opened-right' : '')}" data-row="${row}" data-index="${index}" data-position-index="${positionIndex}" data-left="${JSON.stringify(frame.left)}" data-right="${JSON.stringify(frame.right)}" data-convert-sign="${JSON.stringify(frame.convertSign)}"></div>
+            <div class="frame ${frame.type == OPENED_LEFT ? 'opened-left' : (frame.type == OPENED_RIGHT ? 'opened-right' : '')}" data-row="${row}" data-index="${index}" data-position-index="${positionIndex}" data-left="${JSON.stringify(frame.left)}" data-right="${JSON.stringify(frame.right)}" data-convert-sign="${JSON.stringify(frame.convertSign)}"></div>
         `);
     }
     

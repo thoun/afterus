@@ -15,6 +15,17 @@ trait UtilTrait {
         return null;
     }
 
+    function array_findIndex(array $array, callable $fn) {
+        $index = 0;
+        foreach ($array as $value) {
+            if($fn($value)) {
+                return $index;
+            }
+            $index++;
+        }
+        return null;
+    }
+
     function array_find_key(array $array, callable $fn) {
         foreach ($array as $key => $value) {
             if($fn($value)) {
@@ -78,6 +89,12 @@ trait UtilTrait {
 
     function getPlayerScore(int $playerId) {
         return intval($this->getUniqueValueFromDB("SELECT player_score FROM player where `player_id` = $playerId"));
+    }
+
+    function getPlayer(int $id) {
+        $sql = "SELECT * FROM player WHERE player_id = $id";
+        $dbResults = $this->getCollectionFromDb($sql);
+        return array_map(fn($dbResult) => new AfterUsPlayer($dbResult), array_values($dbResults))[0];
     }
 
     function isEndScoreReached() {
@@ -160,16 +177,14 @@ trait UtilTrait {
         $this->setGlobalVariable(OBJECTS, $objects);
     }
     
-    function getEffects(int $playerId) {
-        $line = $this->getCardsByLocation('line'.$playerId);
-
+    function getEffects(array $playerLine) {
         $effects = [];
 
         for ($i = 0; $i < 3; $i++) {
             $openedRightFrame = null;
             $openedRightFrameCardIndex = null;
 
-            foreach ($line as $card) {
+            foreach ($playerLine as $card) {
                 $cardIndex = $card->locationArg;
 
                 foreach ($card->frames[$i] as $frameIndex => $frame) {
@@ -192,21 +207,83 @@ trait UtilTrait {
         return $effects;
     }
 
+    public function getPossibleEffects(int $playerId, array $allEffects, array $line) {
+        $player = $this->getPlayer($playerId);
+        return array_values(array_filter($allEffects, fn($effect) => !$effect->convertSign || count($effect->left) == 0 || $this->array_every($effect->left, fn($condition) => $this->playerMeetsCondition($player, $condition, $line))));
+    }
+
     public function getRemainingEffects(int $playerId, array $allEffects) {
-        $appliedEffects = [];
-        $json_obj = $this->getUniqueValueFromDB("SELECT `applied_effects` FROM `player` WHERE `player_id` = $playerId");
-        if ($json_obj) {
-            $appliedEffects = json_decode($json_obj, true);
-        }
+        $appliedEffects = json_decode($this->getUniqueValueFromDB("SELECT `applied_effects` FROM `player` WHERE `player_id` = $playerId") ?? '[]', true);
 
         $remainingEffects = $allEffects;
         foreach($appliedEffects as $effect) {
-            // TODO
-            $index = $this->array_findIndex($remainingEffects, fn($remainingEffect) => $remainingEffect[0] == $effect[0] && $remainingEffect[1] == $effect[1]);
+            $index = $this->array_findIndex($remainingEffects, fn($remainingEffect) => $remainingEffect->row === $effect[0] && $remainingEffect->cardIndex === $effect[1] && $remainingEffect->closedFrameIndex === $effect[2]);
             unset($remainingEffects[$index]); 
             $remainingEffects = array_values($remainingEffects);
         }
 
         return $remainingEffects;
+    }
+
+    private function markedPlayedEffect(int $playerId, $effect) {
+        $appliedEffects = json_decode($this->getUniqueValueFromDB("SELECT `applied_effects` FROM `player` WHERE `player_id` = $playerId") ?? '[]', true);
+        
+        $appliedEffect = [$effect->row, $effect->cardIndex, $effect->closedFrameIndex];
+        $appliedEffects[] = $appliedEffect;
+        $jsonObj = json_encode($appliedEffects);
+        $this->DbQuery("UPDATE `player` SET `applied_effects` = '$jsonObj' WHERE `player_id` = $playerId");
+    }
+
+    public function playerMeetsCondition(AfterUsPlayer $player, array $condition, array $line) {
+        $quantity = $condition[0];
+
+        switch ($condition[1]) {
+            case FLOWER: return $quantity <= $player->flowers;
+            case FRUIT: return $quantity <= $player->fruits;
+            case GRAIN: return $quantity <= $player->grains;
+            case ENERGY: return $quantity <= $player->energy;
+            case POINT: return $quantity <= $player->score;
+            case RAGE: return $quantity <= $player->rage;
+            case DIFFERENT:
+                $groupByType = [];
+                foreach($line as $card) {
+                    $groupByType[$card->type][] = $card;
+                }
+                return $quantity = count($groupByType);
+            case PER_TAMARINS: return $this->array_some($line, fn($card) => $card->type == 0);
+            default: throw new BgaVisibleSystemException('invalid condition');
+        }
+    }
+    
+    private function giveResource(int $playerId, array $resource) {
+        $quantity = $resource[0];
+
+        switch ($resource[1]) {
+            case FLOWER: $this->DbQuery("UPDATE `player` SET `player_flower` = `player_flower` - $quantity WHERE `player_id` = $playerId"); break;
+            case FRUIT: $this->DbQuery("UPDATE `player` SET `player_fruit` = `player_fruit` - $quantity WHERE `player_id` = $playerId"); break;
+            case GRAIN: $this->DbQuery("UPDATE `player` SET `player_grain` = `player_grain` - $quantity WHERE `player_id` = $playerId"); break;
+            case ENERGY: $this->DbQuery("UPDATE `player` SET `player_energy` = `player_energy` - $quantity WHERE `player_id` = $playerId"); break;
+            case POINT: $this->DbQuery("UPDATE `player` SET `player_score` = `player_score` - $quantity WHERE `player_id` = $playerId"); break;
+            case RAGE: $this->DbQuery("UPDATE `player` SET `player_rage` = `player_rage` - $quantity WHERE `player_id` = $playerId"); break;
+            default: throw new BgaVisibleSystemException('invalid giveResource');
+        }
+    }
+
+    private function gainResource(int $playerId, array $resource, array $line) {
+        $quantity = $resource[0];
+
+        switch ($resource[1]) {
+            case FLOWER: $this->DbQuery("UPDATE `player` SET `player_flower` = `player_flower` + $quantity WHERE `player_id` = $playerId"); break;
+            case FRUIT: $this->DbQuery("UPDATE `player` SET `player_fruit` = `player_fruit` + $quantity WHERE `player_id` = $playerId"); break;
+            case GRAIN: $this->DbQuery("UPDATE `player` SET `player_grain` = `player_grain` + $quantity WHERE `player_id` = $playerId"); break;
+            case ENERGY: $this->DbQuery("UPDATE `player` SET `player_energy` = `player_energy` + $quantity WHERE `player_id` = $playerId"); break;
+            case POINT: $this->DbQuery("UPDATE `player` SET `player_score` = `player_score` + $quantity WHERE `player_id` = $playerId"); break;
+            case RAGE: $this->DbQuery("UPDATE `player` SET `player_rage` = `player_rage` + $quantity WHERE `player_id` = $playerId"); break;
+            case PER_TAMARINS: 
+                $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
+                $this->DbQuery("UPDATE `player` SET `player_score` = `player_score` + $tamarins WHERE `player_id` = $playerId");
+                break;
+            default: throw new BgaVisibleSystemException('invalid gainResource');
+        }
     }
 }

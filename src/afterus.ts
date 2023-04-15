@@ -106,7 +106,22 @@ class AfterUs implements AfterUsGame {
         switch (stateName) {
             case 'orderCards':
                 (this as any).addActionButton(`validateCardOrder-button`, _("Validate card order"), () => this.validateCardOrder());
-                 break;
+                break;
+            case 'activateEffect':
+                const activateEffectArgs = args as EnteringActivateEffectArgs;
+                const currentEffect = activateEffectArgs.currentEffect;
+                let label;
+                if (!currentEffect.convertSign) {
+                    label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                } else {
+                    label = _("Spend ${left} to gain ${right}").replace('${left}', this.getResourcesQuantityIcons(currentEffect.left)).replace('${right}', this.getResourcesQuantityIcons(currentEffect.right));
+                }
+                (this as any).addActionButton(`activateEffect-button`, label, () => this.activateEffect());
+                (this as any).addActionButton(`skipEffect-button`, _("Skip"), () => this.skipEffect());
+                break;
+            case 'confirmActivations':
+                (this as any).addActionButton(`confirmActivations-button`, _("Confirm"), () => this.confirmActivations());
+                break;
         }
     }
 
@@ -115,6 +130,10 @@ class AfterUs implements AfterUsGame {
 
 
     ///////////////////////////////////////////////////
+
+    private getResourcesQuantityIcons(resources: number[][]) {
+        return resources.map(resource => `${resource[0]} [${resource[1]}]`).join(' ');
+    }
 
     public setTooltip(id: string, html: string) {
         (this as any).addTooltipHtml(id, html, this.TOOLTIP_DELAY);
@@ -212,17 +231,17 @@ class AfterUs implements AfterUsGame {
 
             const flowerCounter = new ebg.counter();
             flowerCounter.create(`flower-counter-${player.id}`);
-            flowerCounter.setValue(player.flower);
+            flowerCounter.setValue(player.flowers);
             this.flowerCounters[playerId] = flowerCounter;
 
             const fruitCounter = new ebg.counter();
             fruitCounter.create(`fruit-counter-${player.id}`);
-            fruitCounter.setValue(player.fruit);
+            fruitCounter.setValue(player.fruits);
             this.fruitCounters[playerId] = fruitCounter;
 
             const grainCounter = new ebg.counter();
             grainCounter.create(`grain-counter-${player.id}`);
-            grainCounter.setValue(player.grain);
+            grainCounter.setValue(player.grains);
             this.grainCounters[playerId] = grainCounter;
 
             const energyCounter = new ebg.counter();
@@ -272,6 +291,30 @@ class AfterUs implements AfterUsGame {
 
         this.takeAction('validateCardOrder');
     }
+  	
+    public activateEffect() {
+        if(!(this as any).checkAction('activateEffect')) {
+            return;
+        }
+
+        this.takeAction('activateEffect');
+    }
+  	
+    public skipEffect() {
+        if(!(this as any).checkAction('skipEffect')) {
+            return;
+        }
+
+        this.takeAction('skipEffect');
+    }
+  	
+    public confirmActivations() {
+        if(!(this as any).checkAction('confirmActivations')) {
+            return;
+        }
+
+        this.takeAction('confirmActivations');
+    }
 
     public takeAction(action: string, data?: any) {
         data = data || {};
@@ -297,14 +340,7 @@ class AfterUs implements AfterUsGame {
         const notifs = [
             ['newRound', 1],
             ['switchedCards', 1],
-            ['delayBeforeReveal', ANIMATION_MS],
-            ['revealCards', ANIMATION_MS * 2],
-            ['placeCardUnder', ANIMATION_MS],
-            ['delayAfterLineUnder', ANIMATION_MS * 2],
-            ['scoreCard', ANIMATION_MS * 2],
-            ['moveTableLine', ANIMATION_MS],
-            ['delayBeforeNewRound', ANIMATION_MS],
-            ['newCard', 1],
+            ['activatedEffect', 1],
         ];
     
         notifs.forEach((notif) => {
@@ -321,32 +357,14 @@ class AfterUs implements AfterUsGame {
         this.getPlayerTable(notif.args.playerId).switchCards([notif.args.card, notif.args.otherCard]);
     }
 
-    notif_delayBeforeReveal() {}
-
-    notif_revealCards(notif: Notif<NotifRevealCardsArgs>) {
-        this.tableCenter.revealCards(notif.args.cards);
-    }
-
-    notif_placeCardUnder(notif: Notif<NotifPlayerCardArgs>) {
-        this.tableCenter.placeCardUnder(notif.args.playerId, notif.args.card);
-    }
-    
-    notif_delayAfterLineUnder() {}
-
-    notif_scoreCard(notif: Notif<NotifScoredCardArgs>) {
-        this.getPlayerTable(notif.args.playerId).placeScoreCard(notif.args.card);
-
-        this.setScore(notif.args.playerId, notif.args.playerScore);
-    }
-
-    notif_moveTableLine() {
-        this.tableCenter.moveTableLine();
-    }
-
-    notif_delayBeforeNewRound() {}
-
-    notif_newCard(notif: Notif<NotifPlayerCardArgs>) {
-        this.getCurrentPlayerTable().hand.addCard(notif.args.card);
+    notif_activatedEffect(notif: Notif<NotifActivatedEffectArgs>) {
+        const playerId = notif.args.playerId;
+        const player = notif.args.player;
+        this.flowerCounters[playerId].toValue(player.flowers);
+        this.fruitCounters[playerId].toValue(player.fruits);
+        this.grainCounters[playerId].toValue(player.grains);
+        this.energyCounters[playerId].toValue(player.energy);
+        this.setScore(playerId, +player.score);
     }
 
     /*private getColorName(color: number) {

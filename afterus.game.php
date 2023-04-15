@@ -130,7 +130,7 @@ class AfterUs extends Table {
     
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score, player_score_aux scoreAux, player_no playerNo, `player_flower` flower, `player_fruit` fruit, `player_grain` grain, `player_energy` energy, `player_rage` rage FROM player ";
+        $sql = "SELECT player_id id, player_score score, player_score_aux scoreAux, player_no playerNo, `player_flower` flowers, `player_fruit` fruits, `player_grain` grains, `player_energy` energy, `player_rage` rage FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
   
         // Gather all information about current game situation (visible by player $current_player_id).
@@ -139,9 +139,9 @@ class AfterUs extends Table {
         
         foreach($result['players'] as $playerId => &$player) {
             $player['playerNo'] = intval($player['playerNo']);
-            $player['flower'] = intval($player['flower']);
-            $player['fruit'] = intval($player['fruit']);
-            $player['grain'] = intval($player['grain']);
+            $player['flowers'] = intval($player['flowers']);
+            $player['fruits'] = intval($player['fruits']);
+            $player['grains'] = intval($player['grains']);
             $player['energy'] = intval($player['energy']);
             $player['rage'] = intval($player['rage']);
             /*
@@ -177,8 +177,8 @@ class AfterUs extends Table {
         (see states.inc.php)
     */
     function getGameProgression() {
-        $playedCards = intval($this->getStat('playedCards')); // 0 based, 24 cards played in total
-        return $playedCards * 100 / 24;
+        $maxScore = intval($this->getUniqueValueFromDB("SELECT max(`player_score`) FROM player"));
+        return $maxScore * 100 / 80;
     }
 
 //////////////////////////////////////////////////////////////////////////////

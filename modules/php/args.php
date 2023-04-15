@@ -13,12 +13,17 @@ trait ArgsTrait {
     */
    
     function argActivateEffect(int $playerId) {
-        $effects = $this->getEffects($playerId);
-        //$remainingEffects = $this->getRemainingEffects($playerId, $effects);
+        $line = $this->getCardsByLocation('line'.$playerId);
+        $effects = $this->getEffects($line);
+        $possibleEffects = $this->getPossibleEffects($playerId, $effects, $line);
+        $remainingEffects = $this->getRemainingEffects($playerId, $possibleEffects);
+        $currentEffect = count($remainingEffects) > 0 ? $remainingEffects[0] : null;
 
         return [
+            'line' => $line,
             'effects' => $effects,
-            'currentEffect' => $effects[1],
+            'possibleEffects' => $possibleEffects,
+            'currentEffect' => $currentEffect,
         ];
     }
 } 

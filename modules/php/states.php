@@ -12,11 +12,9 @@ trait StateTrait {
     */
 
     function stNewRound() {
-        // TODO
-        $this->gamestate->nextState('next');
-    }
+        $this->DbQuery("UPDATE `player` SET `applied_effects` = '[]'");
 
-    function stPhase1() {
+        
         $playersIds = $this->getPlayersIds();
         foreach ($playersIds as $playerId) {
             $line = [];
@@ -27,6 +25,10 @@ trait StateTrait {
             // TODO notif line
         }
 
+        $this->gamestate->nextState('next');
+    }
+
+    function stPhase1() {
         $this->gamestate->setAllPlayersMultiactive();
         $this->gamestate->initializePrivateStateForAllActivePlayers(); 
     }
@@ -49,6 +51,13 @@ trait StateTrait {
 
     function stEndRound() {
         $this->incStat(1, 'roundNumber');
+
+        
+        $playersIds = $this->getPlayersIds();
+        foreach ($playersIds as $playerId) {
+            $this->cards->moveAllCardsInLocation('deck'.$playerId, 'discard'.$playerId);
+            // TODO notif line
+        }
 
         $endScoreReached = $this->isEndScoreReached();        
 

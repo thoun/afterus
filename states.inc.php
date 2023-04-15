@@ -101,7 +101,18 @@ $playerActionsGameStates = [
         "descriptionmyturn" => clienttranslate('Phase 1 : ${you} can activate an effect'),
         "type" => "private",
         "args" => "argActivateEffect",
-        "possibleactions" => [ "activate", "cancelLastMove", "cancelResolutions", "cancelAll" ],
+        "possibleactions" => [ "activateEffect", "skipEffect", "cancelLastMove", "cancelResolutions", "cancelAll" ],
+        "transitions" => [
+          'stay' => ST_PRIVATE_ACTIVATE_EFFECT,
+          'next' => ST_PRIVATE_CONFIRM_ACTIVATIONS,
+        ],
+    ],
+
+    ST_PRIVATE_CONFIRM_ACTIVATIONS => [
+        "name" => "confirmActivations",
+        "descriptionmyturn" => clienttranslate('Phase 1 : ${you} must confirm your turn'),
+        "type" => "private",
+        "possibleactions" => [ "confirmActivations", "cancelLastMove", "cancelResolutions", "cancelAll" ],
         "transitions" => [
           'next' => ST_PRIVATE_ACTIVATE_EFFECT,
         ],

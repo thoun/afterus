@@ -30,9 +30,9 @@ interface Card {
 interface AfterUsPlayer extends Player {
     playerNo: number;
     line: Card[];
-    flower: number;
-    fruit: number;
-    grain: number;
+    flowers: number;
+    fruits: number;
+    grains: number;
     energy: number;
     rage: number;
 }
@@ -65,22 +65,10 @@ interface AfterUsGame extends Game {
     moveCard(index: number, direction: number): any;
 }
 
-interface EnteringChooseMarketCardArgs {
-    canPlaceOnLine: Card[];
-    canAddToLine: boolean;
-    canAddToHand: boolean;
-    mustClose: boolean;
-    canClose: boolean;
-}
-
-interface EnteringPlayCardArgs {
-    canPlaceOnLine: Card[];
-    canClose: boolean;
-    onlyClose: boolean;
-}
-
-interface EnteringPlayHandCardArgs {
-    canPlaceOnLine: Card[];
+interface EnteringActivateEffectArgs {
+    effects: Effect[];
+    possibleEffects: Effect[];
+    currentEffect: Effect;
 }
 
 // newRound
@@ -97,18 +85,8 @@ interface NotifSwitchedCardsArgs {
     otherCardIndex: number;
 } 
 
-// revealCards
-interface NotifRevealCardsArgs {
-    cards: Card[];
-}
-
-// placeCardUnder
-interface NotifPlayerCardArgs {
-    card: Card;
+// activatedEffect
+interface NotifActivatedEffectArgs {
     playerId: number;
-}
-
-interface NotifScoredCardArgs extends NotifPlayerCardArgs {
-    playerScore: number;
-    incScore: number;
+    player: AfterUsPlayer;
 }

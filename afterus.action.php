@@ -57,6 +57,30 @@
         self::ajaxResponse();
     }
 
+    public function activateEffect() {
+        self::setAjaxMode();     
+
+        $this->game->activateEffect();
+
+        self::ajaxResponse();
+    }
+
+    public function skipEffect() {
+        self::setAjaxMode();     
+
+        $this->game->skipEffect();
+
+        self::ajaxResponse();
+    }
+
+    public function confirmActivations() {
+        self::setAjaxMode();     
+
+        $this->game->confirmActivations();
+
+        self::ajaxResponse();
+    }
+
   }
   
 
