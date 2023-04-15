@@ -60,6 +60,7 @@ define('OBJECTS_OPTION', 100);
 /*
  * Global variables
  */
+define('OBJECTS', 'objects');
 
 
 ?>

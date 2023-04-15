@@ -305,7 +305,6 @@ class AfterUs implements AfterUsGame {
             ['moveTableLine', ANIMATION_MS],
             ['delayBeforeNewRound', ANIMATION_MS],
             ['newCard', 1],
-            ['newObjectives', 1],
         ];
     
         notifs.forEach((notif) => {
@@ -359,10 +358,6 @@ class AfterUs implements AfterUsGame {
 
     notif_newCard(notif: Notif<NotifPlayerCardArgs>) {
         this.getCurrentPlayerTable().hand.addCard(notif.args.card);
-    }
-
-    notif_newObjectives(notif: Notif<NotifNewObjectivesArgs>) {
-        this.tableCenter.changeObjectives(notif.args.objectives);
     }
 
     /*private getColorName(color: number) {

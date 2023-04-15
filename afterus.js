@@ -1225,13 +1225,13 @@ var CardsManager = /** @class */ (function (_super) {
     }
     return CardsManager;
 }(CardManager));
-var ObjectivesManager = /** @class */ (function (_super) {
-    __extends(ObjectivesManager, _super);
-    function ObjectivesManager(game) {
+var ObjectsManager = /** @class */ (function (_super) {
+    __extends(ObjectsManager, _super);
+    function ObjectsManager(game) {
         var _this = _super.call(this, game, {
-            getId: function (card) { return "card-".concat(card); },
+            getId: function (card) { return "object-".concat(card); },
             setupDiv: function (card, div) {
-                div.classList.add('objective');
+                div.classList.add('object');
                 game.setTooltip(div.id, _this.getTooltip(card));
             },
             setupFrontDiv: function (card, div) {
@@ -1241,7 +1241,7 @@ var ObjectivesManager = /** @class */ (function (_super) {
         _this.game = game;
         return _this;
     }
-    ObjectivesManager.prototype.getTooltip = function (number) {
+    ObjectsManager.prototype.getTooltip = function (number) {
         var message = '';
         switch (number) {
             case 1:
@@ -1265,27 +1265,6 @@ var ObjectivesManager = /** @class */ (function (_super) {
             case 7:
                 message = _("(+2) if no colour is on the right of the green column.");
                 break;
-            case 8:
-                message = _("(+2) if green cards are in the scoring column with either value (4) or value (5).");
-                break;
-            case 9:
-                message = _("(+2) if you have more purple cards than orange cards (or the same number).");
-                break;
-            case 10:
-                message = _("(-2) if you are the player with the most purple cards (or are tied for the most purple cards).");
-                break;
-            case 11:
-                message = _("(+2) if you have cards in all 5 colours.");
-                break;
-            case 12:
-                message = _("(+2) if you have exactly 3 colours.");
-                break;
-            case 13:
-                message = _("(-2) if you have at least 1 colour with exactly 3 cards.");
-                break;
-            case 14:
-                message = _("(+2) if you have at least 1 colour with exactly 4 cards.");
-                break;
         }
         message = message.replaceAll(/\(([+-]?\d)\)/g, function (a, b) {
             console.log(a, b);
@@ -1295,7 +1274,7 @@ var ObjectivesManager = /** @class */ (function (_super) {
         console.log(message);
         return message;
     };
-    return ObjectivesManager;
+    return ObjectsManager;
 }(CardManager));
 var TableCenter = /** @class */ (function () {
     function TableCenter(game, gamedatas) {
@@ -1325,11 +1304,10 @@ var TableCenter = /** @class */ (function () {
         this.tableOver.addCards(gamedatas.table);
 
         playersIds.forEach(playerId => playerCardsDiv.querySelector(`[data-slot-id="${playerId}"]`).appendChild(this.createPlayerBlock(playerId)));
-
-        document.getElementById(`objectives`).classList.toggle('hidden', !gamedatas.objectives.length);
-        this.objectivesManager = new ObjectivesManager(this.game);
-        this.objectives = new LineStock<number>(this.objectivesManager, document.getElementById(`objectives`));
-        this.changeObjectives(gamedatas.objectives);*/
+*/
+        this.objectsManager = new ObjectsManager(this.game);
+        this.objects = new LineStock(this.objectsManager, document.getElementById("objects"));
+        this.objects.addCards(gamedatas.objects);
     }
     TableCenter.prototype.createPlayerBlock = function (playerId) {
         var player = this.game.getPlayer(playerId);
@@ -1358,10 +1336,6 @@ var TableCenter = /** @class */ (function () {
     TableCenter.prototype.moveTableLine = function () {
         this.tableOver.addCards(this.tableUnder.getCards());
         Array.from(document.querySelectorAll("#table-under .player-block")).forEach(function (elem) { return elem.remove(); });
-    };
-    TableCenter.prototype.changeObjectives = function (objectives) {
-        this.objectives.removeAll();
-        this.objectives.addCards(objectives);
     };
     return TableCenter;
 }());
@@ -1648,7 +1622,6 @@ var AfterUs = /** @class */ (function () {
             ['moveTableLine', ANIMATION_MS],
             ['delayBeforeNewRound', ANIMATION_MS],
             ['newCard', 1],
-            ['newObjectives', 1],
         ];
         notifs.forEach(function (notif) {
             dojo.subscribe(notif[0], _this, "notif_".concat(notif[0]));
@@ -1692,9 +1665,6 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.notif_delayBeforeNewRound = function () { };
     AfterUs.prototype.notif_newCard = function (notif) {
         this.getCurrentPlayerTable().hand.addCard(notif.args.card);
-    };
-    AfterUs.prototype.notif_newObjectives = function (notif) {
-        this.tableCenter.changeObjectives(notif.args.objectives);
     };
     /*private getColorName(color: number) {
         switch (color) {

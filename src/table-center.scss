@@ -1,18 +1,19 @@
 #table-center {
-    border: 2px solid #ffd752;
-    padding: 5px; 
-    border-radius: 15px;
-    background: #ffd75266;
+    //border: 2px solid #ffd752;
+    //padding: 5px; 
+    //border-radius: 15px;
+    //background: #ffd75266;
     margin: 5px;
 
-    #objectives {
-        background: #2d2966cc;
-        border-radius: 8px;
+    #objects {
+        //background: #2d2966cc;
+        //border-radius: 8px;
+        margin-bottom: 8px;
     }
 
     #center-board {
         background: url('img/table-center.jpg');
-        width: 923px;
-        height: 675px;
+        width: 800px;
+        height: 550px;
     }
 }

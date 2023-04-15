@@ -138,5 +138,22 @@ trait UtilTrait {
             }
         }
     }
+
+    function setupObjects(bool $beginner) {
+        $objects = [];
+        if ($beginner) {
+            $objects = [3, 6, 7];
+        } else {
+            $availableObjects = [1, 2, 3, 4, 5, 6, 7];
+    
+            for ($i = 0; $i < 3; $i++) {
+                $index = bga_rand(1, count($availableObjects)) - 1;
+                $objects[] = $availableObjects[$index];
+                array_splice($availableObjects, $index, 1);
+            }
+        }
+
+        $this->setGlobalVariable(OBJECTS, $objects);
+    }
     
 }

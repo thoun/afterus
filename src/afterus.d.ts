@@ -39,7 +39,7 @@ interface AfterUsGamedatas {
     selected: Card[];
     table: Card[];
     costs: number[];
-    objectives: number[];
+    objects: number[];
 }
 
 interface AfterUsGame extends Game {
@@ -97,8 +97,4 @@ interface NotifPlayerCardArgs {
 interface NotifScoredCardArgs extends NotifPlayerCardArgs {
     playerScore: number;
     incScore: number;
-}
-
-interface NotifNewObjectivesArgs {
-    objectives: number[];
 }

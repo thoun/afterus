@@ -103,6 +103,7 @@ class AfterUs extends Table {
 
         // setup the initial game situation here
         $this->setupCards(array_keys($players));
+        $this->setupObjects(intval($this->getGameStateValue(OBJECTS_OPTION)) == 1);
 
         // Activate first player (which is in general a good idea :) )
         $this->activeNextPlayer();
@@ -153,8 +154,8 @@ class AfterUs extends Table {
 
         $selected = $this->getCardsByLocation('selected');
         $result['selected'] = array_map(fn($card) => $currentPlayerId == $card->locationArg ? $card : Card::onlyId($card), $selected);
-        $result['table'] = $this->getCardsByLocation('table');
-        $result['objectives'] = $this->getGlobalVariable(BONUS_OBJECTIVES, true) ?? [];*/
+        $result['table'] = $this->getCardsByLocation('table');*/
+        $result['objects'] = $this->getGlobalVariable(OBJECTS, true) ?? [];
   
         return $result;
     }
@@ -206,13 +207,6 @@ class AfterUs extends Table {
         }
 
         if ($state['type'] === "multipleactiveplayer") {
-            $playerId = intval($active_player);
-            // randomly play a card
-            $playerHand = $this->getCardsByLocation('hand', $playerId);
-            $id = $playerHand[bga_rand(0, count($playerHand) - 1)]->id;
-
-            $this->setPlayerSelectedCard($playerId, $id);
-
             // Make sure player is in a non blocking status for role turn
             $this->gamestate->setPlayerNonMultiactive( $active_player, 'next');
             

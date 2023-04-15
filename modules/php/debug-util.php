@@ -16,7 +16,7 @@ trait DebugUtilTrait {
 
     public function d($playerId) {
         $costs = $this->getGlobalVariable(COSTS, true);
-        $objectives = $this->getGlobalVariable(BONUS_OBJECTIVES, true) ?? [];
+        $objects = $this->getGlobalVariable(OBJECTS, true) ?? [];
         $this->updatePlayerScore($playerId, $costs, $objectives);
     }
 

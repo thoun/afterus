@@ -3,8 +3,8 @@ class TableCenter {
     public tableOver: SlotStock<Card>;
     public tableUnder: SlotStock<Card>;
 
-    private objectivesManager: ObjectivesManager;
-    private objectives: LineStock<number>;
+    private objectsManager: ObjectsManager;
+    private objects: LineStock<number>;
 
     constructor(private game: AfterUsGame, gamedatas: AfterUsGamedatas) {
         /*const playersIds = (gamedatas.playerorder.length > 1 ? gamedatas.playerorder : Object.keys(gamedatas.players)).map(key => Number(key));
@@ -32,11 +32,10 @@ class TableCenter {
         this.tableOver.addCards(gamedatas.table);
 
         playersIds.forEach(playerId => playerCardsDiv.querySelector(`[data-slot-id="${playerId}"]`).appendChild(this.createPlayerBlock(playerId)));
-
-        document.getElementById(`objectives`).classList.toggle('hidden', !gamedatas.objectives.length);
-        this.objectivesManager = new ObjectivesManager(this.game);
-        this.objectives = new LineStock<number>(this.objectivesManager, document.getElementById(`objectives`));
-        this.changeObjectives(gamedatas.objectives);*/
+*/
+        this.objectsManager = new ObjectsManager(this.game);
+        this.objects = new LineStock<number>(this.objectsManager, document.getElementById(`objects`));
+        this.objects.addCards(gamedatas.objects);
     }
 
     public createPlayerBlock(playerId: number) {
@@ -79,10 +78,5 @@ class TableCenter {
     public moveTableLine() {
         this.tableOver.addCards(this.tableUnder.getCards());
         Array.from(document.querySelectorAll(`#table-under .player-block`)).forEach(elem => elem.remove());
-    }
-
-    public changeObjectives(objectives: number[]) {
-        this.objectives.removeAll();
-        this.objectives.addCards(objectives);
     }
 }

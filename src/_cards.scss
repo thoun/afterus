@@ -89,29 +89,12 @@
         }
     } */
 
-    @for $line from 0 through 5 {
-        @for $col from 1 through 10 {
-            .front[data-number="#{$line * 10 + $col}"] {
-                background-position: #{($col - 1) * 100% / 9} #{$line * 100% / 5};
-            }
-        }
-    }
-
-    &.score {        
-        background-size: auto 100%;              
-        background-image: url('img/scoring-cards.jpg');
-
-        @for $cost from 1 through 5 {
-            &[data-cost="#{$cost}"] {
-                background-position-x: #{($cost - 1) * 100% / 4};
-            }
-        }
-    }
-
-    &.objective {
+    &.object {
+        border-radius: 14px;
+        
         .card-sides {
             .card-side {
-                border-radius: 8px;
+                border-radius: 14px;
 
                 &>* {
                     pointer-events: none;
@@ -120,11 +103,11 @@
 
                 &.front {
                     background-size: auto 100%;
-                    background-image: url('img/variant-cards.jpg');
+                    background-image: url('img/objects.jpg');
 
-                    @for $number from 1 through 14 {
+                    @for $number from 1 through 7 {
                         &[data-number="#{$number}"] {
-                            background-position-x: #{($number - 1) * 100% / 13};
+                            background-position-x: #{($number - 1) * 100% / 6};
                         }
                     }
                 }
