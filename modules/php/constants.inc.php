@@ -18,10 +18,10 @@ define('OPENED_RIGHT', 3);
 
 // monkey types
 define('TAMARINS', 0);
-define('ORANGUTANS', 1);
-define('CHIMPANZEES', 2);
+define('MANDRILLS', 1);
+define('ORANGUTANS', 2);
 define('GORILLAS', 3);
-define('MANDRILLS', 4);
+define('CHIMPANZEES', 4);
 
 /*
  * State constants
@@ -38,8 +38,10 @@ define('ST_END_PHASE1', 35);
 
 define('ST_MULTIPLAYER_CHOOSE_TOKEN', 40);
 define('ST_REVEAL_TOKENS', 45);
+define('ST_MULTIPLAYER_TOKEN_SELECT_REACTIVATE', 50);
+define('ST_PRIVATE_ACTIVATE_EFFECT_TOKEN', 51);
 
-define('ST_MULTIPLAYER_PHASE2', 50);
+define('ST_MULTIPLAYER_PHASE2', 60);
 
 define('ST_END_ROUND', 80);
 

@@ -12,7 +12,7 @@ trait StateTrait {
     */
 
     function stNewRound() {
-        $this->DbQuery("UPDATE `player` SET `applied_effects` = '[]'");
+        $this->DbQuery("UPDATE `player` SET `applied_effects` = '[]', `chosen_token` = NULL");
 
         $playersIds = $this->getPlayersIds();
         foreach ($playersIds as $playerId) {
@@ -21,7 +21,11 @@ trait StateTrait {
                 if (intval($this->cards->countCardInLocation('deck'.$playerId)) == 0) {
                     $this->cards->moveAllCardsInLocation('discard'.$playerId, 'deck'.$playerId);
                     $this->cards->shuffle('deck'.$playerId);
-                    // TODO notif shuffle
+
+                    self::notifyAllPlayers('log', _('${player_name} shuffles discarded cards back to form a new deck (deck was empty)'), [
+                        'playerId' => $playerId,
+                        'player_name' => $this->getPlayerName($playerId),
+                    ]);
                 }
                 $line[] = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, $i));
             }
@@ -46,14 +50,57 @@ trait StateTrait {
         if ($endScoreReached) {
             $this->gamestate->nextState('endGame');
         } else {
-            // TODO TEMP $this->gamestate->nextState('next');
-            $this->gamestate->jumpToState(ST_END_ROUND);
+            $this->gamestate->nextState('next');
         }
     }
 
+    function stChooseToken() {
+        $this->gamestate->setAllPlayersMultiactive();
+    }
+
     function stRevealTokens() {
-        // TODO
-        $this->gamestate->nextState('next');
+        $tokens = [];
+        $playersIds = $this->getPlayersIds();
+        $playersIdsWithReactivate = [];
+
+        foreach ($playersIds as $playerId) {
+            $token = $this->getPlayer($playerId)->chosenToken;
+            $tokens[$playerId] = $token;
+
+            $resource = null;
+
+            switch ($token) {
+                case 1: $resource = [2, POINT]; break;
+                case 2: $resource = [2, ENERGY]; break;
+                case 3: $resource = [2, RAGE]; break;
+            }
+
+            if ($resource == null) {
+                $playersIdsWithReactivate[] = $playerId;
+            } else {
+                $this->gainResource($playerId, $resource, []);
+                
+                self::notifyAllPlayers('activatedEffect', _('${player_name} gains ${resources} with chosen token'), [
+                    'playerId' => $playerId,
+                    'player_name' => $this->getPlayerName($playerId),
+                    'player' => $this->getPlayer($playerId),
+                    'resources' => $this->getResourcesStr([$resource]),
+                ]);
+            }
+        }
+        
+        self::notifyAllPlayers('revealTokens', '', [
+            'tokens' => $tokens,
+        ]);
+
+        if (count($playersIdsWithReactivate) > 0) {
+            $this->gamestate->setPlayersMultiactive($playersIdsWithReactivate, 'next', true);
+        }
+        $this->gamestate->nextState(count($playersIdsWithReactivate) > 0 ? 'reactivate' : 'next');
+    }
+
+    function stTokenSelectReactivate() {
+        $this->gamestate->initializePrivateStateForAllActivePlayers(); 
     }
 
     function stEndRound() {

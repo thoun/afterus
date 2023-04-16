@@ -130,12 +130,12 @@ class AfterUs extends Table {
     
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score, player_score_aux scoreAux, player_no playerNo, `player_flower` flowers, `player_fruit` fruits, `player_grain` grains, `player_energy` energy, `player_rage` rage FROM player ";
+        $sql = "SELECT player_id id, player_score score, player_score_aux scoreAux, player_no playerNo, `player_flower` flowers, `player_fruit` fruits, `player_grain` grains, `player_energy` energy, `player_rage` rage, `chosen_token` chosenToken FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
   
         // Gather all information about current game situation (visible by player $current_player_id).
 
-        //$isEndScore = intval($this->gamestate->state_id()) >= ST_END_SCORE;
+        //$isEndScore = ;
         
         foreach($result['players'] as $playerId => &$player) {
             $player['playerNo'] = intval($player['playerNo']);
@@ -144,9 +144,10 @@ class AfterUs extends Table {
             $player['grains'] = intval($player['grains']);
             $player['energy'] = intval($player['energy']);
             $player['rage'] = intval($player['rage']);
-            /*
-            if ($currentPlayerId == $playerId) {
-            }*/
+
+            if ($player['chosenToken'] !== null && intval($this->gamestate->state_id()) == ST_MULTIPLAYER_CHOOSE_TOKEN) {
+                $player['chosenToken'] = $currentPlayerId == $playerId ? intval($player['chosenToken']) : 0;
+            }
             $player['line'] = $this->getCardsByLocation('line'.$playerId);
         }
 

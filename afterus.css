@@ -274,7 +274,7 @@ body > .card {
   border-radius: 8px;
 }
 .card .card-sides .card-side > * {
-  pointer-events: none;
+  pointer-events: all !important;
   user-select: none;
 }
 .card .card-sides .card-side.back {
@@ -727,6 +727,10 @@ body > .card {
 .card .card-sides .card-side.front .frame.remaining {
   border-color: green;
 }
+.card .card-sides .card-side.front .frame.selectable {
+  border-color: lightgreen;
+  cursor: pointer;
+}
 .card .card-sides .card-side.front .frame.current {
   border-color: lightgreen;
   box-shadow: 0 0 3px 5px lightgreen;
@@ -877,6 +881,27 @@ body > .card {
   width: 177px;
   text-shadow: 0 0 1px white, 0 0 2px white;
 }
+.player-table .action-token[data-type=null] {
+  display: none;
+}
+.player-table .action-token[data-type="0"][data-color=ffe400] {
+  background-position-x: 44.4444444444%;
+}
+.player-table .action-token[data-type="0"][data-color="044396"] {
+  background-position-x: 55.5555555556%;
+}
+.player-table .action-token[data-type="0"][data-color=f29fc4] {
+  background-position-x: 66.6666666667%;
+}
+.player-table .action-token[data-type="0"][data-color=e7313a] {
+  background-position-x: 77.7777777778%;
+}
+.player-table .action-token[data-type="0"][data-color="98d1c6"] {
+  background-position-x: 88.8888888889%;
+}
+.player-table .action-token[data-type="0"][data-color="9f79b5"] {
+  background-position-x: 100%;
+}
 .player-table .slot {
   position: relative;
 }
@@ -990,6 +1015,29 @@ html, .mode_3d #game_play_area_background {
   width: 24px;
   height: 24px;
   margin: -2px 0px;
+}
+
+.action-token {
+  display: inline-block;
+  position: relative;
+  width: 64px;
+  height: 64px;
+  background-image: url("img/action-tokens.png");
+  background-size: auto 100%;
+  vertical-align: middle;
+  border-radius: 50%;
+}
+.action-token[data-type="1"] {
+  background-position-x: 0%;
+}
+.action-token[data-type="2"] {
+  background-position-x: 11.1111111111%;
+}
+.action-token[data-type="3"] {
+  background-position-x: 22.2222222222%;
+}
+.action-token[data-type="4"] {
+  background-position-x: 33.3333333333%;
 }
 
 .object-tooltip > div {

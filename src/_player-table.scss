@@ -28,6 +28,20 @@
     text-shadow: 0 0 1px white, 0 0 2px white;
   }
 
+  .action-token {
+    &[data-type="null"] {
+      display: none;
+    }
+    
+
+    @each $playerColor in $playerColors {
+      $i: index($playerColors, $playerColor) - 1;
+      &[data-type="0"][data-color="#{$playerColor}"] { 
+        background-position-x: #{($i + 4) * 100% / 9};
+      }
+    }
+  }
+
   .slot {
     position: relative;
 

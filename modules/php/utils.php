@@ -207,9 +207,34 @@ trait UtilTrait {
         return $effects;
     }
 
-    public function getPossibleEffects(int $playerId, array $allEffects, array $line) {
+    private function getEffectFromClickedFrame(array $line, array $possibleEffects, int $row, int $cardIndex, int $index) {
+        $card = $this->array_find($line, fn($card) => $card->locationArg === $cardIndex);
+        $frame = $card->frames[$row][$index];
+        if ($frame->type == OPENED_LEFT) {
+            $cardIndex = $cardIndex - 1;
+            $card = $this->array_find($line, fn($card) => $card->locationArg === $cardIndex);
+            $frame = $card->frames[$row][count($card->frames[$row]) - 1];
+        }
+
+        $effect = null;
+        if ($frame->type == OPENED_RIGHT) {
+            $effect = $this->array_find($possibleEffects, fn($effect) => $effect->row === $row && $effect->cardIndex === $cardIndex && $effect->closedFrameIndex === null);
+        } else { // closed
+            $effect = $this->array_find($possibleEffects, fn($effect) => $effect->row === $row && $effect->cardIndex === $cardIndex && $effect->closedFrameIndex === $index);
+        }
+
+        return $effect;
+    }
+
+    public function getPossibleEffects(int $playerId, array $allEffects, array $line, bool $ignoreReactivate) {
         $player = $this->getPlayer($playerId);
-        return array_values(array_filter($allEffects, fn($effect) => !$effect->convertSign || count($effect->left) == 0 || $this->array_every($effect->left, fn($condition) => $this->playerMeetsCondition($player, $condition, $line))));
+        $possibleEffects = array_values(array_filter($allEffects, fn($effect) => !$effect->convertSign || count($effect->left) == 0 || $this->array_every($effect->left, fn($condition) => $this->playerMeetsCondition($player, $condition, $line))));
+
+        if ($ignoreReactivate) {
+            $possibleEffects = array_values(array_filter($possibleEffects, fn($effect) => count($effect->right) == 0 || !$this->array_some($effect->right, fn($condition) => $condition[1] == REACTIVATE)));
+        }
+
+        return $possibleEffects;
     }
 
     public function getRemainingEffects(int $playerId, array $allEffects) {
@@ -304,5 +329,24 @@ trait UtilTrait {
 
     private function getResourcesStr(array $resources) {
         return implode(' ', array_map(fn($resource) => $resource[0] . ' ' . $this->getResourceCode($resource[1]), $resources));
+    }
+
+    function getPlayerSelectedToken(int $playerId) {
+        return $this->getPlayer($playerId)->chosenToken;
+    }
+
+    function setPlayerSelectedToken(int $playerId, /*int|null*/ $selectedToken) {
+        $selected = $selectedToken !== null;
+        $this->DbQuery("UPDATE `player` SET `chosen_token` = ". ($selected ? $selectedToken : 'NULL') ." WHERE `player_id` = $playerId");
+        $this->notifyAllPlayers('selectedToken', '', [
+            'playerId' => $playerId,
+            'token' => 0,
+            'cancel' => !$selected,
+        ]);
+        $this->notifyPlayer($playerId, 'selectedToken', '', [
+            'playerId' => $playerId,
+            'token' => $selectedToken,
+            'cancel' => !$selected,
+        ]);
     }
 }

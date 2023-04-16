@@ -35,6 +35,7 @@ interface AfterUsPlayer extends Player {
     grains: number;
     energy: number;
     rage: number;
+    chosenToken: number | null;
 }
 
 interface AfterUsGamedatas {
@@ -62,7 +63,8 @@ interface AfterUsGame extends Game {
     getPlayerColor(playerId: number): string;
 
     setTooltip(id: string, html: string): void;
-    moveCard(index: number, direction: number): any;
+    moveCard(index: number, direction: number): void;
+    onFrameClicked(row: number, cardIndex: number, index: number): void;
 }
 
 interface EnteringActivateEffectArgs {
@@ -70,6 +72,13 @@ interface EnteringActivateEffectArgs {
     remainingEffects: Effect[];
     appliedEffects: Effect[];
     currentEffect: Effect;
+    possibleEffects?: Effect[];
+}
+
+interface EnteringChoseTokenArgs {
+    _private?: {
+        token: number;
+    };
 }
 
 // newRound
@@ -91,6 +100,18 @@ interface NotifSwitchedCardsArgs {
 interface NotifActivatedEffectArgs {
     playerId: number;
     player: AfterUsPlayer;
+}
+
+// selectedToken
+interface NotifSelectedTokenArgs {
+    playerId: number;
+    token: number;
+    cancel: boolean;
+} 
+
+// revealTokens
+interface NotifRevealTokensArgs {
+    tokens: { [playerId: number]: number };
 }
 
 // endRound

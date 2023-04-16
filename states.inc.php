@@ -134,6 +134,28 @@ $playerActionsGameStates = [
         ],
     ],
 
+    ST_MULTIPLAYER_TOKEN_SELECT_REACTIVATE => [
+        "name" => "tokenSelectReactivate",
+        "description" => clienttranslate('Waiting for other players'),
+        "descriptionmyturn" => '',
+        "type" => "multipleactiveplayer",
+        "action" => "stTokenSelectReactivate",
+        "initialprivate" => ST_PRIVATE_ACTIVATE_EFFECT_TOKEN,
+        "possibleactions" => [ ],
+        "transitions" => [
+            "next" => ST_MULTIPLAYER_PHASE2,
+        ],
+    ],
+
+    ST_PRIVATE_ACTIVATE_EFFECT_TOKEN => [
+        "name" => "activateEffectToken",
+        "descriptionmyturn" => clienttranslate('Phase 2 : ${you} can activate an effect with Reactivate token'),
+        "type" => "private",
+        "args" => "argActivateEffectToken",
+        "possibleactions" => [ "activateEffectToken", "skipEffectToken" ],
+        "transitions" => [],
+    ],
+
     ST_MULTIPLAYER_PHASE2 => [ // TODO allow copy/apply effect in any order, then copy/recruit
         "name" => "phase2",
         "description" => clienttranslate('Phase 2 : Waiting for other players'),
@@ -141,7 +163,7 @@ $playerActionsGameStates = [
         "type" => "multipleactiveplayer",
         "initialprivate" => ST_PRIVATE_ACTIVATE_EFFECT,
         //"action" => "stPlayCard",
-    "possibleactions" => [ /*"cancelPlaceShape"*/ ],
+        "possibleactions" => [ /*"cancelPlaceShape"*/ ],
         "transitions" => [
             "next" => ST_END_ROUND,
         ],
@@ -167,8 +189,7 @@ $gameGameStates = [
         "action" => "stEndPhase1",
         "updateGameProgression" => true,
         "transitions" => [
-            //"next" => ST_MULTIPLAYER_CHOOSE_TOKEN,
-            "next" => ST_END_ROUND, // TODO TEMP
+            "next" => ST_MULTIPLAYER_CHOOSE_TOKEN,
             "endGame" => ST_END_SCORE
         ],
     ],
@@ -179,6 +200,7 @@ $gameGameStates = [
         "type" => "game",
         "action" => "stRevealTokens",
         "transitions" => [
+            "reactivate" => ST_MULTIPLAYER_TOKEN_SELECT_REACTIVATE,
             "next" => ST_MULTIPLAYER_PHASE2,
         ],
     ],

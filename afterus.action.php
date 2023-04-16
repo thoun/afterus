@@ -58,9 +58,12 @@
     }
 
     public function activateEffect() {
-        self::setAjaxMode();     
+        self::setAjaxMode();  
 
-        $this->game->activateEffect();
+        $row = self::getArg("row", AT_posint, false);
+        $cardIndex = self::getArg("cardIndex", AT_posint, false);
+        $index = self::getArg("index", AT_posint, false);
+        $this->game->activateEffect($row, $cardIndex, $index);  
 
         self::ajaxResponse();
     }
@@ -77,6 +80,34 @@
         self::setAjaxMode();     
 
         $this->game->confirmActivations();
+
+        self::ajaxResponse();
+    }
+
+    public function chooseToken() {
+        self::setAjaxMode();     
+
+        $type = self::getArg("type", AT_posint, true);
+        $this->game->chooseToken($type);
+
+        self::ajaxResponse();
+    }
+
+    public function cancelChooseToken() {
+        self::setAjaxMode();     
+
+        $this->game->cancelChooseToken();
+
+        self::ajaxResponse();
+    }
+
+    public function activateEffectToken() {
+        self::setAjaxMode();     
+
+        $row = self::getArg("row", AT_posint, true);
+        $cardIndex = self::getArg("cardIndex", AT_posint, true);
+        $index = self::getArg("index", AT_posint, true);
+        $this->game->activateEffectToken($row, $cardIndex, $index);
 
         self::ajaxResponse();
     }

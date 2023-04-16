@@ -26,9 +26,28 @@ class CardsManager extends CardManager<Card> {
     private createFrame(div: HTMLElement, frame: Frame, row: number, index: number, positionIndex: number) {
         let width = 11 + (frame.left.length * 17) + (frame.convertSign ? 8 : 0) + (frame.right.length * 17);
 
-        div.insertAdjacentHTML('beforeend', `
-            <div class="frame ${frame.type == OPENED_LEFT ? 'opened-left' : (frame.type == OPENED_RIGHT ? 'opened-right' : '')}" data-row="${row}" data-index="${index}" data-position-index="${positionIndex}" data-left="${JSON.stringify(frame.left)}" data-right="${JSON.stringify(frame.right)}" data-convert-sign="${JSON.stringify(frame.convertSign)}" style="--width: ${width}px"></div>
-        `);
+        const frameDiv = document.createElement('div');
+        frameDiv.classList.add('frame');
+        if (frame.type == OPENED_LEFT) {
+            frameDiv.classList.add('opened-left');
+        } else if (frame.type == OPENED_RIGHT) {
+            frameDiv.classList.add('opened-right');
+        }
+        frameDiv.dataset.row = ''+row;
+        frameDiv.dataset.index = ''+index;
+        frameDiv.dataset.positionIndex = ''+positionIndex;
+        frameDiv.dataset.left = JSON.stringify(frame.left);
+        frameDiv.dataset.right = JSON.stringify(frame.right);
+        frameDiv.dataset.convertSign = JSON.stringify(frame.convertSign);
+        frameDiv.style.setProperty('--width', ` ${width}px`);
+
+        div.appendChild(frameDiv);
+
+        frameDiv.addEventListener('click', () => {
+            const cardDivId = +(div.closest('.card') as HTMLDivElement).dataset.cardId;
+            const cardIndex = this.getCardStock({ id: cardDivId } as Card).getCards().find(c => c.id == cardDivId).locationArg;
+            this.game.onFrameClicked(row, cardIndex, index);
+        });
     }
     
     private createFrames(div: HTMLElement, frames: Frame[][]) {

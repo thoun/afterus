@@ -25,6 +25,7 @@ class PlayerTable {
         <div id="player-table-${this.playerId}" class="player-table" style="--player-color: #${player.color};">
             <div class="background" data-color="${player.color}">
                 <div class="name-wrapper">${player.name}</div>
+                <div id="player-table-${this.playerId}-action-token" class="action-token" data-color="${player.color}"></div>
             </div>
             
         `;
@@ -68,6 +69,7 @@ class PlayerTable {
         }
             
         this.newRound(player.line);
+        this.setSelectedToken(player.chosenToken);
     }
     
     public newRound(cards: Card[]) {            
@@ -99,23 +101,36 @@ class PlayerTable {
     private setEffectClass(effect: Effect, frameClass: string) {
         this.getFrames(effect).forEach(frame => frame.classList.add(frameClass));
     }
-    
-    public setActivableEffect(currentEffect: Effect, appliedEffects: Effect[], remainingEffects: Effect[]) {
-        appliedEffects.forEach(effect => this.setEffectClass(effect, 'applied'));
-        remainingEffects.forEach(effect => this.setEffectClass(effect, 'remaining'));
-        this.setEffectClass(currentEffect, 'current');
 
+    private markRemainingFramesDisabled() {
         const line = document.getElementById(`player-table-${this.playerId}-line`);
         line.querySelectorAll('.frame').forEach(element => {
             if (!['current', 'applied', 'remaining'].some(frameClass => element.classList.contains(frameClass))) {
                 element.classList.add('disabled')
             }
         });
+
+    }
+    
+    public setActivableEffect(currentEffect: Effect, appliedEffects: Effect[], remainingEffects: Effect[]) {
+        appliedEffects.forEach(effect => this.setEffectClass(effect, 'applied'));
+        remainingEffects.forEach(effect => this.setEffectClass(effect, 'remaining'));
+        this.setEffectClass(currentEffect, 'current');
+        this.markRemainingFramesDisabled();
+    }
+
+    public setActivableEffectToken(effects: Effect[], possibleEffects: Effect[]) {
+        possibleEffects.forEach(effect => this.setEffectClass(effect, 'selectable'));
+        this.markRemainingFramesDisabled();
     }
     
     public removeActivableEffect() {
         const line = document.getElementById(`player-table-${this.playerId}-line`);
         ['disabled', 'current', 'applied', 'remaining'].forEach(frameClass => line.querySelectorAll('.frame.'+frameClass).forEach(element => element.classList.remove(frameClass)));
+    }
+    
+    public setSelectedToken(type: number | null) {
+        document.getElementById(`player-table-${this.playerId}-action-token`).dataset.type = type === null ? 'null' : ''+type;
     }
     
     public endRound() {

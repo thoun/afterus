@@ -53,7 +53,7 @@ trait ActionTrait {
         $this->gamestate->nextPrivateState($playerId, 'next');
     }
 
-    public function activateEffect() {
+    public function activateEffect($row, $cardIndex, $index) {
         self::checkAction('activateEffect');
 
         $playerId = intval($this->getCurrentPlayerId());
@@ -85,7 +85,6 @@ trait ActionTrait {
             $message = _('${player_name} spends ${left} to gain ${right} with activated effect');
         }
         
-        
         self::notifyAllPlayers('activatedEffect', $message, [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
@@ -99,6 +98,48 @@ trait ActionTrait {
         $effect = $args['currentEffect'];
 
         $this->gamestate->nextPrivateState($playerId, $effect != null ? 'stay' : 'next');
+    }
+
+    public function activateEffectToken(int $row, int $cardIndex, int $index) {
+        self::checkAction('activateEffectToken');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $args = $this->argActivateEffectToken($playerId);
+        $line = $args['line'];
+        $effect = $this->getEffectFromClickedFrame($line, $args['possibleEffects'], $row, $cardIndex, $index);
+
+        if (!$effect->convertSign) {
+            $resources = array_merge($effect->left, $effect->right);
+            foreach($resources as $resource) {
+                $this->gainResource($playerId, $resource, $line);
+            }
+        } else {
+            foreach($effect->left as $resource) {
+                $this->giveResource($playerId, $resource);
+            }
+            foreach($effect->right as $resource) {
+                $this->gainResource($playerId, $resource, $line);
+            }
+        }
+
+        $message = '';
+        if (!$effect->convertSign) {
+            $message = _('${player_name} gains ${resources} with activated effect');
+        } else {
+            $message = _('${player_name} spends ${left} to gain ${right} with activated effect');
+        }
+        
+        self::notifyAllPlayers('activatedEffect', $message, [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'player' => $this->getPlayer($playerId),
+            'resources' => $this->getResourcesStr(array_merge($effect->left, $effect->right)),
+            'left' => $this->getResourcesStr($effect->left),
+            'right' => $this->getResourcesStr($effect->right),
+        ]);
+
+        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
     }
 
     public function skipEffect() {
@@ -125,5 +166,31 @@ trait ActionTrait {
         $playerId = intval($this->getCurrentPlayerId());
 
         $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+    }
+
+    public function chooseToken(int $type) {
+        //self::checkAction('chooseToken');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        if (!in_array($type, [1,2,3,4])) {
+            throw new BgaUserException("Invalid token choice");
+        }
+
+        if ($this->getPlayerSelectedToken($playerId) !== null) {
+            $this->setPlayerSelectedToken($playerId, null);
+        }
+
+        $this->setPlayerSelectedToken($playerId, $type);
+
+        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+    }
+
+    public function cancelChooseToken() {
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $this->setPlayerSelectedToken($playerId, null);
+
+        $this->gamestate->setPlayersMultiactive([$playerId], 'next', false);
     }
 }

@@ -11,6 +11,7 @@ class AfterUsPlayer {
     public int $grains;
     public int $energy;
     public int $rage;
+    public /*int|null*/ $chosenToken;
 
     public function __construct($dbPlayer) {
         $this->id = intval($dbPlayer['player_id']);
@@ -23,6 +24,7 @@ class AfterUsPlayer {
         $this->grains = intval($dbPlayer['player_grain']);
         $this->energy = intval($dbPlayer['player_energy']);
         $this->rage = intval($dbPlayer['player_rage']);
+        $this->chosenToken = $dbPlayer['chosen_token'] === null ? null : intval($dbPlayer['chosen_token']);
     }
 }
 ?>

@@ -1232,8 +1232,29 @@ var CardsManager = /** @class */ (function (_super) {
         return _this;
     }
     CardsManager.prototype.createFrame = function (div, frame, row, index, positionIndex) {
+        var _this = this;
         var width = 11 + (frame.left.length * 17) + (frame.convertSign ? 8 : 0) + (frame.right.length * 17);
-        div.insertAdjacentHTML('beforeend', "\n            <div class=\"frame ".concat(frame.type == OPENED_LEFT ? 'opened-left' : (frame.type == OPENED_RIGHT ? 'opened-right' : ''), "\" data-row=\"").concat(row, "\" data-index=\"").concat(index, "\" data-position-index=\"").concat(positionIndex, "\" data-left=\"").concat(JSON.stringify(frame.left), "\" data-right=\"").concat(JSON.stringify(frame.right), "\" data-convert-sign=\"").concat(JSON.stringify(frame.convertSign), "\" style=\"--width: ").concat(width, "px\"></div>\n        "));
+        var frameDiv = document.createElement('div');
+        frameDiv.classList.add('frame');
+        if (frame.type == OPENED_LEFT) {
+            frameDiv.classList.add('opened-left');
+        }
+        else if (frame.type == OPENED_RIGHT) {
+            frameDiv.classList.add('opened-right');
+        }
+        frameDiv.dataset.row = '' + row;
+        frameDiv.dataset.index = '' + index;
+        frameDiv.dataset.positionIndex = '' + positionIndex;
+        frameDiv.dataset.left = JSON.stringify(frame.left);
+        frameDiv.dataset.right = JSON.stringify(frame.right);
+        frameDiv.dataset.convertSign = JSON.stringify(frame.convertSign);
+        frameDiv.style.setProperty('--width', " ".concat(width, "px"));
+        div.appendChild(frameDiv);
+        frameDiv.addEventListener('click', function () {
+            var cardDivId = +div.closest('.card').dataset.cardId;
+            var cardIndex = _this.getCardStock({ id: cardDivId }).getCards().find(function (c) { return c.id == cardDivId; }).locationArg;
+            _this.game.onFrameClicked(row, cardIndex, index);
+        });
     };
     CardsManager.prototype.createFrames = function (div, frames) {
         var _this = this;
@@ -1362,7 +1383,7 @@ var PlayerTable = /** @class */ (function () {
         this.game = game;
         this.playerId = Number(player.id);
         this.currentPlayer = this.playerId == this.game.getPlayerId();
-        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"background\" data-color=\"").concat(player.color, "\">\n                <div class=\"name-wrapper\">").concat(player.name, "</div>\n            </div>\n            \n        ");
+        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"background\" data-color=\"").concat(player.color, "\">\n                <div class=\"name-wrapper\">").concat(player.name, "</div>\n                <div id=\"player-table-").concat(this.playerId, "-action-token\" class=\"action-token\" data-color=\"").concat(player.color, "\"></div>\n            </div>\n            \n        ");
         /*if (this.currentPlayer) {
             html += `
             <div class="block-with-text hand-wrapper">
@@ -1393,6 +1414,7 @@ var PlayerTable = /** @class */ (function () {
             });
         }
         this.newRound(player.line);
+        this.setSelectedToken(player.chosenToken);
     }
     PlayerTable.prototype.newRound = function (cards) {
         this.line.addCards(cards);
@@ -1417,11 +1439,7 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.setEffectClass = function (effect, frameClass) {
         this.getFrames(effect).forEach(function (frame) { return frame.classList.add(frameClass); });
     };
-    PlayerTable.prototype.setActivableEffect = function (currentEffect, appliedEffects, remainingEffects) {
-        var _this = this;
-        appliedEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'applied'); });
-        remainingEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'remaining'); });
-        this.setEffectClass(currentEffect, 'current');
+    PlayerTable.prototype.markRemainingFramesDisabled = function () {
         var line = document.getElementById("player-table-".concat(this.playerId, "-line"));
         line.querySelectorAll('.frame').forEach(function (element) {
             if (!['current', 'applied', 'remaining'].some(function (frameClass) { return element.classList.contains(frameClass); })) {
@@ -1429,9 +1447,24 @@ var PlayerTable = /** @class */ (function () {
             }
         });
     };
+    PlayerTable.prototype.setActivableEffect = function (currentEffect, appliedEffects, remainingEffects) {
+        var _this = this;
+        appliedEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'applied'); });
+        remainingEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'remaining'); });
+        this.setEffectClass(currentEffect, 'current');
+        this.markRemainingFramesDisabled();
+    };
+    PlayerTable.prototype.setActivableEffectToken = function (effects, possibleEffects) {
+        var _this = this;
+        possibleEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'selectable'); });
+        this.markRemainingFramesDisabled();
+    };
     PlayerTable.prototype.removeActivableEffect = function () {
         var line = document.getElementById("player-table-".concat(this.playerId, "-line"));
         ['disabled', 'current', 'applied', 'remaining'].forEach(function (frameClass) { return line.querySelectorAll('.frame.' + frameClass).forEach(function (element) { return element.classList.remove(frameClass); }); });
+    };
+    PlayerTable.prototype.setSelectedToken = function (type) {
+        document.getElementById("player-table-".concat(this.playerId, "-action-token")).dataset.type = type === null ? 'null' : '' + type;
     };
     PlayerTable.prototype.endRound = function () {
         this.line.removeAll();
@@ -1505,7 +1538,7 @@ var AfterUs = /** @class */ (function () {
     //                  You can use this method to perform some user interface changes at this moment.
     //
     AfterUs.prototype.onEnteringState = function (stateName, args) {
-        var _a, _b;
+        var _a, _b, _c;
         log('Entering state: ' + stateName, args.args);
         switch (stateName) {
             case 'orderCards':
@@ -1514,6 +1547,10 @@ var AfterUs = /** @class */ (function () {
             case 'activateEffect':
                 var activateEffectArgs = args.args;
                 (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects);
+                break;
+            case 'activateEffectToken':
+                var activateEffectTokenArgs = args.args;
+                (_c = this.getCurrentPlayerTable()) === null || _c === void 0 ? void 0 : _c.setActivableEffectToken(activateEffectTokenArgs.effects, activateEffectTokenArgs.possibleEffects);
                 break;
         }
     };
@@ -1525,6 +1562,7 @@ var AfterUs = /** @class */ (function () {
                 (_a = this.getCurrentPlayerTable()) === null || _a === void 0 ? void 0 : _a.setMovable(false);
                 break;
             case 'activateEffect':
+            case 'activateEffectToken':
                 (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.removeActivableEffect();
                 break;
         }
@@ -1534,6 +1572,11 @@ var AfterUs = /** @class */ (function () {
     //
     AfterUs.prototype.onUpdateActionButtons = function (stateName, args) {
         var _this = this;
+        if (stateName === 'chooseToken') {
+            if (!this.isCurrentPlayerActive() && Object.keys(this.gamedatas.players).includes('' + this.getPlayerId())) { // ignore spectators
+                this.addActionButton("cancelChooseToken-button", _("I changed my mind"), function () { return _this.cancelChooseToken(); }, null, null, 'gray');
+            }
+        }
         switch (stateName) {
             case 'orderCards':
                 this.addActionButton("validateCardOrder-button", _("Validate card order"), function () { return _this.validateCardOrder(); });
@@ -1553,6 +1596,11 @@ var AfterUs = /** @class */ (function () {
                 break;
             case 'confirmActivations':
                 this.addActionButton("confirmActivations-button", _("Confirm"), function () { return _this.confirmActivations(); });
+                break;
+            case 'chooseToken':
+                [1, 2, 3, 4].forEach(function (type) {
+                    return _this.addActionButton("chooseToken".concat(type, "-button"), "<div class=\"action-token\" data-type=\"".concat(type, "\"></div>"), function () { return _this.chooseToken(type); });
+                });
                 break;
         }
     };
@@ -1670,6 +1718,22 @@ var AfterUs = /** @class */ (function () {
         var _a;
         (_a = this.scoreCtrl[playerId]) === null || _a === void 0 ? void 0 : _a.toValue(score);
     };
+    AfterUs.prototype.onFrameClicked = function (row, cardIndex, index) {
+        if (this.gamedatas.gamestate.name == 'tokenSelectReactivate') {
+            this.takeAction('activateEffectToken', {
+                row: row,
+                cardIndex: cardIndex,
+                index: index,
+            });
+        }
+        else {
+            this.takeAction('activateEffect', {
+                row: row,
+                cardIndex: cardIndex,
+                index: index,
+            });
+        }
+    };
     AfterUs.prototype.moveCard = function (index, direction) {
         if (!this.checkAction('moveCard')) {
             return;
@@ -1703,6 +1767,20 @@ var AfterUs = /** @class */ (function () {
         }
         this.takeAction('confirmActivations');
     };
+    AfterUs.prototype.chooseToken = function (type) {
+        /*if(!(this as any).checkAction('chooseToken')) {
+            return;
+        }*/
+        this.takeAction('chooseToken', {
+            type: type,
+        });
+    };
+    AfterUs.prototype.cancelChooseToken = function () {
+        /*if(!(this as any).checkAction('cancelChooseToken')) {
+            return;
+        }*/
+        this.takeAction('cancelChooseToken');
+    };
     AfterUs.prototype.takeAction = function (action, data) {
         data = data || {};
         data.lock = true;
@@ -1726,6 +1804,8 @@ var AfterUs = /** @class */ (function () {
             ['newRound', ANIMATION_MS],
             ['switchedCards', 1],
             ['activatedEffect', 1],
+            ['selectedToken', 1],
+            ['revealTokens', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
         ];
         notifs.forEach(function (notif) {
@@ -1747,6 +1827,16 @@ var AfterUs = /** @class */ (function () {
         this.grainCounters[playerId].toValue(player.grains);
         this.energyCounters[playerId].toValue(player.energy);
         this.setScore(playerId, +player.score);
+    };
+    AfterUs.prototype.notif_selectedToken = function (notif) {
+        var currentPlayer = this.getPlayerId() == notif.args.playerId;
+        if (notif.args.token || !currentPlayer) {
+            this.getPlayerTable(notif.args.playerId).setSelectedToken(notif.args.cancel ? null : notif.args.token);
+        }
+    };
+    AfterUs.prototype.notif_revealTokens = function (notif) {
+        var _this = this;
+        Object.entries(notif.args.tokens).forEach(function (val) { return _this.getPlayerTable(+val[0]).setSelectedToken(val[1]); });
     };
     AfterUs.prototype.notif_endRound = function (notif) {
         this.getPlayerTable(notif.args.playerId).endRound();

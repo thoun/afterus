@@ -52,8 +52,6 @@ html, .mode_3d #game_play_area_background {
   }
 }
 
-
-
 .icon {
   display: inline-block;
   position: relative;
@@ -105,6 +103,23 @@ html, .mode_3d #game_play_area_background {
     width: 24px;
     height: 24px;
     margin: -2px 0px;
+  }
+}
+
+.action-token {
+  display: inline-block;
+  position: relative;
+  width: 64px;
+  height: 64px;
+  background-image: url('img/action-tokens.png');
+  background-size: auto 100%;
+  vertical-align: middle;
+  border-radius: 50%;
+
+  @for $type from 1 through 4 {
+    &[data-type="#{$type}"] {
+        background-position-x: #{($type - 1) * 100% / 9};
+    }
   }
 }
 

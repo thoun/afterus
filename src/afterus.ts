@@ -103,6 +103,10 @@ class AfterUs implements AfterUsGame {
                 const activateEffectArgs = args.args as EnteringActivateEffectArgs;
                 this.getCurrentPlayerTable()?.setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects);
                 break;
+            case 'activateEffectToken':
+                const activateEffectTokenArgs = args.args as EnteringActivateEffectTokenArgs;
+                this.getCurrentPlayerTable()?.setActivableEffectToken(activateEffectTokenArgs.effects, activateEffectTokenArgs.possibleEffects);
+                break;
         }
     }
 
@@ -114,6 +118,7 @@ class AfterUs implements AfterUsGame {
                 this.getCurrentPlayerTable()?.setMovable(false);
                 break;
             case 'activateEffect':
+            case 'activateEffectToken':
                 this.getCurrentPlayerTable()?.removeActivableEffect();
                 break;
         }
@@ -123,6 +128,12 @@ class AfterUs implements AfterUsGame {
     //                        action status bar (ie: the HTML links in the status bar).
     //
     public onUpdateActionButtons(stateName: string, args: any) {
+        if (stateName === 'chooseToken') {
+            if (!(this as any).isCurrentPlayerActive() && Object.keys(this.gamedatas.players).includes(''+this.getPlayerId())) { // ignore spectators
+                (this as any).addActionButton(`cancelChooseToken-button`, _("I changed my mind"), () => this.cancelChooseToken(), null, null, 'gray');
+            }
+        }
+
         switch (stateName) {
             case 'orderCards':
                 (this as any).addActionButton(`validateCardOrder-button`, _("Validate card order"), () => this.validateCardOrder());
@@ -141,6 +152,11 @@ class AfterUs implements AfterUsGame {
                 break;
             case 'confirmActivations':
                 (this as any).addActionButton(`confirmActivations-button`, _("Confirm"), () => this.confirmActivations());
+                break;
+            case 'chooseToken':
+                [1, 2, 3, 4].forEach(type => 
+                    (this as any).addActionButton(`chooseToken${type}-button`, `<div class="action-token" data-type="${type}"></div>`, () => this.chooseToken(type))
+                );
                 break;
         }
     }
@@ -307,6 +323,22 @@ class AfterUs implements AfterUsGame {
     private setScore(playerId: number, score: number) {
         (this as any).scoreCtrl[playerId]?.toValue(score);
     }
+
+    public onFrameClicked(row: number, cardIndex: number, index: number): void {
+        if (this.gamedatas.gamestate.name == 'tokenSelectReactivate') {
+            this.takeAction('activateEffectToken', {
+                row, 
+                cardIndex,
+                index,
+            });
+        } else {
+            this.takeAction('activateEffect', {
+                row, 
+                cardIndex,
+                index,
+            });
+        }
+    }
   	
     public moveCard(index: number, direction: number) {
         if(!(this as any).checkAction('moveCard')) {
@@ -350,6 +382,24 @@ class AfterUs implements AfterUsGame {
 
         this.takeAction('confirmActivations');
     }
+  	
+    public chooseToken(type: number) {
+        /*if(!(this as any).checkAction('chooseToken')) {
+            return;
+        }*/
+
+        this.takeAction('chooseToken', {
+            type, 
+        });
+    }
+  	
+    public cancelChooseToken() {
+        /*if(!(this as any).checkAction('cancelChooseToken')) {
+            return;
+        }*/
+
+        this.takeAction('cancelChooseToken');
+    }
 
     public takeAction(action: string, data?: any) {
         data = data || {};
@@ -376,6 +426,8 @@ class AfterUs implements AfterUsGame {
             ['newRound', ANIMATION_MS],
             ['switchedCards', 1],
             ['activatedEffect', 1],
+            ['selectedToken', 1],
+            ['revealTokens', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
         ];
     
@@ -401,6 +453,17 @@ class AfterUs implements AfterUsGame {
         this.grainCounters[playerId].toValue(player.grains);
         this.energyCounters[playerId].toValue(player.energy);
         this.setScore(playerId, +player.score);
+    }
+
+    notif_selectedToken(notif: Notif<NotifSelectedTokenArgs>) {
+        const currentPlayer = this.getPlayerId() == notif.args.playerId;
+        if (notif.args.token || !currentPlayer) {
+            this.getPlayerTable(notif.args.playerId).setSelectedToken(notif.args.cancel ? null : notif.args.token);
+        }
+    }
+
+    notif_revealTokens(notif: Notif<NotifRevealTokensArgs>) {
+        Object.entries(notif.args.tokens).forEach(val => this.getPlayerTable(+val[0]).setSelectedToken(val[1]));
     }
 
     notif_endRound(notif: Notif<NotifEndRoundArgs>) {

@@ -15,7 +15,7 @@
             border-radius: 8px;
 
             &>* {
-                pointer-events: none;
+                pointer-events: all !important;
                 user-select: none;
             }
 
@@ -101,6 +101,10 @@
                     }
                     &.remaining {
                         border-color: green;
+                    }
+                    &.selectable {
+                        border-color: lightgreen;
+                        cursor: pointer;
                     }
                     &.current {
                         border-color: lightgreen;
