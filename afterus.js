@@ -1391,9 +1391,12 @@ var PlayerTable = /** @class */ (function () {
                 document.getElementById("move-left-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, -1); });
                 document.getElementById("move-right-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, 1); });
             });
-            this.line.addCards(player.line);
         }
+        this.newRound(player.line);
     }
+    PlayerTable.prototype.newRound = function (cards) {
+        this.line.addCards(cards);
+    };
     PlayerTable.prototype.setMovable = function (movable) {
         document.getElementById("player-table-".concat(this.playerId)).classList.toggle('move-phase', movable);
     };
@@ -1419,10 +1422,19 @@ var PlayerTable = /** @class */ (function () {
         appliedEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'applied'); });
         remainingEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'remaining'); });
         this.setEffectClass(currentEffect, 'current');
+        var line = document.getElementById("player-table-".concat(this.playerId, "-line"));
+        line.querySelectorAll('.frame').forEach(function (element) {
+            if (!['current', 'applied', 'remaining'].some(function (frameClass) { return element.classList.contains(frameClass); })) {
+                element.classList.add('disabled');
+            }
+        });
     };
     PlayerTable.prototype.removeActivableEffect = function () {
         var line = document.getElementById("player-table-".concat(this.playerId, "-line"));
-        ['current', 'applied', 'remaining'].forEach(function (frameClass) { return line.querySelectorAll('.frame.' + frameClass).forEach(function (element) { return element.classList.remove(frameClass); }); });
+        ['disabled', 'current', 'applied', 'remaining'].forEach(function (frameClass) { return line.querySelectorAll('.frame.' + frameClass).forEach(function (element) { return element.classList.remove(frameClass); }); });
+    };
+    PlayerTable.prototype.endRound = function () {
+        this.line.removeAll();
     };
     return PlayerTable;
 }());
@@ -1711,9 +1723,10 @@ var AfterUs = /** @class */ (function () {
         //log( 'notifications subscriptions setup' );
         var _this = this;
         var notifs = [
-            ['newRound', 1],
+            ['newRound', ANIMATION_MS],
             ['switchedCards', 1],
             ['activatedEffect', 1],
+            ['endRound', ANIMATION_MS],
         ];
         notifs.forEach(function (notif) {
             dojo.subscribe(notif[0], _this, "notif_".concat(notif[0]));
@@ -1721,7 +1734,7 @@ var AfterUs = /** @class */ (function () {
         });
     };
     AfterUs.prototype.notif_newRound = function (notif) {
-        this.playersTables.forEach(function (table) { return table.newRound(notif.args.costs); });
+        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards);
     };
     AfterUs.prototype.notif_switchedCards = function (notif) {
         this.getPlayerTable(notif.args.playerId).switchCards([notif.args.card, notif.args.otherCard]);
@@ -1734,6 +1747,9 @@ var AfterUs = /** @class */ (function () {
         this.grainCounters[playerId].toValue(player.grains);
         this.energyCounters[playerId].toValue(player.energy);
         this.setScore(playerId, +player.score);
+    };
+    AfterUs.prototype.notif_endRound = function (notif) {
+        this.getPlayerTable(notif.args.playerId).endRound();
     };
     /*private getColorName(color: number) {
         switch (color) {

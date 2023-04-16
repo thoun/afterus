@@ -65,9 +65,13 @@ class PlayerTable {
                 document.getElementById(`move-left-${index}`).addEventListener('click', () => this.game.moveCard(index, -1));
                 document.getElementById(`move-right-${index}`).addEventListener('click', () => this.game.moveCard(index, 1));
             });
-            
-            this.line.addCards(player.line);
         }
+            
+        this.newRound(player.line);
+    }
+    
+    public newRound(cards: Card[]) {            
+        this.line.addCards(cards);
     }
 
     public setMovable(movable: boolean) {
@@ -100,10 +104,21 @@ class PlayerTable {
         appliedEffects.forEach(effect => this.setEffectClass(effect, 'applied'));
         remainingEffects.forEach(effect => this.setEffectClass(effect, 'remaining'));
         this.setEffectClass(currentEffect, 'current');
+
+        const line = document.getElementById(`player-table-${this.playerId}-line`);
+        line.querySelectorAll('.frame').forEach(element => {
+            if (!['current', 'applied', 'remaining'].some(frameClass => element.classList.contains(frameClass))) {
+                element.classList.add('disabled')
+            }
+        });
     }
     
     public removeActivableEffect() {
         const line = document.getElementById(`player-table-${this.playerId}-line`);
-        ['current', 'applied', 'remaining'].forEach(frameClass => line.querySelectorAll('.frame.'+frameClass).forEach(element => element.classList.remove(frameClass)));
+        ['disabled', 'current', 'applied', 'remaining'].forEach(frameClass => line.querySelectorAll('.frame.'+frameClass).forEach(element => element.classList.remove(frameClass)));
+    }
+    
+    public endRound() {
+        this.line.removeAll();
     }
 }

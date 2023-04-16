@@ -26,7 +26,10 @@ trait StateTrait {
                 $line[] = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, $i));
             }
 
-            // TODO notif line
+            self::notifyAllPlayers('newRound', '', [
+                'playerId' => $playerId,
+                'cards' => $line,
+            ]);
         }
 
         $this->gamestate->nextState('next');
@@ -60,7 +63,10 @@ trait StateTrait {
         $playersIds = $this->getPlayersIds();
         foreach ($playersIds as $playerId) {
             $this->cards->moveAllCardsInLocation('line'.$playerId, 'discard'.$playerId);
-            // TODO notif line
+
+            self::notifyAllPlayers('endRound', '', [
+                'playerId' => $playerId,
+            ]);
         }
 
         $endScoreReached = $this->isEndScoreReached();        

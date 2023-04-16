@@ -74,7 +74,8 @@ interface EnteringActivateEffectArgs {
 
 // newRound
 interface NotifNewRoundArgs {
-    costs: number[];
+    playerId: number;
+    cards: Card[];
 }
 
 // switchedCards
@@ -90,4 +91,9 @@ interface NotifSwitchedCardsArgs {
 interface NotifActivatedEffectArgs {
     playerId: number;
     player: AfterUsPlayer;
+}
+
+// endRound
+interface NotifEndRoundArgs {
+    playerId: number;
 }

@@ -373,9 +373,10 @@ class AfterUs implements AfterUsGame {
         //log( 'notifications subscriptions setup' );
 
         const notifs = [
-            ['newRound', 1],
+            ['newRound', ANIMATION_MS],
             ['switchedCards', 1],
             ['activatedEffect', 1],
+            ['endRound', ANIMATION_MS],
         ];
     
         notifs.forEach((notif) => {
@@ -385,7 +386,7 @@ class AfterUs implements AfterUsGame {
     }
 
     notif_newRound(notif: Notif<NotifNewRoundArgs>) {
-        this.playersTables.forEach(table => table.newRound(notif.args.costs));
+        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards);
     }
 
     notif_switchedCards(notif: Notif<NotifSwitchedCardsArgs>) {
@@ -401,6 +402,10 @@ class AfterUs implements AfterUsGame {
         this.energyCounters[playerId].toValue(player.energy);
         this.setScore(playerId, +player.score);
     }
+
+    notif_endRound(notif: Notif<NotifEndRoundArgs>) {
+        this.getPlayerTable(notif.args.playerId).endRound();
+    }    
 
     /*private getColorName(color: number) {
         switch (color) {
