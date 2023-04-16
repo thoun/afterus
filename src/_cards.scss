@@ -70,14 +70,14 @@
                 .frame {
                     border: 3px dashed blue;
                     position: absolute;
-                    width: 40px;
+                    width: var(--width);
                     height: 23px;
 
                     &[data-position-index="0"] {
                         left: 0;
                     }
                     &[data-position-index="1"] {
-                        left: 45px;
+                        left: calc(50% - (var(--width) / 2));
                     }
                     &[data-position-index="2"] {
                         right: 0;

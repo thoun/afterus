@@ -1232,13 +1232,14 @@ var CardsManager = /** @class */ (function (_super) {
         return _this;
     }
     CardsManager.prototype.createFrame = function (div, frame, row, index, positionIndex) {
-        div.insertAdjacentHTML('beforeend', "\n            <div class=\"frame ".concat(frame.type == OPENED_LEFT ? 'opened-left' : (frame.type == OPENED_RIGHT ? 'opened-right' : ''), "\" data-row=\"").concat(row, "\" data-index=\"").concat(index, "\" data-position-index=\"").concat(positionIndex, "\" data-left=\"").concat(JSON.stringify(frame.left), "\" data-right=\"").concat(JSON.stringify(frame.right), "\" data-convert-sign=\"").concat(JSON.stringify(frame.convertSign), "\"></div>\n        "));
+        var width = 11 + (frame.left.length * 17) + (frame.convertSign ? 8 : 0) + (frame.right.length * 17);
+        div.insertAdjacentHTML('beforeend', "\n            <div class=\"frame ".concat(frame.type == OPENED_LEFT ? 'opened-left' : (frame.type == OPENED_RIGHT ? 'opened-right' : ''), "\" data-row=\"").concat(row, "\" data-index=\"").concat(index, "\" data-position-index=\"").concat(positionIndex, "\" data-left=\"").concat(JSON.stringify(frame.left), "\" data-right=\"").concat(JSON.stringify(frame.right), "\" data-convert-sign=\"").concat(JSON.stringify(frame.convertSign), "\" style=\"--width: ").concat(width, "px\"></div>\n        "));
     };
     CardsManager.prototype.createFrames = function (div, frames) {
         var _this = this;
         var _loop_2 = function (row) {
             frames[row].forEach(function (frame, index) {
-                return _this.createFrame(div, frame, row, index, frame.type == OPENED_RIGHT ? 2 : (frame.type == CLOSED && frames[row].length == 1 ? 1 : index));
+                return _this.createFrame(div, frame, row, index, frame.type == OPENED_RIGHT ? 2 : (frame.type == CLOSED && frames[row].filter(function (f) { return f.type == CLOSED; }).length == 1 ? 1 : index));
             });
         };
         for (var row = 0; row < 3; row++) {
@@ -1416,6 +1417,7 @@ function formatTextIcons(rawText) {
         .replace(/\[Energy\]/ig, '<div class="icon energy"></div>')
         .replace(/\[Point\]/ig, '<div class="icon point"></div>')
         .replace(/\[Rage\]/ig, '<div class="icon rage"></div>')
+        .replace(/\[Different\]/ig, '<div class="icon different"></div>')
         .replace(/\[Tamarin\]/ig, '<div class="icon tamarin"></div>')
         .replace(/\[Reactivate\]/ig, '<div class="icon reactivate"></div>');
 }
@@ -1529,7 +1531,7 @@ var AfterUs = /** @class */ (function () {
             case 4: return '[Energy]';
             case 5: return '[Point]';
             case 6: return '[Rage]';
-            case 7: return '≠';
+            case 7: return '[Different]';
             case 8: return '/ [Tamarin]';
             case 10: return '[Reactivate]';
         }
@@ -1721,6 +1723,7 @@ var AfterUs = /** @class */ (function () {
     /* This enable to inject translatable styled things to logs or action bar */
     /* @Override */
     AfterUs.prototype.format_string_recursive = function (log, args) {
+        var _a, _b;
         try {
             if (log && args && !args.processed) {
                 /*['scoredCard', 'cardOver', 'cardUnder', 'addedCard'].forEach(attr => {
@@ -1738,6 +1741,11 @@ var AfterUs = /** @class */ (function () {
                         args[property] = `<strong>${_(args[property])}</strong>`;
                     }
                 }*/
+                for (var property in args) {
+                    if (((_b = (_a = args[property]) === null || _a === void 0 ? void 0 : _a.indexOf) === null || _b === void 0 ? void 0 : _b.call(_a, ']')) > 0) {
+                        args[property] = formatTextIcons(_(args[property]));
+                    }
+                }
                 log = formatTextIcons(_(log));
             }
         }

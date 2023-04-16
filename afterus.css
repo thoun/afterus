@@ -697,14 +697,14 @@ body > .card {
 .card .card-sides .card-side.front .frame {
   border: 3px dashed blue;
   position: absolute;
-  width: 40px;
+  width: var(--width);
   height: 23px;
 }
 .card .card-sides .card-side.front .frame[data-position-index="0"] {
   left: 0;
 }
 .card .card-sides .card-side.front .frame[data-position-index="1"] {
-  left: 45px;
+  left: calc(50% - var(--width) / 2);
 }
 .card .card-sides .card-side.front .frame[data-position-index="2"] {
   right: 0;
@@ -944,7 +944,7 @@ html, .mode_3d #game_play_area_background {
   position: relative;
   width: 32px;
   height: 32px;
-  background-image: url("img/resources.png");
+  background-image: url("img/icons.png");
   background-size: auto 100%;
   vertical-align: middle;
 }
@@ -952,22 +952,34 @@ html, .mode_3d #game_play_area_background {
   background-position: 0% 0%;
 }
 .icon.fruit {
-  background-position: 25% 0%;
+  background-position: 12.5% 0%;
 }
 .icon.grain {
-  background-position: 50% 0%;
+  background-position: 25% 0%;
 }
 .icon.energy {
-  background-position: 75% 0%;
+  background-position: 37.5% 0%;
+}
+.icon.point {
+  background-position: 50% 0%;
 }
 .icon.rage {
+  background-position: 62.5% 0%;
+}
+.icon.different {
+  background-position: 75% 0%;
+}
+.icon.tamarin {
+  background-position: 87.5% 0%;
+}
+.icon.reactivate {
   background-position: 100% 0%;
 }
 
 .action-button .icon, .log .icon, .dijitTooltipContents .icon, .object-tooltip .icon {
   width: 24px;
   height: 24px;
-  margin: -5px 0px;
+  margin: -2px 0px;
 }
 
 .object-tooltip > div {

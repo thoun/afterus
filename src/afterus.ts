@@ -21,6 +21,7 @@ function formatTextIcons(rawText: string) {
         .replace(/\[Energy\]/ig, '<div class="icon energy"></div>')
         .replace(/\[Point\]/ig, '<div class="icon point"></div>')
         .replace(/\[Rage\]/ig, '<div class="icon rage"></div>')
+        .replace(/\[Different\]/ig, '<div class="icon different"></div>')
         .replace(/\[Tamarin\]/ig, '<div class="icon tamarin"></div>')
         .replace(/\[Reactivate\]/ig, '<div class="icon reactivate"></div>');
 }
@@ -158,7 +159,7 @@ class AfterUs implements AfterUsGame {
             case 4: return '[Energy]';
             case 5: return '[Point]';
             case 6: return '[Rage]';
-            case 7: return '≠';
+            case 7: return '[Different]';
             case 8: return '/ [Tamarin]';
             case 10: return '[Reactivate]';
         }        
@@ -432,7 +433,13 @@ class AfterUs implements AfterUsGame {
                     }
                 }*/
 
-                log = formatTextIcons(_(log));                
+                for (const property in args) {
+                    if (args[property]?.indexOf?.(']') > 0) {
+                        args[property] = formatTextIcons(_(args[property]));
+                    }
+                }
+
+                log = formatTextIcons(_(log));
             }
         } catch (e) {
             console.error(log,args,"Exception thrown", e.stack);

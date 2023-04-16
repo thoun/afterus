@@ -59,28 +59,44 @@ html, .mode_3d #game_play_area_background {
   position: relative;
   width: 32px;
   height: 32px;
-  background-image: url('img/resources.png');
+  background-image: url('img/icons.png');
   background-size: auto 100%;
   vertical-align: middle;
 
   &.flower {
-    background-position: #{0 * 100% / 4} 0%;
+    background-position: #{0 * 100% / 8} 0%;
   }
 
   &.fruit {
-    background-position: #{1 * 100% / 4} 0%;
+    background-position: #{1 * 100% / 8} 0%;
   }
 
   &.grain {
-    background-position: #{2 * 100% / 4} 0%;
+    background-position: #{2 * 100% / 8} 0%;
   }
 
   &.energy {
-    background-position: #{3 * 100% / 4} 0%;
+    background-position: #{3 * 100% / 8} 0%;
+  }
+
+  &.point {
+    background-position: #{4 * 100% / 8} 0%;
   }
 
   &.rage {
-    background-position: #{4 * 100% / 4} 0%;
+    background-position: #{5 * 100% / 8} 0%;
+  }
+
+  &.different {
+    background-position: #{6 * 100% / 8} 0%;
+  }
+
+  &.tamarin {
+    background-position: #{7 * 100% / 8} 0%;
+  }
+
+  &.reactivate {
+    background-position: #{8 * 100% / 8} 0%;
   }
 }
 
@@ -88,7 +104,7 @@ html, .mode_3d #game_play_area_background {
   .icon {
     width: 24px;
     height: 24px;
-    margin: -5px 0px;
+    margin: -2px 0px;
   }
 }
 

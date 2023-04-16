@@ -295,7 +295,7 @@ trait UtilTrait {
             case ENERGY: return '[Energy]';
             case POINT: return '[Point]';
             case RAGE: return '[Rage]';
-            case DIFFERENT: return '≠';
+            case DIFFERENT: return '[Different]';
             case PER_TAMARINS: return '/ [Tamarin]';
             case REACTIVATE: return '[Reactivate]';
             default: throw new BgaVisibleSystemException('invalid getResourceCode');
