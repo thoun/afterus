@@ -286,4 +286,23 @@ trait UtilTrait {
             default: throw new BgaVisibleSystemException('invalid gainResource');
         }
     }
+
+    private function getResourceCode(int $resource) {
+        switch ($resource) {
+            case FLOWER: return '[Flower]';
+            case FRUIT: return '[Fruit]';
+            case GRAIN: return '[Grain]';
+            case ENERGY: return '[Energy]';
+            case POINT: return '[Point]';
+            case RAGE: return '[Rage]';
+            case DIFFERENT: return '≠';
+            case PER_TAMARINS: return '/ [Tamarin]';
+            case REACTIVATE: return '[Reactivate]';
+            default: throw new BgaVisibleSystemException('invalid getResourceCode');
+        }
+    }
+
+    private function getResourcesStr(array $resources) {
+        return implode(' ', array_map(fn($resource) => $resource[0] . ' ' . $this->getResourceCode($resource[1]), $resources));
+    }
 }

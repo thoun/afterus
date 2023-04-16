@@ -416,7 +416,7 @@ class AfterUs implements AfterUsGame {
         try {
             if (log && args && !args.processed) {
 
-                ['scoredCard', 'cardOver', 'cardUnder', 'addedCard'].forEach(attr => {
+                /*['scoredCard', 'cardOver', 'cardUnder', 'addedCard'].forEach(attr => {
                     if ((typeof args[attr] !== 'string' || args[attr][0] !== '<') && args[attr + 'Obj']) {
                         const obj: Card = args[attr + 'Obj'];
                         args[attr] = `<strong data-color="${obj.color}">${obj.number}</strong>`;
@@ -430,8 +430,9 @@ class AfterUs implements AfterUsGame {
                     if (['column', 'incScoreColumn', 'incScoreCard', 'roundNumber', 'totalScore', 'roundScore'].includes(property) && args[property][0] != '<') {
                         args[property] = `<strong>${_(args[property])}</strong>`;
                     }
-                }
-                
+                }*/
+
+                log = formatTextIcons(_(log));                
             }
         } catch (e) {
             console.error(log,args,"Exception thrown", e.stack);

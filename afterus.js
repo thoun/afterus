@@ -1263,35 +1263,52 @@ var ObjectsManager = /** @class */ (function (_super) {
         _this.game = game;
         return _this;
     }
-    ObjectsManager.prototype.getTooltip = function (number) {
-        var message = '';
+    ObjectsManager.prototype.getObjectName = function (number) {
         switch (number) {
-            case 1:
-                message = _("(+2) if you have 1 or 3 orange cards.");
-                break;
-            case 2:
-                message = _("(-2) if orange cards are in the scoring column with either value (1) or value (2).");
-                break;
-            case 3:
-                message = _("(+2) if you have 2 or 4 blue cards.");
-                break;
-            case 4:
-                message = _("(+2) if blue is the colour you have the most cards of (or if blue is tied).");
-                break;
-            case 5:
-                message = _("(-2) if you are the player with the least pink cards (or are tied for the least pink cards).");
-                break;
-            case 6:
-                message = _("(+2) if you are the player with the most pink cards (or are tied for the most pink cards).");
-                break;
-            case 7:
-                message = _("(+2) if no colour is on the right of the green column.");
-                break;
+            case 1: return _("Mobile phone");
+            case 2: return _("Minibar");
+            case 3: return _("Ghetto blaster");
+            case 4: return _("Game console");
+            case 5: return _("Pinball Machine");
+            case 6: return _("Computer");
+            case 7: return _("Moped");
         }
-        /*message = message.replaceAll(/\(([+-]?\d)\)/g, (a, b) => { console.log(a, b);
-            return `<div class="points-circle" data-negative="${Number(b) < 0}">${b}</div>`;
-        });*/
-        return message;
+    };
+    ObjectsManager.prototype.getObjectPhase = function (number) {
+        switch (number) {
+            case 1: return '1';
+            case 2: return _("${a} or ${b}").replace('${a}', '1').replace('${b}', '2');
+            case 3: return '1';
+            case 4: return '3';
+            case 5: return '1';
+            case 6: return '1, ' + _("${a} or ${b}").replace('${a}', '2').replace('${b}', '3');
+            case 7: return '2';
+        }
+    };
+    ObjectsManager.prototype.getObjectCost = function (number) {
+        switch (number) {
+            case 1: return _("${a} or ${b}").replace('${a}', '2').replace('${b}', '3');
+            case 2: return '1';
+            case 3: return '2';
+            case 4: return _("${a} or ${b}").replace('${a}', '3').replace('${b}', '5');
+            case 5: return '4';
+            case 6: return '5';
+            case 7: return _("${a} or ${b}").replace('${a}', '6').replace('${b}', '9');
+        }
+    };
+    ObjectsManager.prototype.getObjectEffect = function (number) {
+        switch (number) {
+            case 1: return _("before arranging your Primate Assembly, return 1 of the cards you just drew (level 1 or 2) to the bottom of its corresponding deck on the main board. Next, draw the top card from a deck of your choice (same level as the card you removed) and add it to your Primate Assembly. This card permanently replaces the card you removed from your draw deck. The required [Energy] cost depends on the level of the card you removed: 2 [Energy] for a card of level 1, and 3 [Energy] for a card of level 2. You don't receive the rage bonus in the top right corner of the card you removed.");
+            case 2: return _("swap 1 of your resources with 1 resource from the general supply. You may swap resources of any type") + '  ([Flower], [Fruit], ' + _("${a} or ${b}").replace('${a}', '[Grain]').replace('${b}', '[Energy]') + ').';
+            case 3: return _("before assigning your Primate Assembly, place 1 of the cards you just draw on your discard pile and draw 1 card from your draw pile to replace it.");
+            case 4: return _("when discarding the cards in your Primate Assembly, place 1 of these card back on top of your draw pile instead of discarding it.  This costs 3 [Energy] for an ape of level 1, and 5 [Energy] for an ape of level 2.");
+            case 5: return _("before assigning your Primate Assembly, draw a 5th card. You have access to an extra card this round.");
+            case 6: return _("immediately score 5 [Point].");
+            case 7: return _("attract an ape of your choice and place it on top of your draw pile. This costs 6 [Energy] for an ape of level 1, and 9 [Energy] for an ape of level 2.");
+        }
+    };
+    ObjectsManager.prototype.getTooltip = function (number) {
+        return "\n            <div class=\"object-tooltip\">\n                <div class=\"title\">".concat(this.getObjectName(number), "</div>\n                <div class=\"phase\"><span class=\"label\">").concat(_('Phase:'), "</span> ").concat(this.getObjectPhase(number), "</div>\n                <div class=\"cost\"><span class=\"label\">").concat(_('Cost:'), "</span> ").concat(this.getObjectCost(number), " ").concat(formatTextIcons('[Energy]'), "</div>\n                <div class=\"effect\"><span class=\"label\">").concat(_('Effect:'), "</span> ").concat(formatTextIcons(this.getObjectEffect(number)), "</div>\n            </div>\n        ");
     };
     return ObjectsManager;
 }(CardManager));
@@ -1706,20 +1723,22 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.format_string_recursive = function (log, args) {
         try {
             if (log && args && !args.processed) {
-                ['scoredCard', 'cardOver', 'cardUnder', 'addedCard'].forEach(function (attr) {
+                /*['scoredCard', 'cardOver', 'cardUnder', 'addedCard'].forEach(attr => {
                     if ((typeof args[attr] !== 'string' || args[attr][0] !== '<') && args[attr + 'Obj']) {
-                        var obj = args[attr + 'Obj'];
-                        args[attr] = "<strong data-color=\"".concat(obj.color, "\">").concat(obj.number, "</strong>");
+                        const obj: Card = args[attr + 'Obj'];
+                        args[attr] = `<strong data-color="${obj.color}">${obj.number}</strong>`;
                         if (obj.points != 0) {
-                            args[attr] += " <div class=\"points-circle\" data-negative=\"".concat((obj.points < 0).toString(), "\">").concat(obj.points > 0 ? '+' : '').concat(obj.points, "</div>");
+                            args[attr] += ` <div class="points-circle" data-negative="${(obj.points < 0).toString()}">${obj.points > 0 ? '+' : ''}${obj.points}</div>`;
                         }
                     }
                 });
-                for (var property in args) {
+
+                for (const property in args) {
                     if (['column', 'incScoreColumn', 'incScoreCard', 'roundNumber', 'totalScore', 'roundScore'].includes(property) && args[property][0] != '<') {
-                        args[property] = "<strong>".concat(_(args[property]), "</strong>");
+                        args[property] = `<strong>${_(args[property])}</strong>`;
                     }
-                }
+                }*/
+                log = formatTextIcons(_(log));
             }
         }
         catch (e) {

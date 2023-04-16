@@ -964,8 +964,24 @@ html, .mode_3d #game_play_area_background {
   background-position: 100% 0%;
 }
 
-.action-button .icon, .log .icon, .dijitTooltipContents .icon {
+.action-button .icon, .log .icon, .dijitTooltipContents .icon, .object-tooltip .icon {
   width: 24px;
   height: 24px;
   margin: -5px 0px;
+}
+
+.object-tooltip > div {
+  padding: 5px;
+}
+.object-tooltip > div:not(:last-child) {
+  border-bottom: 1px solid #2F81A4;
+}
+.object-tooltip .title {
+  color: #2F81A4;
+  text-transform: uppercase;
+  font-size: 120%;
+}
+.object-tooltip .label {
+  color: #2F81A4;
+  text-transform: uppercase;
 }

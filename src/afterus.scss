@@ -84,10 +84,31 @@ html, .mode_3d #game_play_area_background {
   }
 }
 
-.action-button, .log, .dijitTooltipContents {
+.action-button, .log, .dijitTooltipContents, .object-tooltip {
   .icon {
     width: 24px;
     height: 24px;
     margin: -5px 0px;
+  }
+}
+
+.object-tooltip {
+  &>div {
+    padding: 5px;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid #2F81A4;
+    }
+  }
+
+  .title {
+    color: #2F81A4;
+    text-transform: uppercase;
+    font-size: 120%;
+  }
+
+  .label {
+    color: #2F81A4;
+    text-transform: uppercase;
   }
 }

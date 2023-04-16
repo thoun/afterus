@@ -78,12 +78,21 @@ trait ActionTrait {
 
         $this->markedPlayedEffect($playerId, $effect);
 
+        $message = '';
+        if (!$effect->convertSign) {
+            $message = _('${player_name} gains ${resources} with activated effect');
+        } else {
+            $message = _('${player_name} spends ${left} to gain ${right} with activated effect');
+        }
         
-        $message = _('${player_name} activates effect TODO');
+        
         self::notifyAllPlayers('activatedEffect', $message, [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
             'player' => $this->getPlayer($playerId),
+            'resources' => $this->getResourcesStr(array_merge($effect->left, $effect->right)),
+            'left' => $this->getResourcesStr($effect->left),
+            'right' => $this->getResourcesStr($effect->right),
         ]);
 
         $args = $this->argActivateEffect($playerId);
