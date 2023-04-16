@@ -14,11 +14,15 @@ trait StateTrait {
     function stNewRound() {
         $this->DbQuery("UPDATE `player` SET `applied_effects` = '[]'");
 
-        
         $playersIds = $this->getPlayersIds();
         foreach ($playersIds as $playerId) {
             $line = [];
             for ($i = 0; $i < 4; $i++) {
+                if (intval($this->cards->countCardInLocation('deck'.$playerId)) == 0) {
+                    $this->cards->moveAllCardsInLocation('discard'.$playerId, 'deck'.$playerId);
+                    $this->cards->shuffle('deck'.$playerId);
+                    // TODO notif shuffle
+                }
                 $line[] = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, $i));
             }
 
@@ -55,7 +59,7 @@ trait StateTrait {
         
         $playersIds = $this->getPlayersIds();
         foreach ($playersIds as $playerId) {
-            $this->cards->moveAllCardsInLocation('deck'.$playerId, 'discard'.$playerId);
+            $this->cards->moveAllCardsInLocation('line'.$playerId, 'discard'.$playerId);
             // TODO notif line
         }
 

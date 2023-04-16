@@ -74,7 +74,7 @@ $playerActionsGameStates = [
 
     ST_MULTIPLAYER_PHASE1 => [
         "name" => "phase1",
-        "description" => clienttranslate('Phase 1 : Players must order their cards'),
+        "description" => clienttranslate('Phase 1 : Players must order their cards and activate effects'),
         "descriptionmyturn" => '',
         "type" => "multipleactiveplayer",
         "initialprivate" => ST_PRIVATE_ORDER_CARDS,

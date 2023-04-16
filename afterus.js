@@ -1369,8 +1369,11 @@ var PlayerTable = /** @class */ (function () {
         switchedCards.forEach(function (card) { return _this.line.addCard(card); });
     };
     PlayerTable.prototype.setActivableEffect = function (effect) {
-        // unset last current effect
-        document.getElementById("player-table-".concat(this.playerId, "-line")).querySelectorAll('.frame.current').forEach(function (element) { return element.classList.remove('current'); });
+        if (effect == null) {
+            // unset last current effect
+            document.getElementById("player-table-".concat(this.playerId, "-line")).querySelectorAll('.frame.current').forEach(function (element) { return element.classList.remove('current'); });
+            return;
+        }
         var fromClosedFrame = effect.closedFrameIndex !== null && effect.closedFrameIndex !== undefined;
         var lineCards = this.line.getCards();
         var card = lineCards.find(function (card) { return card.locationArg == effect.cardIndex; });
@@ -1385,6 +1388,20 @@ var PlayerTable = /** @class */ (function () {
 var ANIMATION_MS = 500;
 var ACTION_TIMER_DURATION = 5;
 var LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
+function formatTextIcons(rawText) {
+    if (!rawText) {
+        return '';
+    }
+    return rawText
+        .replace(/\[Flower\]/ig, '<div class="icon flower"></div>')
+        .replace(/\[Fruit\]/ig, '<div class="icon fruit"></div>')
+        .replace(/\[Grain\]/ig, '<div class="icon grain"></div>')
+        .replace(/\[Energy\]/ig, '<div class="icon energy"></div>')
+        .replace(/\[Point\]/ig, '<div class="icon point"></div>')
+        .replace(/\[Rage\]/ig, '<div class="icon rage"></div>')
+        .replace(/\[Tamarin\]/ig, '<div class="icon tamarin"></div>')
+        .replace(/\[Reactivate\]/ig, '<div class="icon reactivate"></div>');
+}
 var AfterUs = /** @class */ (function () {
     function AfterUs() {
         this.playersTables = [];
@@ -1446,11 +1463,14 @@ var AfterUs = /** @class */ (function () {
         }
     };
     AfterUs.prototype.onLeavingState = function (stateName) {
-        var _a;
+        var _a, _b;
         log('Leaving state: ' + stateName);
         switch (stateName) {
             case 'orderCards':
                 (_a = this.getCurrentPlayerTable()) === null || _a === void 0 ? void 0 : _a.setMovable(false);
+                break;
+            case 'activateEffect':
+                (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.setActivableEffect(null);
                 break;
         }
     };
@@ -1484,8 +1504,22 @@ var AfterUs = /** @class */ (function () {
     ///////////////////////////////////////////////////
     //// Utility methods
     ///////////////////////////////////////////////////
+    AfterUs.prototype.getResourceCode = function (resource) {
+        switch (resource) {
+            case 1: return '[Flower]';
+            case 2: return '[Fruit]';
+            case 3: return '[Grain]';
+            case 4: return '[Energy]';
+            case 5: return '[Point]';
+            case 6: return '[Rage]';
+            case 7: return '≠';
+            case 8: return '/ [Tamarin]';
+            case 10: return '[Reactivate]';
+        }
+    };
     AfterUs.prototype.getResourcesQuantityIcons = function (resources) {
-        return resources.map(function (resource) { return "".concat(resource[0], " [").concat(resource[1], "]"); }).join(' ');
+        var _this = this;
+        return formatTextIcons(resources.map(function (resource) { return "".concat(resource[0], " ").concat(_this.getResourceCode(resource[1])); }).join(' '));
     };
     AfterUs.prototype.setTooltip = function (id, html) {
         this.addTooltipHtml(id, html, this.TOOLTIP_DELAY);

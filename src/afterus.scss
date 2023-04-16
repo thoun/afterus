@@ -61,6 +61,7 @@ html, .mode_3d #game_play_area_background {
   height: 32px;
   background-image: url('img/resources.png');
   background-size: auto 100%;
+  vertical-align: middle;
 
   &.flower {
     background-position: #{0 * 100% / 4} 0%;
@@ -83,6 +84,10 @@ html, .mode_3d #game_play_area_background {
   }
 }
 
-.log, .dijitTooltipContents {
-  // TODO
+.action-button, .log, .dijitTooltipContents {
+  .icon {
+    width: 24px;
+    height: 24px;
+    margin: -5px 0px;
+  }
 }

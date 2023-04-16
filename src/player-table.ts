@@ -68,9 +68,12 @@ class PlayerTable {
         switchedCards.forEach(card => this.line.addCard(card));
     }
     
-    public setActivableEffect(effect: Effect) {
-        // unset last current effect
-        document.getElementById(`player-table-${this.playerId}-line`).querySelectorAll('.frame.current').forEach(element => element.classList.remove('current'));
+    public setActivableEffect(effect: Effect | null) {
+        if (effect == null) {
+            // unset last current effect
+            document.getElementById(`player-table-${this.playerId}-line`).querySelectorAll('.frame.current').forEach(element => element.classList.remove('current'));
+            return;
+        }
 
         const fromClosedFrame = effect.closedFrameIndex !== null && effect.closedFrameIndex !== undefined;
         const lineCards = this.line.getCards();

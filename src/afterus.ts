@@ -10,6 +10,21 @@ const ACTION_TIMER_DURATION = 5;
 
 const LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
 
+function formatTextIcons(rawText: string) {
+    if (!rawText) {
+        return '';
+    }
+    return rawText
+        .replace(/\[Flower\]/ig, '<div class="icon flower"></div>')
+        .replace(/\[Fruit\]/ig, '<div class="icon fruit"></div>')
+        .replace(/\[Grain\]/ig, '<div class="icon grain"></div>')
+        .replace(/\[Energy\]/ig, '<div class="icon energy"></div>')
+        .replace(/\[Point\]/ig, '<div class="icon point"></div>')
+        .replace(/\[Rage\]/ig, '<div class="icon rage"></div>')
+        .replace(/\[Tamarin\]/ig, '<div class="icon tamarin"></div>')
+        .replace(/\[Reactivate\]/ig, '<div class="icon reactivate"></div>');
+}
+
 class AfterUs implements AfterUsGame {
     public cardsManager: CardsManager;
 
@@ -96,6 +111,9 @@ class AfterUs implements AfterUsGame {
            case 'orderCards':
                 this.getCurrentPlayerTable()?.setMovable(false);
                 break;
+            case 'activateEffect':
+                this.getCurrentPlayerTable()?.setActivableEffect(null);
+                break;
         }
     }
 
@@ -131,8 +149,23 @@ class AfterUs implements AfterUsGame {
 
     ///////////////////////////////////////////////////
 
+    private getResourceCode(resource: number) {
+        switch (resource) {
+
+            case 1: return '[Flower]';
+            case 2: return '[Fruit]';
+            case 3: return '[Grain]';
+            case 4: return '[Energy]';
+            case 5: return '[Point]';
+            case 6: return '[Rage]';
+            case 7: return '≠';
+            case 8: return '/ [Tamarin]';
+            case 10: return '[Reactivate]';
+        }        
+    }
+
     private getResourcesQuantityIcons(resources: number[][]) {
-        return resources.map(resource => `${resource[0]} [${resource[1]}]`).join(' ');
+        return formatTextIcons(resources.map(resource => `${resource[0]} ${this.getResourceCode(resource[1])}`).join(' '));
     }
 
     public setTooltip(id: string, html: string) {
