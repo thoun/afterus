@@ -67,7 +67,8 @@ interface AfterUsGame extends Game {
 
 interface EnteringActivateEffectArgs {
     effects: Effect[];
-    possibleEffects: Effect[];
+    remainingEffects: Effect[];
+    appliedEffects: Effect[];
     currentEffect: Effect;
 }
 

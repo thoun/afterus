@@ -1341,6 +1341,21 @@ var TableCenter = /** @class */ (function () {
 var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
 ;
 var log = isDebug ? console.log.bind(window.console) : function () { };
+var CardLine = /** @class */ (function (_super) {
+    __extends(CardLine, _super);
+    function CardLine() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    CardLine.prototype.switchCards = function (switchedCards) {
+        var _this = this;
+        switchedCards.forEach(function (card) {
+            _this.addCard(card);
+            _this.cards.find(function (c) { return c.id == card.id; }).locationArg = card.locationArg;
+            _this.getCardElement(card).querySelector('.front').dataset.index = '' + card.locationArg;
+        });
+    };
+    return CardLine;
+}(SlotStock));
 var PlayerTable = /** @class */ (function () {
     function PlayerTable(game, player) {
         var _this = this;
@@ -1358,7 +1373,7 @@ var PlayerTable = /** @class */ (function () {
         html += "\n        <div id=\"player-table-".concat(this.playerId, "-line\"></div>\n        </div>\n        ");
         dojo.place(html, document.getElementById('tables'));
         var handDiv = document.getElementById("player-table-".concat(this.playerId, "-line"));
-        this.line = new SlotStock(this.game.cardsManager, handDiv, {
+        this.line = new CardLine(this.game.cardsManager, handDiv, {
             gap: '0',
             slotsIds: [0, 1, 2, 3],
             mapCardToSlot: function (card) { return card.locationArg; },
@@ -1383,23 +1398,31 @@ var PlayerTable = /** @class */ (function () {
         document.getElementById("player-table-".concat(this.playerId)).classList.toggle('move-phase', movable);
     };
     PlayerTable.prototype.switchCards = function (switchedCards) {
-        var _this = this;
-        switchedCards.forEach(function (card) { return _this.line.addCard(card); });
+        this.line.switchCards(switchedCards);
     };
-    PlayerTable.prototype.setActivableEffect = function (effect) {
-        if (effect == null) {
-            // unset last current effect
-            document.getElementById("player-table-".concat(this.playerId, "-line")).querySelectorAll('.frame.current').forEach(function (element) { return element.classList.remove('current'); });
-            return;
-        }
+    PlayerTable.prototype.getFrames = function (effect) {
         var fromClosedFrame = effect.closedFrameIndex !== null && effect.closedFrameIndex !== undefined;
         var lineCards = this.line.getCards();
         var card = lineCards.find(function (card) { return card.locationArg == effect.cardIndex; });
-        this.line.getCardElement(card).querySelector(".frame[data-row=\"".concat(effect.row, "\"][data-index=\"").concat(fromClosedFrame ? effect.closedFrameIndex : card.frames[effect.row].length - 1, "\"]")).classList.add('current');
+        var frames = [this.line.getCardElement(card).querySelector(".frame[data-row=\"".concat(effect.row, "\"][data-index=\"").concat(fromClosedFrame ? effect.closedFrameIndex : card.frames[effect.row].length - 1, "\"]"))];
         if (!fromClosedFrame) {
             var rightCard = lineCards.find(function (card) { return card.locationArg == effect.cardIndex + 1; });
-            this.line.getCardElement(rightCard).querySelector(".frame[data-row=\"".concat(effect.row, "\"][data-index=\"0\"]")).classList.add('current');
+            frames.push(this.line.getCardElement(rightCard).querySelector(".frame[data-row=\"".concat(effect.row, "\"][data-index=\"0\"]")));
         }
+        return frames;
+    };
+    PlayerTable.prototype.setEffectClass = function (effect, frameClass) {
+        this.getFrames(effect).forEach(function (frame) { return frame.classList.add(frameClass); });
+    };
+    PlayerTable.prototype.setActivableEffect = function (currentEffect, appliedEffects, remainingEffects) {
+        var _this = this;
+        appliedEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'applied'); });
+        remainingEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'remaining'); });
+        this.setEffectClass(currentEffect, 'current');
+    };
+    PlayerTable.prototype.removeActivableEffect = function () {
+        var line = document.getElementById("player-table-".concat(this.playerId, "-line"));
+        ['current', 'applied', 'remaining'].forEach(function (frameClass) { return line.querySelectorAll('.frame.' + frameClass).forEach(function (element) { return element.classList.remove(frameClass); }); });
     };
     return PlayerTable;
 }());
@@ -1477,7 +1500,8 @@ var AfterUs = /** @class */ (function () {
                 (_a = this.getCurrentPlayerTable()) === null || _a === void 0 ? void 0 : _a.setMovable(true);
                 break;
             case 'activateEffect':
-                (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.setActivableEffect(args.args.currentEffect);
+                var activateEffectArgs = args.args;
+                (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects);
                 break;
         }
     };
@@ -1489,7 +1513,7 @@ var AfterUs = /** @class */ (function () {
                 (_a = this.getCurrentPlayerTable()) === null || _a === void 0 ? void 0 : _a.setMovable(false);
                 break;
             case 'activateEffect':
-                (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.setActivableEffect(null);
+                (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.removeActivableEffect();
                 break;
         }
     };

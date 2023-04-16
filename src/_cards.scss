@@ -68,7 +68,7 @@
                 }
 
                 .frame {
-                    border: 3px dashed blue;
+                    border: 3px dashed darkred;
                     position: absolute;
                     width: var(--width);
                     height: 23px;
@@ -93,8 +93,14 @@
                         top: 160px;
                     }
 
+                    &.applied {
+                        border-color: lightgray;
+                    }
+                    &.remaining {
+                        border-color: green;
+                    }
                     &.current {
-                        border-color: lightgreen;
+                        box-shadow: 0 0 3px 5px lightgreen;
                     }
 
                     &.opened-right {

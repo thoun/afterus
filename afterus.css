@@ -695,7 +695,7 @@ body > .card {
   background-position: 100% 100%;
 }
 .card .card-sides .card-side.front .frame {
-  border: 3px dashed blue;
+  border: 3px dashed darkred;
   position: absolute;
   width: var(--width);
   height: 23px;
@@ -718,8 +718,14 @@ body > .card {
 .card .card-sides .card-side.front .frame[data-row="2"] {
   top: 160px;
 }
+.card .card-sides .card-side.front .frame.applied {
+  border-color: lightgray;
+}
+.card .card-sides .card-side.front .frame.remaining {
+  border-color: green;
+}
 .card .card-sides .card-side.front .frame.current {
-  border-color: lightgreen;
+  box-shadow: 0 0 3px 5px lightgreen;
 }
 .card .card-sides .card-side.front .frame.opened-right {
   border-right-width: 0;

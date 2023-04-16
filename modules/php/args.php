@@ -17,12 +17,14 @@ trait ArgsTrait {
         $effects = $this->getEffects($line);
         $possibleEffects = $this->getPossibleEffects($playerId, $effects, $line);
         $remainingEffects = $this->getRemainingEffects($playerId, $possibleEffects);
+        $appliedEffects = array_values(array_filter($possibleEffects, fn($effect) => !$this->array_some($remainingEffects, fn($remainingEffect) => $remainingEffect->row === $effect->row && $remainingEffect->cardIndex === $effect->cardIndex && $remainingEffect->closedFrameIndex === $effect->closedFrameIndex)));
         $currentEffect = count($remainingEffects) > 0 ? $remainingEffects[0] : null;
 
         return [
             'line' => $line,
             'effects' => $effects,
-            'possibleEffects' => $possibleEffects,
+            'remainingEffects' => $remainingEffects,
+            'appliedEffects' => $appliedEffects,
             'currentEffect' => $currentEffect,
         ];
     }

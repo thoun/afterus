@@ -100,7 +100,8 @@ class AfterUs implements AfterUsGame {
                 this.getCurrentPlayerTable()?.setMovable(true);
                 break;
             case 'activateEffect':
-                this.getCurrentPlayerTable()?.setActivableEffect(args.args.currentEffect);
+                const activateEffectArgs = args.args as EnteringActivateEffectArgs;
+                this.getCurrentPlayerTable()?.setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects);
                 break;
         }
     }
@@ -113,7 +114,7 @@ class AfterUs implements AfterUsGame {
                 this.getCurrentPlayerTable()?.setMovable(false);
                 break;
             case 'activateEffect':
-                this.getCurrentPlayerTable()?.setActivableEffect(null);
+                this.getCurrentPlayerTable()?.removeActivableEffect();
                 break;
         }
     }
