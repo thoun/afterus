@@ -126,24 +126,12 @@ trait ActionTrait {
 
         $args = $this->argActivateEffectToken($playerId);
         $line = $args['line'];
-        $effect = $this->getEffectFromClickedFrame($line, $args['possibleEffects'], $row, $cardIndex, $index);
+        $appliedEffect = $this->getEffectFromClickedFrame($line, $args['possibleEffects'], $row, $cardIndex, $index);
 
-        if (!$effect->convertSign) {
-            $resources = array_merge($effect->left, $effect->right);
-            foreach($resources as $resource) {
-                $this->gainResource($playerId, $resource, $line);
-            }
-        } else {
-            foreach($effect->left as $resource) {
-                $this->giveResource($playerId, $resource);
-            }
-            foreach($effect->right as $resource) {
-                $this->gainResource($playerId, $resource, $line);
-            }
-        }
+        $this->applyEffect($playerId, $appliedEffect, $line);
 
         $message = '';
-        if (!$effect->convertSign) {
+        if (!$appliedEffect->convertSign) {
             $message = _('${player_name} gains ${resources} with activated effect');
         } else {
             $message = _('${player_name} spends ${left} to gain ${right} with activated effect');
@@ -153,12 +141,16 @@ trait ActionTrait {
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
             'player' => $this->getPlayer($playerId),
-            'resources' => $this->getResourcesStr(array_merge($effect->left, $effect->right)),
-            'left' => $this->getResourcesStr($effect->left),
-            'right' => $this->getResourcesStr($effect->right),
+            'resources' => $this->getResourcesStr(array_merge($appliedEffect->left, $appliedEffect->right)),
+            'left' => $this->getResourcesStr($appliedEffect->left),
+            'right' => $this->getResourcesStr($appliedEffect->right),
         ]);
 
-        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+        if (intval($this->gamestate->state_id()) == ST_MULTIPLAYER_PHASE2) {
+            $this->gamestate->nextPrivateState($playerId, 'next');
+        } else {
+            $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+        }
     }
 
     public function skipEffect() {
@@ -243,20 +235,31 @@ trait ActionTrait {
             case 1: $resource = [2, POINT]; break;
             case 2: $resource = [2, ENERGY]; break;
             case 3: $resource = [2, RAGE]; break;
-            case 4: $resource = [1, REACTIVATE]; break; // TODO
         }
         
+        $reactivate = $args['copiedType'] == 4;
         $give = [2, $type];
         $this->giveResource($playerId, $give);
-        $this->gainResource($playerId, $resource, []);
+        if (!$reactivate) {
+            $this->gainResource($playerId, $resource, []);
+        }
 
-        self::notifyAllPlayers('activatedEffect', _('${player_name} spends ${left} to gain ${right} with activated effect'), [
+        $message = $reactivate ? 
+            _('${player_name} spends ${left} to reactivate an effect') : 
+            _('${player_name} spends ${left} to gain ${right} with activated effect');
+
+        self::notifyAllPlayers('activatedEffect', $message, [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
             'player' => $this->getPlayer($playerId),
             'left' => $this->getResourcesStr([$give]),
-            'right' => $this->getResourcesStr([$resource]),
+            'right' => $reactivate ? [] : $this->getResourcesStr([$resource]),
         ]);
+
+        if ($reactivate) {
+            $this->gamestate->nextPrivateState($playerId, 'activateEffect');
+            return;
+        }
 
         if (!$this->getPlayer($playerId)->phase2cardBought) {
             $this->gamestate->nextPrivateState($playerId, 'next');

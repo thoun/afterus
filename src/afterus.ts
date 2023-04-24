@@ -393,7 +393,7 @@ class AfterUs implements AfterUsGame {
     }
 
     public onFrameClicked(row: number, cardIndex: number, index: number): void {
-        if (this.gamedatas.gamestate.name == 'tokenSelectReactivate') {
+        if (['tokenSelectReactivate', 'phase2'].includes(this.gamedatas.gamestate.name)) {
             this.takeAction('activateEffectToken', {
                 row, 
                 cardIndex,

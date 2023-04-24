@@ -1781,7 +1781,7 @@ var AfterUs = /** @class */ (function () {
         (_a = this.scoreCtrl[playerId]) === null || _a === void 0 ? void 0 : _a.toValue(score);
     };
     AfterUs.prototype.onFrameClicked = function (row, cardIndex, index) {
-        if (this.gamedatas.gamestate.name == 'tokenSelectReactivate') {
+        if (['tokenSelectReactivate', 'phase2'].includes(this.gamedatas.gamestate.name)) {
             this.takeAction('activateEffectToken', {
                 row: row,
                 cardIndex: cardIndex,

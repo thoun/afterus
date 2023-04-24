@@ -153,7 +153,10 @@ $playerActionsGameStates = [
         "type" => "private",
         "args" => "argActivateEffectToken",
         "possibleactions" => [ "activateEffectToken", "skipEffectToken" ],
-        "transitions" => [],
+        "transitions" => [
+            'next' => ST_PRIVATE_BUY_CARD,
+            'cancel' => ST_PRIVATE_APPLY_NEIGHBOR_EFFECT,
+        ],
     ],
 
     ST_MULTIPLAYER_PHASE2 => [
@@ -189,6 +192,7 @@ $playerActionsGameStates = [
         "possibleactions" => [ "applyNeighborEffect", "cancelNeighborEffect" ],
         "transitions" => [
           'next' => ST_PRIVATE_BUY_CARD,
+          'activateEffect' => ST_PRIVATE_ACTIVATE_EFFECT_TOKEN,
         ],
     ],
 ];
