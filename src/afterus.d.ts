@@ -72,6 +72,7 @@ interface EnteringActivateEffectArgs {
     remainingEffects: Effect[];
     appliedEffects: Effect[];
     currentEffect: Effect;
+    reactivate: boolean;
     possibleEffects?: Effect[];
 }
 
@@ -79,6 +80,19 @@ interface EnteringChoseTokenArgs {
     _private?: {
         token: number;
     };
+}
+
+interface EnteringBuyCardArgs {
+    neighborTokens: number[];
+    canUseNeighborToken: boolean;
+    buyCardCost: { [level: number]: { [type: number]: boolean }; };
+    canBuyCard: boolean;
+    type: string;
+}
+
+interface EnteringApplyNeighborEffectArgs {
+    gain: string;
+    cost: { [type: number]: boolean };
 }
 
 // newRound
@@ -112,6 +126,12 @@ interface NotifSelectedTokenArgs {
 // revealTokens
 interface NotifRevealTokensArgs {
     tokens: { [playerId: number]: number };
+}
+
+// buyCard
+interface NotifBuyCardArgs extends NotifActivatedEffectArgs {
+    deckType: number;
+    deckCount: number;
 }
 
 // endRound

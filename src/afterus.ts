@@ -101,11 +101,11 @@ class AfterUs implements AfterUsGame {
                 break;
             case 'activateEffect':
                 const activateEffectArgs = args.args as EnteringActivateEffectArgs;
-                this.getCurrentPlayerTable()?.setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects);
+                this.getCurrentPlayerTable()?.setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects, activateEffectArgs.reactivate, activateEffectArgs.possibleEffects);
                 break;
             case 'activateEffectToken':
-                const activateEffectTokenArgs = args.args as EnteringActivateEffectTokenArgs;
-                this.getCurrentPlayerTable()?.setActivableEffectToken(activateEffectTokenArgs.effects, activateEffectTokenArgs.possibleEffects);
+                const activateEffectTokenArgs = args.args as EnteringActivateEffectArgs;
+                this.getCurrentPlayerTable()?.setActivableEffectToken(/*activateEffectTokenArgs.effects, */activateEffectTokenArgs.possibleEffects);
                 break;
         }
     }
@@ -141,13 +141,15 @@ class AfterUs implements AfterUsGame {
             case 'activateEffect':
                 const activateEffectArgs = args as EnteringActivateEffectArgs;
                 const currentEffect = activateEffectArgs.currentEffect;
-                let label;
-                if (!currentEffect.convertSign) {
-                    label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
-                } else {
-                    label = _("Spend ${left} to gain ${right}").replace('${left}', this.getResourcesQuantityIcons(currentEffect.left)).replace('${right}', this.getResourcesQuantityIcons(currentEffect.right));
+                if (!activateEffectArgs.reactivate) {
+                    let label;
+                    if (!currentEffect.convertSign) {
+                        label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                    } else {
+                        label = _("Spend ${left} to gain ${right}").replace('${left}', this.getResourcesQuantityIcons(currentEffect.left)).replace('${right}', this.getResourcesQuantityIcons(currentEffect.right));
+                    }
+                    (this as any).addActionButton(`activateEffect-button`, label, () => this.activateEffect());
                 }
-                (this as any).addActionButton(`activateEffect-button`, label, () => this.activateEffect());
                 (this as any).addActionButton(`skipEffect-button`, _("Skip"), () => this.skipEffect());
                 break;
             case 'confirmActivations':
@@ -157,6 +159,54 @@ class AfterUs implements AfterUsGame {
                 [1, 2, 3, 4].forEach(type => 
                     (this as any).addActionButton(`chooseToken${type}-button`, `<div class="action-token" data-type="${type}"></div>`, () => this.chooseToken(type))
                 );
+                break;
+            case 'buyCard':
+                const buyCardArgs = args as EnteringBuyCardArgs;
+                if (buyCardArgs.canUseNeighborToken) {
+                    buyCardArgs.neighborTokens.forEach(type => {
+                        const label = _("Use effect of ${type}").replace('${type}', `<div class="action-token" data-type="${type}"></div>`);
+                        (this as any).addActionButton(`neighborEffect${type}-button`, label, () => this.neighborEffect(type), null, null, 'gray');
+                    });
+                }
+
+                if (buyCardArgs.canBuyCard) {
+                    Object.entries(buyCardArgs.buyCardCost).forEach(buyCardCostForLevel => {
+                        const level = +buyCardCostForLevel[0];
+                        Object.entries(buyCardCostForLevel[1]).forEach(cardCost => {
+                            const type = +cardCost[0];
+                            const canBuy = cardCost[1];
+                            const label = _("Buy level ${level} ${type} with ${cost} ${resource}")
+                                .replace('${level}', `${level}`)
+                                .replace('${type}', _(buyCardArgs.type))
+                                .replace('${cost}', `${level * 3}`)
+                                .replace('${resource}', formatTextIcons(this.getResourceCode(type)));
+                            (this as any).addActionButton(`buyCard${level}-${type}-button`, label, () => this.buyCard(level, type));
+                            if (!canBuy) {
+                                document.getElementById(`buyCard${level}-${type}-button`).classList.add('disabled');
+                            }
+                        });
+                    });
+                }
+
+                (this as any).addActionButton(`endTurn-button`, _("End turn"), () => this.endTurn(), null, null, 'red');
+                break;
+            case 'applyNeighborEffect':
+                const applyNeighborEffectArgs = args as EnteringApplyNeighborEffectArgs;
+                Object.entries(applyNeighborEffectArgs.cost).forEach(cardCost => {
+                    const type = +cardCost[0];
+                    const canBuy = cardCost[1];
+                    const label = _("Spend ${left} to gain ${right}")
+                        .replace('${left}', this.getResourcesQuantityIcons([[2, type]]))
+                        .replace('${right}', formatTextIcons(applyNeighborEffectArgs.gain));
+                    (this as any).addActionButton(`applyNeighborEffect-${type}-button`, label, () => this.applyNeighborEffect(type));
+                    if (!canBuy) {
+                        document.getElementById(`applyNeighborEffect-${type}-button`).classList.add('disabled');
+                    }
+                });
+                label = 
+
+
+                (this as any).addActionButton(`cancelNeighborEffect-button`, _("Cancel"), () => this.cancelNeighborEffect(), null, null, 'gray');
                 break;
         }
     }
@@ -400,6 +450,53 @@ class AfterUs implements AfterUsGame {
 
         this.takeAction('cancelChooseToken');
     }
+  	
+    public neighborEffect(type: number) {
+        if(!(this as any).checkAction('neighborEffect')) {
+            return;
+        }
+
+        this.takeAction('neighborEffect', {
+            type,
+        });
+    }
+  	
+    public applyNeighborEffect(type: number) {
+        if(!(this as any).checkAction('applyNeighborEffect')) {
+            return;
+        }
+
+        this.takeAction('applyNeighborEffect', {
+            type,
+        });
+    }
+  	
+    public cancelNeighborEffect() {
+        if(!(this as any).checkAction('cancelNeighborEffect')) {
+            return;
+        }
+
+        this.takeAction('cancelNeighborEffect');
+    }
+  	
+    public buyCard(level: number, type: number) {
+        if(!(this as any).checkAction('buyCard')) {
+            return;
+        }
+
+        this.takeAction('buyCard', {
+            level,
+            type,
+        });
+    }
+  	
+    public endTurn() {
+        if(!(this as any).checkAction('endTurn')) {
+            return;
+        }
+
+        this.takeAction('endTurn');
+    }
 
     public takeAction(action: string, data?: any) {
         data = data || {};
@@ -428,6 +525,7 @@ class AfterUs implements AfterUsGame {
             ['activatedEffect', 1],
             ['selectedToken', 1],
             ['revealTokens', ANIMATION_MS],
+            ['buyCard', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
         ];
     
@@ -452,6 +550,7 @@ class AfterUs implements AfterUsGame {
         this.fruitCounters[playerId].toValue(player.fruits);
         this.grainCounters[playerId].toValue(player.grains);
         this.energyCounters[playerId].toValue(player.energy);
+        this.rageCounters[playerId].toValue(player.rage);
         this.setScore(playerId, +player.score);
     }
 
@@ -464,6 +563,11 @@ class AfterUs implements AfterUsGame {
 
     notif_revealTokens(notif: Notif<NotifRevealTokensArgs>) {
         Object.entries(notif.args.tokens).forEach(val => this.getPlayerTable(+val[0]).setSelectedToken(val[1]));
+    }
+
+    notif_buyCard(notif: Notif<NotifBuyCardArgs>) {
+        this.tableCenter.hiddenDecks[notif.args.deckType].setCardNumber(notif.args.deckCount);
+        this.notif_activatedEffect(notif);
     }
 
     notif_endRound(notif: Notif<NotifEndRoundArgs>) {
@@ -494,13 +598,13 @@ class AfterUs implements AfterUsGame {
                             args[attr] += ` <div class="points-circle" data-negative="${(obj.points < 0).toString()}">${obj.points > 0 ? '+' : ''}${obj.points}</div>`;
                         }
                     }
-                });
+                });*/
 
                 for (const property in args) {
-                    if (['column', 'incScoreColumn', 'incScoreCard', 'roundNumber', 'totalScore', 'roundScore'].includes(property) && args[property][0] != '<') {
+                    if (['level', 'type'].includes(property) && args[property][0] != '<') {
                         args[property] = `<strong>${_(args[property])}</strong>`;
                     }
-                }*/
+                }
 
                 for (const property in args) {
                     if (args[property]?.indexOf?.(']') > 0) {

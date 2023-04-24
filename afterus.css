@@ -732,7 +732,6 @@ body > .card {
   cursor: pointer;
 }
 .card .card-sides .card-side.front .frame.current {
-  border-color: lightgreen;
   box-shadow: 0 0 3px 5px lightgreen;
 }
 .card .card-sides .card-side.front .frame.opened-right {
@@ -880,6 +879,11 @@ body > .card {
   text-align: center;
   width: 177px;
   text-shadow: 0 0 1px white, 0 0 2px white;
+}
+.player-table .action-token {
+  position: absolute;
+  top: 40px;
+  left: 75px;
 }
 .player-table .action-token[data-type=null] {
   display: none;

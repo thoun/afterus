@@ -20,7 +20,7 @@ trait ArgsTrait {
         $appliedEffects = array_values(array_filter($possibleEffects, fn($effect) => !$this->array_some($remainingEffects, fn($remainingEffect) => $remainingEffect->row === $effect->row && $remainingEffect->cardIndex === $effect->cardIndex && $remainingEffect->closedFrameIndex === $effect->closedFrameIndex)));
         $currentEffect = count($remainingEffects) > 0 ? $remainingEffects[0] : null;
 
-        $reactivate = $this->array_some($currentEffect->right, fn($condition) => $condition[1] == REACTIVATE);
+        $reactivate = $currentEffect ? $this->array_some($currentEffect->right, fn($condition) => $condition[1] == REACTIVATE) : false;
 
         return [
             'line' => $line,
@@ -28,6 +28,7 @@ trait ArgsTrait {
             'remainingEffects' => $remainingEffects,
             'appliedEffects' => $appliedEffects,
             'currentEffect' => $currentEffect,
+            'reactivate' => $reactivate,
             'possibleEffects' => $reactivate ? $this->getPossibleEffects($playerId, $effects, $line, true) : null,
         ];
     }
@@ -57,6 +58,84 @@ trait ArgsTrait {
             'line' => $line,
             'effects' => $effects,
             'possibleEffects' => $possibleEffects,
+        ];
+    }
+
+    private function getTypeField(int $type) {
+        switch ($type) {
+            case 1: return 'flowers';
+            case 2: return 'fruits';
+            case 3: return 'grains';
+            case 4: return 'energy';
+        }
+    }
+
+    function argBuyCard(int $playerId) {
+        $player = $this->getPlayer($playerId);
+
+        $canUseNeighborToken = !$player->phase2copiedType;
+        $canBuyCard = !$player->phase2cardBought;
+
+        $neighborTokens = [];
+        if ($canUseNeighborToken) {
+            $leftNeighbor = $this->getPlayerAfter($playerId);
+            $rightNeighbor = $this->getPlayerBefore($playerId);
+
+            $neighborTokens[] = $this->getPlayer($leftNeighbor)->chosenToken;
+            if ($leftNeighbor != $rightNeighbor) {
+                $otherToken = $this->getPlayer($rightNeighbor)->chosenToken;
+                if ($otherToken != $neighborTokens[0]) {
+                    $neighborTokens[] = $otherToken;
+                }
+            }
+        }
+
+        $token = $player->chosenToken;
+        $buyCardCost = [];
+
+        for ($level = 1; $level <= 2; $level++) {
+            $buyCardCost[$level] = [];
+
+            for ($type = 1; $type <= 3; $type++) {
+                if ($type == $token || $token == 4) {
+                    $typeField = $this->getTypeField($type);
+
+                    $buyCardCost[$level][$type] = $player->{$typeField} >= 3 * $level;
+                }
+            }
+        }
+
+        return [
+            'token' => $token,
+            'neighborTokens' => $neighborTokens,
+            'canUseNeighborToken' => $canUseNeighborToken,
+            'buyCardCost' => $buyCardCost,
+            'canBuyCard' => $canBuyCard,
+            'type' => $this->getMonkeyType($type), // for logs
+            'i18n' => ['type'],
+        ];
+    }
+
+    function argApplyNeighborEffect(int $playerId) {
+        $player = $this->getPlayer($playerId);
+
+        $cost = [];
+        for ($type = 1; $type <= 4; $type++) {
+                $typeField = $this->getTypeField($type);
+                $cost[$type] = $player->{$typeField} >= 2;
+        }
+        $gain = '';
+        switch ($player->phase2copiedType) {
+            case 1: $gain = '2 [Point]'; break;
+            case 2: $gain = '2 [Energy]'; break;
+            case 3: $gain = '2 [Rage]'; break;
+            case 4: $gain = '[Reactivate]'; break;
+        }
+
+        return [
+            'copiedType' => $player->phase2copiedType,
+            'gain' => $gain,
+            'cost' => $cost,
         ];
     }
 } 

@@ -37,6 +37,8 @@ ALTER TABLE `player` ADD `player_grain` SMALLINT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `player_energy` SMALLINT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `player_rage` SMALLINT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `chosen_token` SMALLINT UNSIGNED;
+ALTER TABLE `player` ADD `phase2_copied_type` SMALLINT UNSIGNED;
+ALTER TABLE `player` ADD `phase2_card_bought` SMALLINT UNSIGNED NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS `global_variables` (
   `name` varchar(50) NOT NULL,

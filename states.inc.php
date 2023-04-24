@@ -156,16 +156,39 @@ $playerActionsGameStates = [
         "transitions" => [],
     ],
 
-    ST_MULTIPLAYER_PHASE2 => [ // TODO allow copy/apply effect in any order, then copy/recruit
+    ST_MULTIPLAYER_PHASE2 => [
         "name" => "phase2",
         "description" => clienttranslate('Phase 2 : Waiting for other players'),
         "descriptionmyturn" => '',
         "type" => "multipleactiveplayer",
-        "initialprivate" => ST_PRIVATE_ACTIVATE_EFFECT,
-        //"action" => "stPlayCard",
-        "possibleactions" => [ /*"cancelPlaceShape"*/ ],
+        "initialprivate" => ST_PRIVATE_BUY_CARD,
+        "action" => "stPhase2",
+        "possibleactions" => [],
         "transitions" => [
             "next" => ST_END_ROUND,
+        ],
+    ],
+
+    ST_PRIVATE_BUY_CARD => [
+        "name" => "buyCard",
+        "descriptionmyturn" => clienttranslate('Phase 2 : ${you} can buy a ${type} card'),
+        "type" => "private",
+        "args" => "argBuyCard",
+        "possibleactions" => [ "buyCard", "neighborEffect", "endTurn" ],
+        "transitions" => [
+          'neighborEffect' => ST_PRIVATE_APPLY_NEIGHBOR_EFFECT,
+          'stay' => ST_PRIVATE_BUY_CARD,
+        ],
+    ],
+
+    ST_PRIVATE_APPLY_NEIGHBOR_EFFECT => [
+        "name" => "applyNeighborEffect",
+        "descriptionmyturn" => clienttranslate('Phase 2 : ${you} can gain ${gain}'),
+        "type" => "private",
+        "args" => "argApplyNeighborEffect",
+        "possibleactions" => [ "applyNeighborEffect", "cancelNeighborEffect" ],
+        "transitions" => [
+          'next' => ST_PRIVATE_BUY_CARD,
         ],
     ],
 ];

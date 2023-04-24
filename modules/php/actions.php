@@ -53,15 +53,7 @@ trait ActionTrait {
         $this->gamestate->nextPrivateState($playerId, 'next');
     }
 
-    public function activateEffect($row, $cardIndex, $index) {
-        self::checkAction('activateEffect');
-
-        $playerId = intval($this->getCurrentPlayerId());
-
-        $args = $this->argActivateEffect($playerId);
-        $effect = $args['currentEffect'];
-        $line = $args['line'];
-
+    private function applyEffect(int $playerId, Effect $effect, array $line) {
         if (!$effect->convertSign) {
             $resources = array_merge($effect->left, $effect->right);
             foreach($resources as $resource) {
@@ -75,11 +67,38 @@ trait ActionTrait {
                 $this->gainResource($playerId, $resource, $line);
             }
         }
+    }
 
-        $this->markedPlayedEffect($playerId, $effect);
+    public function activateEffect(?int $row, ?int $cardIndex, ?int $index) {
+        self::checkAction('activateEffect');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $args = $this->argActivateEffect($playerId);
+        $currentEffect = $args['currentEffect'];
+        $line = $args['line'];
+        $appliedEffect = $currentEffect;
+
+        if ($args['reactivate']) {
+            $location = 'line'.$playerId;
+            $card = $this->getCardByLocation($location, $cardIndex);
+            $frame = $card->frames[$row][$index];
+            if ($frame->type == OPENED_LEFT) {
+                $cardIndex = $cardIndex - 1;
+                $card = $this->getCardByLocation($location, $cardIndex);
+                $frame = $card->frames[$row][count($card->frames[$row]) - 1];
+            }
+
+            $rowEffects = array_filter($args['possibleEffects'], fn($effect) => $effect->row === $row && $effect->cardIndex === $cardIndex);
+            $closedFrameIndex = $frame->type == CLOSED ? $index : null;
+            $appliedEffect = $this->array_find($rowEffects, fn($effect) => $effect->closedFrameIndex === $closedFrameIndex);
+        }
+        $this->applyEffect($playerId, $appliedEffect, $line);
+
+        $this->markedPlayedEffect($playerId, $currentEffect);
 
         $message = '';
-        if (!$effect->convertSign) {
+        if (!$appliedEffect->convertSign) {
             $message = _('${player_name} gains ${resources} with activated effect');
         } else {
             $message = _('${player_name} spends ${left} to gain ${right} with activated effect');
@@ -89,15 +108,15 @@ trait ActionTrait {
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
             'player' => $this->getPlayer($playerId),
-            'resources' => $this->getResourcesStr(array_merge($effect->left, $effect->right)),
-            'left' => $this->getResourcesStr($effect->left),
-            'right' => $this->getResourcesStr($effect->right),
+            'resources' => $this->getResourcesStr(array_merge($appliedEffect->left, $appliedEffect->right)),
+            'left' => $this->getResourcesStr($appliedEffect->left),
+            'right' => $this->getResourcesStr($appliedEffect->right),
         ]);
 
         $args = $this->argActivateEffect($playerId);
-        $effect = $args['currentEffect'];
+        $newCurrentEffect = $args['currentEffect'];
 
-        $this->gamestate->nextPrivateState($playerId, $effect != null ? 'stay' : 'next');
+        $this->gamestate->nextPrivateState($playerId, $newCurrentEffect != null ? 'stay' : 'next');
     }
 
     public function activateEffectToken(int $row, int $cardIndex, int $index) {
@@ -193,4 +212,111 @@ trait ActionTrait {
 
         $this->gamestate->setPlayersMultiactive([$playerId], 'next', false);
     }
+
+    public function neighborEffect(int $type) {
+        self::checkAction('neighborEffect');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $args = $this->argBuyCard($playerId);
+        if (!in_array($type, $args['neighborTokens'])) {
+            throw new BgaUserException("You can't copy this token");
+        }
+
+        $this->DbQuery("UPDATE `player` SET `phase2_copied_type` = '$type' WHERE `player_id` = $playerId");
+
+        $this->gamestate->nextPrivateState($playerId, 'neighborEffect');
+    }
+
+    public function applyNeighborEffect(int $type) {
+        self::checkAction('applyNeighborEffect');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $args = $this->argApplyNeighborEffect($playerId);
+        if (!$args['cost'][$type]) {
+            throw new BgaUserException("You can't pay for that");
+        }
+
+        $resource = [];
+        switch ($args['copiedType']) {
+            case 1: $resource = [2, POINT]; break;
+            case 2: $resource = [2, ENERGY]; break;
+            case 3: $resource = [2, RAGE]; break;
+            case 4: $resource = [1, REACTIVATE]; break; // TODO
+        }
+        
+        $give = [2, $type];
+        $this->giveResource($playerId, $give);
+        $this->gainResource($playerId, $resource, []);
+
+        self::notifyAllPlayers('activatedEffect', _('${player_name} spends ${left} to gain ${right} with activated effect'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'player' => $this->getPlayer($playerId),
+            'left' => $this->getResourcesStr([$give]),
+            'right' => $this->getResourcesStr([$resource]),
+        ]);
+
+        if (!$this->getPlayer($playerId)->phase2cardBought) {
+            $this->gamestate->nextPrivateState($playerId, 'next');
+        } else {
+            $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+        }
+    }
+
+    public function cancelNeighborEffect() {
+        self::checkAction('cancelNeighborEffect');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $this->DbQuery("UPDATE `player` SET `phase2_copied_type` = NULL WHERE `player_id` = $playerId");
+
+        $this->gamestate->nextPrivateState($playerId, 'next');
+    }
+
+    public function buyCard(int $level, int $type) {
+        self::checkAction('buyCard');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $args = $this->argBuyCard($playerId);
+        if (!$args['buyCardCost'][$level][$type]) {
+            throw new BgaUserException("You can't pay for that");
+        }
+
+        $this->giveResource($playerId, [3 * $level, $type]);
+
+        $this->DbQuery("UPDATE `player` SET `phase2_card_bought` = TRUE WHERE `player_id` = $playerId");
+
+        $monkeyType = $args['token'];
+        $locationArg = intval($this->getUniqueValueFromDB("SELECT max(`card_location_arg`) FROM `card` WHERE `card_location` = 'deck$playerId'")) + 1;
+        $card = $this->getCardFromDb($this->cards->pickCardForLocation("deck-$monkeyType-$level", 'deck'.$playerId, $locationArg));
+
+        self::notifyAllPlayers('buyCard', _('${player_name} buy a level ${level} ${type} card'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'player' => $this->getPlayer($playerId),
+            'type' => $this->getMonkeyType($type), // for logs
+            'level' => $level, // for logs
+            'i18n' => ['type'],
+            'card' => $card, // TODO show only to player ?
+            'deckType' => $type * 10 + $level,
+            'deckCount' => intval($this->cards->countCardInLocation("deck-$monkeyType-$level")),
+        ]);
+
+        if ($args['canUseNeighborToken']) {
+            $this->gamestate->nextPrivateState($playerId, 'stay');
+        } else {
+            $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+        }
+    }
+
+    public function endTurn() {
+        self::checkAction('endTurn');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+    } 
 }

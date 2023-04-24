@@ -12,6 +12,8 @@ class AfterUsPlayer {
     public int $energy;
     public int $rage;
     public /*int|null*/ $chosenToken;
+    public /*int|null*/ $phase2copiedType;
+    public bool $phase2cardBought;
 
     public function __construct($dbPlayer) {
         $this->id = intval($dbPlayer['player_id']);
@@ -25,6 +27,8 @@ class AfterUsPlayer {
         $this->energy = intval($dbPlayer['player_energy']);
         $this->rage = intval($dbPlayer['player_rage']);
         $this->chosenToken = $dbPlayer['chosen_token'] === null ? null : intval($dbPlayer['chosen_token']);
+        $this->phase2copiedType = $dbPlayer['phase2_copied_type'] === null ? null : intval($dbPlayer['phase2_copied_type']);
+        $this->phase2cardBought = boolval($dbPlayer['phase2_card_bought']);
     }
 }
 ?>

@@ -112,6 +112,50 @@
         self::ajaxResponse();
     }
 
+    public function neighborEffect() {
+        self::setAjaxMode();     
+
+        $type = self::getArg("type", AT_posint, true);
+        $this->game->neighborEffect($type);
+
+        self::ajaxResponse();
+    }
+
+    public function applyNeighborEffect() {
+        self::setAjaxMode();     
+
+        $type = self::getArg("type", AT_posint, true);
+        $this->game->applyNeighborEffect($type);
+
+        self::ajaxResponse();
+    }
+
+    public function cancelNeighborEffect() {
+        self::setAjaxMode();     
+
+        $this->game->cancelNeighborEffect();
+
+        self::ajaxResponse();
+    }  
+
+    public function buyCard() {
+        self::setAjaxMode();     
+
+        $level = self::getArg("level", AT_posint, true);
+        $type = self::getArg("type", AT_posint, true);
+        $this->game->buyCard($level, $type);
+
+        self::ajaxResponse();
+    }
+
+    public function endTurn() {
+        self::setAjaxMode();     
+
+        $this->game->endTurn();
+
+        self::ajaxResponse();
+    }    
+
   }
   
 

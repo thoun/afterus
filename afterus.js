@@ -1218,6 +1218,7 @@ var CardsManager = /** @class */ (function (_super) {
                 div.dataset.cardId = '' + card.id;
             },
             setupFrontDiv: function (card, div) {
+                div.dataset.level = '' + card.level;
                 div.dataset.type = '' + card.type;
                 div.dataset.subType = '' + card.subType;
                 if (card.playerId) {
@@ -1338,7 +1339,7 @@ var TableCenter = /** @class */ (function () {
     function TableCenter(game, gamedatas) {
         var _this = this;
         this.game = game;
-        this.playerCards = [];
+        this.hiddenDecks = [];
         [1, 2, 3, 4].forEach(function (monkeyType) {
             return [1, 2].forEach(function (level) {
                 var type = monkeyType * 10 + level;
@@ -1346,7 +1347,7 @@ var TableCenter = /** @class */ (function () {
                 var block = document.createElement('div');
                 block.classList.add('player-block');
                 document.getElementById('center-board').insertAdjacentHTML('beforeend', "\n                    <div id=\"hidden-deck-".concat(type, "\" data-type=\"").concat(monkeyType, "\" data-level=\"").concat(level, "\"></div>\n                "));
-                _this.playerCards[type] = new HiddenDeck(_this.game.cardsManager, document.getElementById("hidden-deck-".concat(type)), {
+                _this.hiddenDecks[type] = new HiddenDeck(_this.game.cardsManager, document.getElementById("hidden-deck-".concat(type)), {
                     cardNumber: count,
                     width: 142,
                     height: 198,
@@ -1447,26 +1448,32 @@ var PlayerTable = /** @class */ (function () {
             }
         });
     };
-    PlayerTable.prototype.setActivableEffect = function (currentEffect, appliedEffects, remainingEffects) {
+    PlayerTable.prototype.setActivableEffect = function (currentEffect, appliedEffects, remainingEffects, reactivate, possibleEffects) {
         var _this = this;
-        appliedEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'applied'); });
-        remainingEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'remaining'); });
         this.setEffectClass(currentEffect, 'current');
-        this.markRemainingFramesDisabled();
+        if (reactivate) {
+            this.setActivableEffectToken(possibleEffects);
+        }
+        else {
+            appliedEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'applied'); });
+            remainingEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'remaining'); });
+            this.markRemainingFramesDisabled();
+        }
     };
-    PlayerTable.prototype.setActivableEffectToken = function (effects, possibleEffects) {
+    PlayerTable.prototype.setActivableEffectToken = function (/*effects: Effect[],*/ possibleEffects) {
         var _this = this;
         possibleEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'selectable'); });
         this.markRemainingFramesDisabled();
     };
     PlayerTable.prototype.removeActivableEffect = function () {
         var line = document.getElementById("player-table-".concat(this.playerId, "-line"));
-        ['disabled', 'current', 'applied', 'remaining'].forEach(function (frameClass) { return line.querySelectorAll('.frame.' + frameClass).forEach(function (element) { return element.classList.remove(frameClass); }); });
+        ['selectable', 'disabled', 'current', 'applied', 'remaining'].forEach(function (frameClass) { return line.querySelectorAll('.frame.' + frameClass).forEach(function (element) { return element.classList.remove(frameClass); }); });
     };
     PlayerTable.prototype.setSelectedToken = function (type) {
         document.getElementById("player-table-".concat(this.playerId, "-action-token")).dataset.type = type === null ? 'null' : '' + type;
     };
     PlayerTable.prototype.endRound = function () {
+        this.setSelectedToken(null);
         this.line.removeAll();
     };
     return PlayerTable;
@@ -1546,11 +1553,11 @@ var AfterUs = /** @class */ (function () {
                 break;
             case 'activateEffect':
                 var activateEffectArgs = args.args;
-                (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects);
+                (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects, activateEffectArgs.reactivate, activateEffectArgs.possibleEffects);
                 break;
             case 'activateEffectToken':
                 var activateEffectTokenArgs = args.args;
-                (_c = this.getCurrentPlayerTable()) === null || _c === void 0 ? void 0 : _c.setActivableEffectToken(activateEffectTokenArgs.effects, activateEffectTokenArgs.possibleEffects);
+                (_c = this.getCurrentPlayerTable()) === null || _c === void 0 ? void 0 : _c.setActivableEffectToken(/*activateEffectTokenArgs.effects, */ activateEffectTokenArgs.possibleEffects);
                 break;
         }
     };
@@ -1584,14 +1591,16 @@ var AfterUs = /** @class */ (function () {
             case 'activateEffect':
                 var activateEffectArgs = args;
                 var currentEffect = activateEffectArgs.currentEffect;
-                var label = void 0;
-                if (!currentEffect.convertSign) {
-                    label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                if (!activateEffectArgs.reactivate) {
+                    var label = void 0;
+                    if (!currentEffect.convertSign) {
+                        label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                    }
+                    else {
+                        label = _("Spend ${left} to gain ${right}").replace('${left}', this.getResourcesQuantityIcons(currentEffect.left)).replace('${right}', this.getResourcesQuantityIcons(currentEffect.right));
+                    }
+                    this.addActionButton("activateEffect-button", label, function () { return _this.activateEffect(); });
                 }
-                else {
-                    label = _("Spend ${left} to gain ${right}").replace('${left}', this.getResourcesQuantityIcons(currentEffect.left)).replace('${right}', this.getResourcesQuantityIcons(currentEffect.right));
-                }
-                this.addActionButton("activateEffect-button", label, function () { return _this.activateEffect(); });
                 this.addActionButton("skipEffect-button", _("Skip"), function () { return _this.skipEffect(); });
                 break;
             case 'confirmActivations':
@@ -1601,6 +1610,50 @@ var AfterUs = /** @class */ (function () {
                 [1, 2, 3, 4].forEach(function (type) {
                     return _this.addActionButton("chooseToken".concat(type, "-button"), "<div class=\"action-token\" data-type=\"".concat(type, "\"></div>"), function () { return _this.chooseToken(type); });
                 });
+                break;
+            case 'buyCard':
+                var buyCardArgs_1 = args;
+                if (buyCardArgs_1.canUseNeighborToken) {
+                    buyCardArgs_1.neighborTokens.forEach(function (type) {
+                        var label = _("Use effect of ${type}").replace('${type}', "<div class=\"action-token\" data-type=\"".concat(type, "\"></div>"));
+                        _this.addActionButton("neighborEffect".concat(type, "-button"), label, function () { return _this.neighborEffect(type); }, null, null, 'gray');
+                    });
+                }
+                if (buyCardArgs_1.canBuyCard) {
+                    Object.entries(buyCardArgs_1.buyCardCost).forEach(function (buyCardCostForLevel) {
+                        var level = +buyCardCostForLevel[0];
+                        Object.entries(buyCardCostForLevel[1]).forEach(function (cardCost) {
+                            var type = +cardCost[0];
+                            var canBuy = cardCost[1];
+                            var label = _("Buy level ${level} ${type} with ${cost} ${resource}")
+                                .replace('${level}', "".concat(level))
+                                .replace('${type}', _(buyCardArgs_1.type))
+                                .replace('${cost}', "".concat(level * 3))
+                                .replace('${resource}', formatTextIcons(_this.getResourceCode(type)));
+                            _this.addActionButton("buyCard".concat(level, "-").concat(type, "-button"), label, function () { return _this.buyCard(level, type); });
+                            if (!canBuy) {
+                                document.getElementById("buyCard".concat(level, "-").concat(type, "-button")).classList.add('disabled');
+                            }
+                        });
+                    });
+                }
+                this.addActionButton("endTurn-button", _("End turn"), function () { return _this.endTurn(); }, null, null, 'red');
+                break;
+            case 'applyNeighborEffect':
+                var applyNeighborEffectArgs_1 = args;
+                Object.entries(applyNeighborEffectArgs_1.cost).forEach(function (cardCost) {
+                    var type = +cardCost[0];
+                    var canBuy = cardCost[1];
+                    var label = _("Spend ${left} to gain ${right}")
+                        .replace('${left}', _this.getResourcesQuantityIcons([[2, type]]))
+                        .replace('${right}', formatTextIcons(applyNeighborEffectArgs_1.gain));
+                    _this.addActionButton("applyNeighborEffect-".concat(type, "-button"), label, function () { return _this.applyNeighborEffect(type); });
+                    if (!canBuy) {
+                        document.getElementById("applyNeighborEffect-".concat(type, "-button")).classList.add('disabled');
+                    }
+                });
+                label =
+                    this.addActionButton("cancelNeighborEffect-button", _("Cancel"), function () { return _this.cancelNeighborEffect(); }, null, null, 'gray');
                 break;
         }
     };
@@ -1781,6 +1834,43 @@ var AfterUs = /** @class */ (function () {
         }*/
         this.takeAction('cancelChooseToken');
     };
+    AfterUs.prototype.neighborEffect = function (type) {
+        if (!this.checkAction('neighborEffect')) {
+            return;
+        }
+        this.takeAction('neighborEffect', {
+            type: type,
+        });
+    };
+    AfterUs.prototype.applyNeighborEffect = function (type) {
+        if (!this.checkAction('applyNeighborEffect')) {
+            return;
+        }
+        this.takeAction('applyNeighborEffect', {
+            type: type,
+        });
+    };
+    AfterUs.prototype.cancelNeighborEffect = function () {
+        if (!this.checkAction('cancelNeighborEffect')) {
+            return;
+        }
+        this.takeAction('cancelNeighborEffect');
+    };
+    AfterUs.prototype.buyCard = function (level, type) {
+        if (!this.checkAction('buyCard')) {
+            return;
+        }
+        this.takeAction('buyCard', {
+            level: level,
+            type: type,
+        });
+    };
+    AfterUs.prototype.endTurn = function () {
+        if (!this.checkAction('endTurn')) {
+            return;
+        }
+        this.takeAction('endTurn');
+    };
     AfterUs.prototype.takeAction = function (action, data) {
         data = data || {};
         data.lock = true;
@@ -1806,6 +1896,7 @@ var AfterUs = /** @class */ (function () {
             ['activatedEffect', 1],
             ['selectedToken', 1],
             ['revealTokens', ANIMATION_MS],
+            ['buyCard', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
         ];
         notifs.forEach(function (notif) {
@@ -1826,6 +1917,7 @@ var AfterUs = /** @class */ (function () {
         this.fruitCounters[playerId].toValue(player.fruits);
         this.grainCounters[playerId].toValue(player.grains);
         this.energyCounters[playerId].toValue(player.energy);
+        this.rageCounters[playerId].toValue(player.rage);
         this.setScore(playerId, +player.score);
     };
     AfterUs.prototype.notif_selectedToken = function (notif) {
@@ -1837,6 +1929,10 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.notif_revealTokens = function (notif) {
         var _this = this;
         Object.entries(notif.args.tokens).forEach(function (val) { return _this.getPlayerTable(+val[0]).setSelectedToken(val[1]); });
+    };
+    AfterUs.prototype.notif_buyCard = function (notif) {
+        this.tableCenter.hiddenDecks[notif.args.deckType].setCardNumber(notif.args.deckCount);
+        this.notif_activatedEffect(notif);
     };
     AfterUs.prototype.notif_endRound = function (notif) {
         this.getPlayerTable(notif.args.playerId).endRound();
@@ -1864,13 +1960,12 @@ var AfterUs = /** @class */ (function () {
                             args[attr] += ` <div class="points-circle" data-negative="${(obj.points < 0).toString()}">${obj.points > 0 ? '+' : ''}${obj.points}</div>`;
                         }
                     }
-                });
-
-                for (const property in args) {
-                    if (['column', 'incScoreColumn', 'incScoreCard', 'roundNumber', 'totalScore', 'roundScore'].includes(property) && args[property][0] != '<') {
-                        args[property] = `<strong>${_(args[property])}</strong>`;
+                });*/
+                for (var property in args) {
+                    if (['level', 'type'].includes(property) && args[property][0] != '<') {
+                        args[property] = "<strong>".concat(_(args[property]), "</strong>");
                     }
-                }*/
+                }
                 for (var property in args) {
                     if (((_b = (_a = args[property]) === null || _a === void 0 ? void 0 : _a.indexOf) === null || _b === void 0 ? void 0 : _b.call(_a, ']')) > 0) {
                         args[property] = formatTextIcons(_(args[property]));

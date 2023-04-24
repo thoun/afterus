@@ -29,6 +29,10 @@
   }
 
   .action-token {
+    position: absolute;
+    top: 40px;
+    left: 75px;
+
     &[data-type="null"] {
       display: none;
     }

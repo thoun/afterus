@@ -112,21 +112,25 @@ class PlayerTable {
 
     }
     
-    public setActivableEffect(currentEffect: Effect, appliedEffects: Effect[], remainingEffects: Effect[]) {
-        appliedEffects.forEach(effect => this.setEffectClass(effect, 'applied'));
-        remainingEffects.forEach(effect => this.setEffectClass(effect, 'remaining'));
+    public setActivableEffect(currentEffect: Effect, appliedEffects: Effect[], remainingEffects: Effect[], reactivate: boolean, possibleEffects: Effect[]) {
         this.setEffectClass(currentEffect, 'current');
-        this.markRemainingFramesDisabled();
+        if (reactivate) {
+            this.setActivableEffectToken(possibleEffects);
+        } else {
+            appliedEffects.forEach(effect => this.setEffectClass(effect, 'applied'));
+            remainingEffects.forEach(effect => this.setEffectClass(effect, 'remaining'));
+            this.markRemainingFramesDisabled();
+        }
     }
 
-    public setActivableEffectToken(effects: Effect[], possibleEffects: Effect[]) {
+    public setActivableEffectToken(/*effects: Effect[],*/ possibleEffects: Effect[]) {
         possibleEffects.forEach(effect => this.setEffectClass(effect, 'selectable'));
         this.markRemainingFramesDisabled();
     }
     
     public removeActivableEffect() {
         const line = document.getElementById(`player-table-${this.playerId}-line`);
-        ['disabled', 'current', 'applied', 'remaining'].forEach(frameClass => line.querySelectorAll('.frame.'+frameClass).forEach(element => element.classList.remove(frameClass)));
+        ['selectable', 'disabled', 'current', 'applied', 'remaining'].forEach(frameClass => line.querySelectorAll('.frame.'+frameClass).forEach(element => element.classList.remove(frameClass)));
     }
     
     public setSelectedToken(type: number | null) {
@@ -134,6 +138,7 @@ class PlayerTable {
     }
     
     public endRound() {
+        this.setSelectedToken(null);
         this.line.removeAll();
     }
 }

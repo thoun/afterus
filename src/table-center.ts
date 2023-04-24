@@ -1,5 +1,5 @@
 class TableCenter {
-    public playerCards: HiddenDeck<Card>[] = [];
+    public hiddenDecks: HiddenDeck<Card>[] = [];
 
     private objectsManager: ObjectsManager;
     private objects: LineStock<number>;
@@ -18,7 +18,7 @@ class TableCenter {
                     <div id="hidden-deck-${type}" data-type="${monkeyType}" data-level="${level}"></div>
                 `);
 
-                this.playerCards[type] = new HiddenDeck<Card>(this.game.cardsManager, document.getElementById(`hidden-deck-${type}`), {
+                this.hiddenDecks[type] = new HiddenDeck<Card>(this.game.cardsManager, document.getElementById(`hidden-deck-${type}`), {
                     cardNumber: count,
                     width: 142,
                     height: 198,

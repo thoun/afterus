@@ -12,7 +12,7 @@ trait StateTrait {
     */
 
     function stNewRound() {
-        $this->DbQuery("UPDATE `player` SET `applied_effects` = '[]', `chosen_token` = NULL");
+        $this->DbQuery("UPDATE `player` SET `applied_effects` = '[]', `chosen_token` = NULL, `phase2_copied_type` = NULL, phase2_card_bought = false");
 
         $playersIds = $this->getPlayersIds();
         foreach ($playersIds as $playerId) {
@@ -100,6 +100,11 @@ trait StateTrait {
     }
 
     function stTokenSelectReactivate() {
+        $this->gamestate->initializePrivateStateForAllActivePlayers(); 
+    }
+
+    function stPhase2() {
+        $this->gamestate->setAllPlayersMultiactive();
         $this->gamestate->initializePrivateStateForAllActivePlayers(); 
     }
 

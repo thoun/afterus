@@ -10,6 +10,7 @@ class CardsManager extends CardManager<Card> {
                 div.dataset.cardId = ''+card.id;
             },
             setupFrontDiv: (card: Card, div: HTMLElement) => { 
+                div.dataset.level = ''+card.level;
                 div.dataset.type = ''+card.type;
                 div.dataset.subType = ''+card.subType;
                 if (card.playerId) {

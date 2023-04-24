@@ -349,4 +349,14 @@ trait UtilTrait {
             'cancel' => !$selected,
         ]);
     }
+
+    function getMonkeyType(int $type) {
+        switch ($type) {
+            case 1: return clienttranslate('mandrill');
+            case 2: return clienttranslate('orangutan');
+            case 3: return clienttranslate('gorilla');
+            case 4: return clienttranslate('chimpanzee');
+        }
+    }
+
 }
