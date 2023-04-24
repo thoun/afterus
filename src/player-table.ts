@@ -13,7 +13,7 @@ class CardLine extends SlotStock<Card> {
 
 class PlayerTable {
     public playerId: number;
-    public line: CardLine;
+    private line: CardLine;
 
     private currentPlayer: boolean;
 
@@ -74,6 +74,24 @@ class PlayerTable {
     
     public newRound(cards: Card[]) {            
         this.line.addCards(cards);
+        cards.forEach(card => {
+            const div = this.line.getCardElement(card);
+            const button = document.createElement('button');
+            button.id = `rage-button-${card.id}`;
+            button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
+            button.dataset.playerId = ''+this.playerId;
+            button.innerHTML = formatTextIcons('[Rage]');
+            button.classList.toggle('disabled', this.game.getPlayerRage(this.playerId) < 4);
+            div.appendChild(button);
+            button.addEventListener('click', () => {
+                (this.game as any).confirmationDialog(
+                    _("Are you sure you want to discard this card ?"), 
+                    () => this.game.useRage(card.id)
+                );
+            });
+            this.game.setTooltip(button.id, _('Discard this card') + formatTextIcons(' (4 [Rage])'));
+        });
+        this.updateVisibleMoveButtons();
     }
 
     public setMovable(movable: boolean) {
@@ -141,5 +159,32 @@ class PlayerTable {
     public endRound() {
         this.setSelectedToken(null);
         this.line.removeAll();
+    }
+    
+    public updateRage(rage: number) {
+        document.getElementById(`player-table-${this.playerId}`).querySelectorAll('.rage-button').forEach(elem => elem.classList.toggle('disabled', rage < 4));
+    }
+    
+    public discardCard(card: Card, line?: Card[]) {
+        if (line) {
+            this.line.removeAll();
+            this.newRound(line);
+        } else {
+            this.line.removeCard(card);
+        }
+
+        this.updateVisibleMoveButtons();
+        
+    }
+
+    private updateVisibleMoveButtons() {
+        const cards = this.line.getCards();
+
+        const slots =  document.getElementById(`player-table-${this.playerId}`).querySelectorAll(`.slot`);
+        slots.forEach((slot: HTMLElement) => {
+            const slotId = +slot.dataset.slotId;
+            const hasCard = cards.some(card => card.locationArg == slotId);
+            slot.querySelectorAll('button.move').forEach(btn => btn.classList.toggle('hidden', !hasCard));
+        });
     }
 }

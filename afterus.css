@@ -914,6 +914,8 @@ body > .card {
 }
 .player-table .slot {
   position: relative;
+  width: 142px;
+  height: 198px;
 }
 .player-table .slot button.move {
   display: none;
@@ -941,6 +943,26 @@ body > .card {
 }
 .player-table.move-phase button.move {
   display: block;
+}
+.player-table.move-phase button.move.hidden {
+  display: none;
+}
+.player-table .rage-button {
+  z-index: 1;
+  position: absolute;
+  right: 25px;
+  width: 24px;
+  top: 7px;
+  height: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+.player-table .rage-button .rage.icon {
+  width: 24px;
+  height: 24px;
 }
 
 /* make space between buttons on touch devices */

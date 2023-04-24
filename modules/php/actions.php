@@ -95,6 +95,11 @@ trait ActionTrait {
             $closedFrameIndex = $frame->type == CLOSED ? $index : null;
             $appliedEffect = $this->array_find($rowEffects, fn($effect) => $effect->closedFrameIndex === $closedFrameIndex);
         }
+
+        $this->applyActivateEffect($playerId, $appliedEffect, $currentEffect, $line);
+    }
+
+    function applyActivateEffect(int $playerId, Effect $appliedEffect, Effect $currentEffect, array $line) {
         $this->applyEffect($playerId, $appliedEffect, $line);
 
         $this->markedPlayedEffect($playerId, $currentEffect);
@@ -324,4 +329,61 @@ trait ActionTrait {
 
         $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
     } 
+
+    function setAutoGain(bool $autoGain) {
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $this->DbQuery("UPDATE `player` SET `player_auto_gain` = ".($autoGain ? 1 : 0)." WHERE `player_id` = $playerId");
+        
+        // dummy notif so player gets back hand
+        $this->notifyPlayer($playerId, "setAutoGain", '', []);
+    }
+
+    function useRage(int $id) {
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $card = $this->getCardFromDb($this->cards->getCard($id));
+
+        if ($card == null || $card->location != 'line'.$playerId) {
+            throw new BgaUserException("You can't discard this card");
+        }
+        $this->cards->moveCard($card->id, 'discard');
+
+        $resource = $card->rageGain;
+        $this->giveResource($playerId, [4, RAGE]);
+        $this->gainResource($playerId, $resource, []);
+
+        $message = $card->type == TAMARINS ?
+            _('${player_name} gains ${resources} by discarding a tamarin') :
+            _('${player_name} gains ${resources} by discarding a ${level} ${type}');
+
+        $line = null;
+        $privateState = $this->getPlayerPrivateState($playerId);
+        if ($privateState == ST_PRIVATE_ORDER_CARDS) {
+            // we need to reorder the line so the player isn't bothered with holes in the line
+            $line = $this->getCardsByLocation('line'.$playerId);
+            foreach ($line as $index => &$card) {
+                $card->locationArg = $index;
+                $this->cards->moveCard($card->id, 'line'.$playerId, $index);
+            }
+        }
+
+        self::notifyAllPlayers('discardedCard', $message, [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'player' => $this->getPlayer($playerId),
+            'resources' => $this->getResourcesStr([$resource]),
+            'type' => $this->getMonkeyType($card->type), // for logs
+            'level' => $card->level, // for logs
+            'i18n' => ['type'],
+            'card' => $card,
+            'line' => $line,
+        ]);
+
+        if ($privateState == ST_PRIVATE_ACTIVATE_EFFECT && $this->argActivateEffect($playerId)['currentEffect'] == null) {
+            $this->gamestate->nextPrivateState($playerId, 'next');
+        } else {
+            $this->gamestate->nextPrivateState($playerId, 'stay');
+        }
+    }  
 }

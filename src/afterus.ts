@@ -146,7 +146,7 @@ class AfterUs implements AfterUsGame {
             case 'activateEffect':
                 const activateEffectArgs = args as EnteringActivateEffectArgs;
                 const currentEffect = activateEffectArgs.currentEffect;
-                if (!activateEffectArgs.reactivate) {
+                if (currentEffect && !activateEffectArgs.reactivate) {
                     let label;
                     if (!currentEffect.convertSign) {
                         label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
@@ -257,6 +257,10 @@ class AfterUs implements AfterUsGame {
         return this.gamedatas.players[playerId].color;
     }
 
+    public getPlayerRage(playerId: number): number {
+        return this.rageCounters[playerId].getValue();
+    }
+
     private getPlayerTable(playerId: number): PlayerTable {
         return this.playersTables.find(playerTable => playerTable.playerId === playerId);
     }
@@ -275,6 +279,7 @@ class AfterUs implements AfterUsGame {
           var prefId = +match[1];
           var prefValue = +e.target.value;
           (this as any).prefs[prefId].value = prefValue;
+          this.onPreferenceChange(prefId, prefValue);
         }
         
         // Call onPreferenceChange() when any value changes
@@ -285,6 +290,14 @@ class AfterUs implements AfterUsGame {
           dojo.query("#ingame_menu_content .preference_control"),
           el => onchange({ target: el })
         );
+    }
+      
+    private onPreferenceChange(prefId: number, prefValue: number) {
+        switch (prefId) {
+            case 201: 
+                this.setAutoGain(prefValue == 1);
+                break;
+        }
     }
 
     private getOrderedPlayers(gamedatas: AfterUsGamedatas) {
@@ -513,9 +526,25 @@ class AfterUs implements AfterUsGame {
         this.takeAction('endTurn');
     }
 
+    public setAutoGain(autoGain: boolean) {
+        this.takeNoLockAction('setAutoGain', {
+            autoGain
+        });
+    }
+
+    public useRage(id: number): void {
+        this.takeAction('useRage', {
+            id,
+        });
+    }
+
     public takeAction(action: string, data?: any) {
         data = data || {};
         data.lock = true;
+        (this as any).ajaxcall(`/afterus/afterus/${action}.html`, data, this, () => {});
+    }
+    public takeNoLockAction(action: string, data?: any) {
+        data = data || {};
         (this as any).ajaxcall(`/afterus/afterus/${action}.html`, data, this, () => {});
     }
 
@@ -542,6 +571,7 @@ class AfterUs implements AfterUsGame {
             ['revealTokens', ANIMATION_MS],
             ['buyCard', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
+            ['discardedCard', ANIMATION_MS],
         ];
     
         notifs.forEach((notif) => {
@@ -567,6 +597,7 @@ class AfterUs implements AfterUsGame {
         this.energyCounters[playerId].toValue(player.energy);
         this.rageCounters[playerId].toValue(player.rage);
         this.setScore(playerId, +player.score);
+        this.getPlayerTable(playerId).updateRage(player.rage);
     }
 
     notif_selectedToken(notif: Notif<NotifSelectedTokenArgs>) {
@@ -587,7 +618,12 @@ class AfterUs implements AfterUsGame {
 
     notif_endRound(notif: Notif<NotifEndRoundArgs>) {
         this.getPlayerTable(notif.args.playerId).endRound();
-    }    
+    }  
+
+    notif_discardedCard(notif: Notif<NotifDiscardedCardArgs>) {
+        this.getPlayerTable(notif.args.playerId).discardCard(notif.args.card, notif.args.line);
+        this.notif_activatedEffect(notif);
+    }  
 
     /*private getColorName(color: number) {
         switch (color) {

@@ -10,14 +10,17 @@ trait DebugUtilTrait {
         if ($this->getBgaEnvironment() != 'studio') { 
             return;
         } 
+
+		$this->debugSetRage(10);
         
         //$this->debugLastTurn();
     }
 
-    public function d($playerId) {
-        $costs = $this->getGlobalVariable(COSTS, true);
-        $objects = $this->getGlobalVariable(OBJECTS, true) ?? [];
-        $this->updatePlayerScore($playerId, $costs, $objectives);
+    function debugSetRage($rage) {
+        $this->DbQuery("UPDATE player SET `player_rage` = $rage");
+    }
+    function debugSetPlayerRage($playerId, $rage) {
+        $this->DbQuery("UPDATE player SET `player_rage` = $rage where `player_id` = $playerId");
     }
 
     public function debugReplacePlayersIds() {

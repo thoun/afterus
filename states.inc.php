@@ -102,6 +102,7 @@ $playerActionsGameStates = [
         "descriptionmyturn" => clienttranslate('Phase 1 : ${you} can activate an effect'),
         "type" => "private",
         "args" => "argActivateEffect",
+        "action" => "stActivateEffect",
         "possibleactions" => [ "activateEffect", "skipEffect", "cancelLastMove", "cancelResolutions", "cancelAll" ],
         "transitions" => [
           'stay' => ST_PRIVATE_ACTIVATE_EFFECT,

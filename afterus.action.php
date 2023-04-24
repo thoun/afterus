@@ -154,7 +154,26 @@
         $this->game->endTurn();
 
         self::ajaxResponse();
-    }    
+    } 
+  	
+    public function setAutoGain() {
+        self::setAjaxMode();
+
+        $autoGain = self::getArg("autoGain", AT_bool, true);
+
+        $this->game->setAutoGain($autoGain);
+
+        self::ajaxResponse();
+    }
+
+    public function useRage() {
+        self::setAjaxMode();
+
+        $id = self::getArg("id", AT_posint, true);
+        $this->game->useRage($id);
+
+        self::ajaxResponse();
+    }  
 
   }
   

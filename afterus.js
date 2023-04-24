@@ -1418,7 +1418,23 @@ var PlayerTable = /** @class */ (function () {
         this.setSelectedToken(player.chosenToken);
     }
     PlayerTable.prototype.newRound = function (cards) {
+        var _this = this;
         this.line.addCards(cards);
+        cards.forEach(function (card) {
+            var div = _this.line.getCardElement(card);
+            var button = document.createElement('button');
+            button.id = "rage-button-".concat(card.id);
+            button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
+            button.dataset.playerId = '' + _this.playerId;
+            button.innerHTML = formatTextIcons('[Rage]');
+            button.classList.toggle('disabled', _this.game.getPlayerRage(_this.playerId) < 4);
+            div.appendChild(button);
+            button.addEventListener('click', function () {
+                _this.game.confirmationDialog(_("Are you sure you want to discard this card ?"), function () { return _this.game.useRage(card.id); });
+            });
+            _this.game.setTooltip(button.id, _('Discard this card') + formatTextIcons(' (4 [Rage])'));
+        });
+        this.updateVisibleMoveButtons();
     };
     PlayerTable.prototype.setMovable = function (movable) {
         document.getElementById("player-table-".concat(this.playerId)).classList.toggle('move-phase', movable);
@@ -1478,6 +1494,28 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.endRound = function () {
         this.setSelectedToken(null);
         this.line.removeAll();
+    };
+    PlayerTable.prototype.updateRage = function (rage) {
+        document.getElementById("player-table-".concat(this.playerId)).querySelectorAll('.rage-button').forEach(function (elem) { return elem.classList.toggle('disabled', rage < 4); });
+    };
+    PlayerTable.prototype.discardCard = function (card, line) {
+        if (line) {
+            this.line.removeAll();
+            this.newRound(line);
+        }
+        else {
+            this.line.removeCard(card);
+        }
+        this.updateVisibleMoveButtons();
+    };
+    PlayerTable.prototype.updateVisibleMoveButtons = function () {
+        var cards = this.line.getCards();
+        var slots = document.getElementById("player-table-".concat(this.playerId)).querySelectorAll(".slot");
+        slots.forEach(function (slot) {
+            var slotId = +slot.dataset.slotId;
+            var hasCard = cards.some(function (card) { return card.locationArg == slotId; });
+            slot.querySelectorAll('button.move').forEach(function (btn) { return btn.classList.toggle('hidden', !hasCard); });
+        });
     };
     return PlayerTable;
 }());
@@ -1597,7 +1635,7 @@ var AfterUs = /** @class */ (function () {
             case 'activateEffect':
                 var activateEffectArgs = args;
                 var currentEffect = activateEffectArgs.currentEffect;
-                if (!activateEffectArgs.reactivate) {
+                if (currentEffect && !activateEffectArgs.reactivate) {
                     var label = void 0;
                     if (!currentEffect.convertSign) {
                         label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
@@ -1697,6 +1735,9 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.getPlayerColor = function (playerId) {
         return this.gamedatas.players[playerId].color;
     };
+    AfterUs.prototype.getPlayerRage = function (playerId) {
+        return this.rageCounters[playerId].getValue();
+    };
     AfterUs.prototype.getPlayerTable = function (playerId) {
         return this.playersTables.find(function (playerTable) { return playerTable.playerId === playerId; });
     };
@@ -1715,11 +1756,19 @@ var AfterUs = /** @class */ (function () {
             var prefId = +match[1];
             var prefValue = +e.target.value;
             _this.prefs[prefId].value = prefValue;
+            _this.onPreferenceChange(prefId, prefValue);
         };
         // Call onPreferenceChange() when any value changes
         dojo.query(".preference_control").connect("onchange", onchange);
         // Call onPreferenceChange() now
         dojo.forEach(dojo.query("#ingame_menu_content .preference_control"), function (el) { return onchange({ target: el }); });
+    };
+    AfterUs.prototype.onPreferenceChange = function (prefId, prefValue) {
+        switch (prefId) {
+            case 201:
+                this.setAutoGain(prefValue == 1);
+                break;
+        }
     };
     AfterUs.prototype.getOrderedPlayers = function (gamedatas) {
         var _this = this;
@@ -1879,9 +1928,23 @@ var AfterUs = /** @class */ (function () {
         }
         this.takeAction('endTurn');
     };
+    AfterUs.prototype.setAutoGain = function (autoGain) {
+        this.takeNoLockAction('setAutoGain', {
+            autoGain: autoGain
+        });
+    };
+    AfterUs.prototype.useRage = function (id) {
+        this.takeAction('useRage', {
+            id: id,
+        });
+    };
     AfterUs.prototype.takeAction = function (action, data) {
         data = data || {};
         data.lock = true;
+        this.ajaxcall("/afterus/afterus/".concat(action, ".html"), data, this, function () { });
+    };
+    AfterUs.prototype.takeNoLockAction = function (action, data) {
+        data = data || {};
         this.ajaxcall("/afterus/afterus/".concat(action, ".html"), data, this, function () { });
     };
     ///////////////////////////////////////////////////
@@ -1906,6 +1969,7 @@ var AfterUs = /** @class */ (function () {
             ['revealTokens', ANIMATION_MS],
             ['buyCard', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
+            ['discardedCard', ANIMATION_MS],
         ];
         notifs.forEach(function (notif) {
             dojo.subscribe(notif[0], _this, "notif_".concat(notif[0]));
@@ -1927,6 +1991,7 @@ var AfterUs = /** @class */ (function () {
         this.energyCounters[playerId].toValue(player.energy);
         this.rageCounters[playerId].toValue(player.rage);
         this.setScore(playerId, +player.score);
+        this.getPlayerTable(playerId).updateRage(player.rage);
     };
     AfterUs.prototype.notif_selectedToken = function (notif) {
         var currentPlayer = this.getPlayerId() == notif.args.playerId;
@@ -1944,6 +2009,10 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.notif_endRound = function (notif) {
         this.getPlayerTable(notif.args.playerId).endRound();
+    };
+    AfterUs.prototype.notif_discardedCard = function (notif) {
+        this.getPlayerTable(notif.args.playerId).discardCard(notif.args.card, notif.args.line);
+        this.notif_activatedEffect(notif);
     };
     /*private getColorName(color: number) {
         switch (color) {

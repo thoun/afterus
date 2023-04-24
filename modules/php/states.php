@@ -44,6 +44,19 @@ trait StateTrait {
         $this->gamestate->initializePrivateStateForAllActivePlayers(); 
     }
 
+    function stActivateEffect(int $playerId) {
+        if (!$this->getPlayer($playerId)->autoGain) {
+            return;
+        }
+
+        $args = $this->argActivateEffect($playerId);
+        $currentEffect = $args['currentEffect'];
+        if ($currentEffect != null && $this->isFreeEffect($currentEffect) && !$args['reactivate']) {
+            $line = $this->getCardsByLocation('line'.$playerId);
+            $this->applyActivateEffect($playerId, $currentEffect, $currentEffect, $line);
+        }
+    }
+
     function stEndPhase1() {
         $endScoreReached = $this->isEndScoreReached();
 

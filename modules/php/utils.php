@@ -207,6 +207,12 @@ trait UtilTrait {
         return $effects;
     }
 
+    function isFreeEffect(Effect $effect) {
+        return !$effect->convertSign || 
+            count($effect->left) == 0 || 
+            (count($effect->left) == 1 && $effect->left[0][1] == DIFFERENT);
+    }
+
     private function getEffectFromClickedFrame(array $line, array $possibleEffects, int $row, int $cardIndex, int $index) {
         $card = $this->array_find($line, fn($card) => $card->locationArg === $cardIndex);
         $frame = $card->frames[$row][$index];
@@ -352,6 +358,7 @@ trait UtilTrait {
 
     function getMonkeyType(int $type) {
         switch ($type) {
+            case 0: return clienttranslate('tamarin');
             case 1: return clienttranslate('mandrill');
             case 2: return clienttranslate('orangutan');
             case 3: return clienttranslate('gorilla');
@@ -359,4 +366,7 @@ trait UtilTrait {
         }
     }
 
+    function getPlayerPrivateState(int $playerId) {
+        return intval($this->getUniqueValueFromDB("SELECT `player_state` FROM `player` WHERE `player_id` = $playerId"));
+    }
 }

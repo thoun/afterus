@@ -43,3 +43,15 @@ require_once("modules/php/constants.inc.php");
         'default' => 1,
     ],
 ];
+    
+$game_preferences = [
+    201 => [
+        'name' => totranslate('Automatically take free resources'),
+        'needReload' => false,
+        'values' => [
+            1 => ['name' => totranslate('Enabled')],
+            0 => ['name' => totranslate('Disabled')],
+        ],
+        'default' => 0,
+    ],
+];

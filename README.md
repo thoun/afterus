@@ -31,3 +31,10 @@ Also add one auto-FTP upload extension (for example https://marketplace.visualst
 
 ## Hint
 Make sure ftp-sync.json and node_modules are in .gitignore
+
+## publisher answers on rules points
+Can we use rage when arranging ?
+You can, even if it makes no sens.
+
+Can we use Game Console on a tamarin ?
+No, you can't

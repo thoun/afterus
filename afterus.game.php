@@ -74,11 +74,17 @@ class AfterUs extends Table {
  
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
+        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar, player_auto_gain) VALUES ";
         $values = [];
         foreach( $players as $player_id => $player ) {
             $color = array_shift( $default_colors );
-            $values[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."')";
+
+            $autoGain = 0;
+            if (array_key_exists($player_id, $this->player_preferences) && array_key_exists(201, $this->player_preferences[$player_id])) {
+                $autoGain = intval($this->player_preferences[$player_id][201]);
+            }
+            //$autoActivate = array_key_exists(201, $this->player_preferences) && $this->player_preferences[201] == 1;
+            $values[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."', $autoGain)";
         }
         $sql .= implode(',', $values);
         self::DbQuery( $sql );

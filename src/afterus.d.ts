@@ -60,11 +60,13 @@ interface AfterUsGame extends Game {
 
     getPlayerId(): number;
     getPlayer(playerId: number): AfterUsPlayer;
-    getPlayerColor(playerId: number): string;
+    getPlayerColor(playerId: number): string;    
+    getPlayerRage(playerId: number): number;
 
     setTooltip(id: string, html: string): void;
     moveCard(index: number, direction: number): void;
     onFrameClicked(row: number, cardIndex: number, index: number): void;
+    useRage(id: number): void;
 }
 
 interface EnteringOrderCardsArgs {
@@ -141,4 +143,10 @@ interface NotifBuyCardArgs extends NotifActivatedEffectArgs {
 // endRound
 interface NotifEndRoundArgs {
     playerId: number;
+}
+
+// discardedCard
+interface NotifDiscardedCardArgs extends NotifActivatedEffectArgs {
+    card: Card;
+    line?: Card[];
 }

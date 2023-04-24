@@ -48,6 +48,8 @@
 
   .slot {
     position: relative;
+    width: 142px;
+    height: 198px;
 
     button.move {
       display: none;
@@ -79,6 +81,29 @@
   &.move-phase {
     button.move {
       display: block;
+
+      &.hidden {
+        display: none;
+      }
+    }
+  }
+
+  .rage-button {
+    z-index: 1;
+    position: absolute;
+    right: 25px;
+    width: 24px;
+    top: 7px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+
+    .rage.icon {
+      width: 24px;
+      height: 24px;
     }
   }
 }
