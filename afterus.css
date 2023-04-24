@@ -695,19 +695,12 @@ body > .card {
   background-position: 100% 100%;
 }
 .card .card-sides .card-side.front .frame {
+  --left: unset;
   border: 3px dashed transparent;
   position: absolute;
   width: var(--width);
+  left: var(--left);
   height: 23px;
-}
-.card .card-sides .card-side.front .frame[data-position-index="0"] {
-  left: 7px;
-}
-.card .card-sides .card-side.front .frame[data-position-index="1"] {
-  left: calc(50% - var(--width) / 2);
-}
-.card .card-sides .card-side.front .frame[data-position-index="2"] {
-  right: 7px;
 }
 .card .card-sides .card-side.front .frame[data-row="0"] {
   top: 92px;

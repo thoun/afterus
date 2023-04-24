@@ -1233,8 +1233,9 @@ var CardsManager = /** @class */ (function (_super) {
         _this.game = game;
         return _this;
     }
-    CardsManager.prototype.createFrame = function (div, frame, row, index, positionIndex) {
+    CardsManager.prototype.createFrame = function (div, frame, row, index, left) {
         var _this = this;
+        if (left === void 0) { left = null; }
         var width = 11 + (Math.max(1, frame.left.length + frame.right.length) * 17) + (frame.convertSign ? 8 : 0);
         if (frame.left.some(function (resource) { return resource[1] == PER_TAMARINS; })) {
             width += 16;
@@ -1255,25 +1256,63 @@ var CardsManager = /** @class */ (function (_super) {
         }
         frameDiv.dataset.row = '' + row;
         frameDiv.dataset.index = '' + index;
-        frameDiv.dataset.positionIndex = '' + positionIndex;
         frameDiv.dataset.left = JSON.stringify(frame.left);
         frameDiv.dataset.right = JSON.stringify(frame.right);
         frameDiv.dataset.convertSign = JSON.stringify(frame.convertSign);
         frameDiv.style.setProperty('--width', " ".concat(width, "px"));
+        if (left !== null) {
+            frameDiv.style.setProperty('--left', " ".concat(left, "px"));
+        }
         div.appendChild(frameDiv);
         frameDiv.addEventListener('click', function () {
             var cardDivId = +div.closest('.card').dataset.cardId;
             var cardIndex = _this.getCardStock({ id: cardDivId }).getCards().find(function (c) { return c.id == cardDivId; }).locationArg;
             _this.game.onFrameClicked(row, cardIndex, index);
         });
+        return frameDiv;
+    };
+    CardsManager.prototype.propertyToNumber = function (div, property) {
+        var match = div.style.getPropertyValue("--".concat(property)).match(/\d+/);
+        return (match === null || match === void 0 ? void 0 : match.length) ? Number(match[0]) : 0;
     };
     CardsManager.prototype.createFrames = function (div, frames) {
         var _this = this;
         var _loop_2 = function (row) {
+            var frameOpenedLeft = frames[row].find(function (frame) { return frame.type == OPENED_LEFT; });
+            var leftFrameDiv = null;
+            if (frameOpenedLeft) {
+                leftFrameDiv = this_1.createFrame(div, frameOpenedLeft, row, 0);
+            }
+            var frameOpenedRight = frames[row].find(function (frame) { return frame.type == OPENED_RIGHT; });
+            var rightFrameDiv = null;
+            if (frameOpenedRight) {
+                rightFrameDiv = this_1.createFrame(div, frameOpenedRight, row, frames[row].length - 1);
+            }
             frames[row].forEach(function (frame, index) {
-                return _this.createFrame(div, frame, row, index, frame.type == OPENED_RIGHT ? 2 : (frame.type == CLOSED && frames[row].filter(function (f) { return f.type == CLOSED; }).length == 1 ? 1 : index));
+                if (frame != frameOpenedLeft && frame != frameOpenedRight) {
+                    var left = index == 0 && frames[row].length === 3 ? 7 : 34;
+                    var frameDiv = _this.createFrame(div, frame, row, index, left);
+                    if (index == 0) {
+                        leftFrameDiv = frameDiv;
+                    }
+                    if (index == 1 && frames[row].length == 3) {
+                        var leftWidth = _this.propertyToNumber(leftFrameDiv, 'left') + _this.propertyToNumber(leftFrameDiv, 'width');
+                        var space = 142 - leftWidth - _this.propertyToNumber(rightFrameDiv, 'width');
+                        console.log(space, leftWidth + (space - _this.propertyToNumber(frameDiv, 'width')) / 2);
+                        frameDiv.style.setProperty('--left', "".concat(leftWidth + (space - _this.propertyToNumber(frameDiv, 'width')) / 2, "px"));
+                    }
+                    else if (leftFrameDiv && index == 1 && frames[row].length == 2) {
+                        var leftWidth = _this.propertyToNumber(leftFrameDiv, 'left') + _this.propertyToNumber(leftFrameDiv, 'width');
+                        frameDiv.style.setProperty('--left', "".concat(leftWidth + 26, "px"));
+                    }
+                    else if (rightFrameDiv && index == 0 && frames[row].length == 2) {
+                        var left_1 = 142 - _this.propertyToNumber(rightFrameDiv, 'width');
+                        frameDiv.style.setProperty('--left', "".concat(left_1 - _this.propertyToNumber(frameDiv, 'width') - 26, "px"));
+                    }
+                }
             });
         };
+        var this_1 = this;
         for (var row = 0; row < 3; row++) {
             _loop_2(row);
         }

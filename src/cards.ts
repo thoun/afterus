@@ -25,7 +25,7 @@ class CardsManager extends CardManager<Card> {
         });
     }
 
-    private createFrame(div: HTMLElement, frame: Frame, row: number, index: number, positionIndex: number) {
+    private createFrame(div: HTMLElement, frame: Frame, row: number, index: number, left: number | null = null) {
         let width = 11 + (Math.max(1, frame.left.length + frame.right.length) * 17) + (frame.convertSign ? 8 : 0);
         if (frame.left.some(resource => resource[1] == PER_TAMARINS)) {
             width += 16;
@@ -46,11 +46,13 @@ class CardsManager extends CardManager<Card> {
         }
         frameDiv.dataset.row = ''+row;
         frameDiv.dataset.index = ''+index;
-        frameDiv.dataset.positionIndex = ''+positionIndex;
         frameDiv.dataset.left = JSON.stringify(frame.left);
         frameDiv.dataset.right = JSON.stringify(frame.right);
         frameDiv.dataset.convertSign = JSON.stringify(frame.convertSign);
         frameDiv.style.setProperty('--width', ` ${width}px`);
+        if (left !== null) {
+            frameDiv.style.setProperty('--left', ` ${left}px`);
+        }
 
         div.appendChild(frameDiv);
 
@@ -59,13 +61,49 @@ class CardsManager extends CardManager<Card> {
             const cardIndex = this.getCardStock({ id: cardDivId } as Card).getCards().find(c => c.id == cardDivId).locationArg;
             this.game.onFrameClicked(row, cardIndex, index);
         });
+
+        return frameDiv;
+    }
+
+    private propertyToNumber(div: HTMLElement, property: string) {
+        const match = div.style.getPropertyValue(`--${property}`).match(/\d+/);
+        return match?.length ? Number(match[0]) : 0;
     }
     
     private createFrames(div: HTMLElement, frames: Frame[][]) {
         for (let row = 0; row < 3; row++) {
-            frames[row].forEach((frame, index) => 
-                this.createFrame(div, frame, row, index, frame.type == OPENED_RIGHT ? 2 : (frame.type == CLOSED && frames[row].filter(f => f.type == CLOSED).length == 1 ? 1 : index))
-            );
+            const frameOpenedLeft = frames[row].find(frame => frame.type == OPENED_LEFT);
+            let leftFrameDiv = null;
+            if (frameOpenedLeft) {
+                leftFrameDiv = this.createFrame(div, frameOpenedLeft, row, 0);
+            }
+            const frameOpenedRight = frames[row].find(frame => frame.type == OPENED_RIGHT);
+            let rightFrameDiv = null;
+            if (frameOpenedRight) {
+                rightFrameDiv = this.createFrame(div, frameOpenedRight, row, frames[row].length - 1);
+            }
+
+            frames[row].forEach((frame, index) => {
+                if (frame != frameOpenedLeft && frame != frameOpenedRight) {
+                    let left = index == 0 && frames[row].length === 3 ? 7 : 34;
+                    const frameDiv = this.createFrame(div, frame, row, index, left);
+                    if (index == 0) {
+                        leftFrameDiv = frameDiv;
+                    }
+                    if (index == 1 && frames[row].length == 3) {
+                        const leftWidth = this.propertyToNumber(leftFrameDiv, 'left') + this.propertyToNumber(leftFrameDiv, 'width');
+                        const space = 142 - leftWidth - this.propertyToNumber(rightFrameDiv, 'width');
+                        console.log(space, leftWidth + (space - this.propertyToNumber(frameDiv, 'width')) / 2);
+                        frameDiv.style.setProperty('--left', `${leftWidth + (space - this.propertyToNumber(frameDiv, 'width')) / 2}px`);
+                    } else if (leftFrameDiv && index == 1 && frames[row].length == 2) {
+                        const leftWidth = this.propertyToNumber(leftFrameDiv, 'left') + this.propertyToNumber(leftFrameDiv, 'width');
+                        frameDiv.style.setProperty('--left', `${leftWidth + 26}px`);
+                    } else if (rightFrameDiv && index == 0 && frames[row].length == 2) {
+                        const left = 142 - this.propertyToNumber(rightFrameDiv, 'width');
+                        frameDiv.style.setProperty('--left', `${left - this.propertyToNumber(frameDiv, 'width') - 26}px`);
+                    }
+                }
+            });
         }
     }
 
