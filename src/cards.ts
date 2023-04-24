@@ -8,7 +8,10 @@ class CardsManager extends CardManager<Card> {
             getId: (card) => `card-${card.id}`,
             setupDiv: (card: Card, div: HTMLElement) => {
                 div.dataset.cardId = ''+card.id;
-                this.game.setTooltip(div.id, this.getTooltip(card))
+                const tooltip = this.getTooltip(card);
+                if (tooltip) {
+                    this.game.setTooltip(div.id, tooltip);
+                }
             },
             setupFrontDiv: (card: Card, div: HTMLElement) => { 
                 div.dataset.level = ''+card.level;
@@ -93,7 +96,6 @@ class CardsManager extends CardManager<Card> {
                     if (index == 1 && frames[row].length == 3) {
                         const leftWidth = this.propertyToNumber(leftFrameDiv, 'left') + this.propertyToNumber(leftFrameDiv, 'width');
                         const space = 142 - leftWidth - this.propertyToNumber(rightFrameDiv, 'width');
-                        console.log(space, leftWidth + (space - this.propertyToNumber(frameDiv, 'width')) / 2);
                         frameDiv.style.setProperty('--left', `${leftWidth + (space - this.propertyToNumber(frameDiv, 'width')) / 2}px`);
                     } else if (leftFrameDiv && index == 1 && frames[row].length == 2) {
                         const leftWidth = this.propertyToNumber(leftFrameDiv, 'left') + this.propertyToNumber(leftFrameDiv, 'width');

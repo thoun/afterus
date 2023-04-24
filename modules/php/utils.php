@@ -146,10 +146,9 @@ trait UtilTrait {
             $this->cards->shuffle('deck'.$playerId);
         }
 
-        
-        
         foreach ([ORANGUTANS, CHIMPANZEES, GORILLAS, MANDRILLS] as $monkeyType) {
             foreach ([1, 2] as $level) {
+                $cards = [];
                 $type = $monkeyType * 10 + $level;
                 foreach ($this->CARDS[$type] as $subType => $card) {
                     $cards[] = [ 'type' => $type, 'type_arg' => $subType, 'nbr' => 1 ];

@@ -814,6 +814,24 @@ body > .card {
 #table-center #center-board .hidden-deck[data-level="2"] {
   top: 23px;
 }
+#table-center .card-counter {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 24px;
+  z-index: 1;
+  box-shadow: 0 0 3px 1px black;
+  left: calc(50% - 12px);
+}
+#table-center .card-counter[data-level="1"] {
+  top: -14px;
+}
+#table-center .card-counter[data-level="2"] {
+  bottom: -14px;
+}
 
 .player-board {
   background-color: white;

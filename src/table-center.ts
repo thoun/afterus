@@ -1,5 +1,6 @@
 class TableCenter {
-    public hiddenDecks: HiddenDeck<Card>[] = [];
+    private hiddenDecks: HiddenDeck<Card>[] = [];    
+    private cardCounters: Counter[] = [];    
 
     private objectsManager: ObjectsManager;
     private objects: LineStock<number>;
@@ -15,7 +16,9 @@ class TableCenter {
                 block.classList.add('player-block');
         
                 document.getElementById('center-board').insertAdjacentHTML('beforeend', `
-                    <div id="hidden-deck-${type}" data-type="${monkeyType}" data-level="${level}"></div>
+                    <div id="hidden-deck-${type}" data-type="${monkeyType}" data-level="${level}">
+                        <div id="hidden-deck-${type}-card-counter" class="card-counter" data-level="${level}"></div>
+                    </div>
                 `);
 
                 this.hiddenDecks[type] = new HiddenDeck<Card>(this.game.cardsManager, document.getElementById(`hidden-deck-${type}`), {
@@ -23,11 +26,21 @@ class TableCenter {
                     width: 142,
                     height: 198,
                 });
+                        
+                this.cardCounters[type] = new ebg.counter();
+                this.cardCounters[type].create(`hidden-deck-${type}-card-counter`);
+                this.cardCounters[type].setValue(count);
+                console.log(count, type, gamedatas.table);
             })
         );
         
         this.objectsManager = new ObjectsManager(this.game);
         this.objects = new LineStock<number>(this.objectsManager, document.getElementById(`objects`));
         this.objects.addCards(gamedatas.objects);
+    }
+    
+    public setRemaining(deckType: number, deckCount: number) {        
+        this.hiddenDecks[deckType].setCardNumber(deckCount);
+        this.cardCounters[deckType].setValue(deckCount);
     }
 }

@@ -1216,7 +1216,10 @@ var CardsManager = /** @class */ (function (_super) {
             getId: function (card) { return "card-".concat(card.id); },
             setupDiv: function (card, div) {
                 div.dataset.cardId = '' + card.id;
-                _this.game.setTooltip(div.id, _this.getTooltip(card));
+                var tooltip = _this.getTooltip(card);
+                if (tooltip) {
+                    _this.game.setTooltip(div.id, tooltip);
+                }
             },
             setupFrontDiv: function (card, div) {
                 div.dataset.level = '' + card.level;
@@ -1298,7 +1301,6 @@ var CardsManager = /** @class */ (function (_super) {
                     if (index == 1 && frames[row].length == 3) {
                         var leftWidth = _this.propertyToNumber(leftFrameDiv, 'left') + _this.propertyToNumber(leftFrameDiv, 'width');
                         var space = 142 - leftWidth - _this.propertyToNumber(rightFrameDiv, 'width');
-                        console.log(space, leftWidth + (space - _this.propertyToNumber(frameDiv, 'width')) / 2);
                         frameDiv.style.setProperty('--left', "".concat(leftWidth + (space - _this.propertyToNumber(frameDiv, 'width')) / 2, "px"));
                     }
                     else if (leftFrameDiv && index == 1 && frames[row].length == 2) {
@@ -1404,24 +1406,33 @@ var TableCenter = /** @class */ (function () {
         var _this = this;
         this.game = game;
         this.hiddenDecks = [];
+        this.cardCounters = [];
         [1, 2, 3, 4].forEach(function (monkeyType) {
             return [1, 2].forEach(function (level) {
                 var type = monkeyType * 10 + level;
                 var count = gamedatas.table[type];
                 var block = document.createElement('div');
                 block.classList.add('player-block');
-                document.getElementById('center-board').insertAdjacentHTML('beforeend', "\n                    <div id=\"hidden-deck-".concat(type, "\" data-type=\"").concat(monkeyType, "\" data-level=\"").concat(level, "\"></div>\n                "));
+                document.getElementById('center-board').insertAdjacentHTML('beforeend', "\n                    <div id=\"hidden-deck-".concat(type, "\" data-type=\"").concat(monkeyType, "\" data-level=\"").concat(level, "\">\n                        <div id=\"hidden-deck-").concat(type, "-card-counter\" class=\"card-counter\" data-level=\"").concat(level, "\"></div>\n                    </div>\n                "));
                 _this.hiddenDecks[type] = new HiddenDeck(_this.game.cardsManager, document.getElementById("hidden-deck-".concat(type)), {
                     cardNumber: count,
                     width: 142,
                     height: 198,
                 });
+                _this.cardCounters[type] = new ebg.counter();
+                _this.cardCounters[type].create("hidden-deck-".concat(type, "-card-counter"));
+                _this.cardCounters[type].setValue(count);
+                console.log(count, type, gamedatas.table);
             });
         });
         this.objectsManager = new ObjectsManager(this.game);
         this.objects = new LineStock(this.objectsManager, document.getElementById("objects"));
         this.objects.addCards(gamedatas.objects);
     }
+    TableCenter.prototype.setRemaining = function (deckType, deckCount) {
+        this.hiddenDecks[deckType].setCardNumber(deckCount);
+        this.cardCounters[deckType].setValue(deckCount);
+    };
     return TableCenter;
 }());
 var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
@@ -2086,7 +2097,7 @@ var AfterUs = /** @class */ (function () {
         Object.entries(notif.args.tokens).forEach(function (val) { return _this.getPlayerTable(+val[0]).setSelectedToken(val[1]); });
     };
     AfterUs.prototype.notif_buyCard = function (notif) {
-        this.tableCenter.hiddenDecks[notif.args.deckType].setCardNumber(notif.args.deckCount);
+        this.tableCenter.setRemaining(notif.args.deckType, notif.args.deckCount);
         this.notif_activatedEffect(notif);
     };
     AfterUs.prototype.notif_endRound = function (notif) {

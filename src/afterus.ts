@@ -629,7 +629,7 @@ class AfterUs implements AfterUsGame {
     }
 
     notif_buyCard(notif: Notif<NotifBuyCardArgs>) {
-        this.tableCenter.hiddenDecks[notif.args.deckType].setCardNumber(notif.args.deckCount);
+        this.tableCenter.setRemaining(notif.args.deckType, notif.args.deckCount);
         this.notif_activatedEffect(notif);
     }
 
