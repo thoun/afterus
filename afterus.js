@@ -1422,7 +1422,6 @@ var TableCenter = /** @class */ (function () {
                 _this.cardCounters[type] = new ebg.counter();
                 _this.cardCounters[type].create("hidden-deck-".concat(type, "-card-counter"));
                 _this.cardCounters[type].setValue(count);
-                console.log(count, type, gamedatas.table);
             });
         });
         this.objectsManager = new ObjectsManager(this.game);

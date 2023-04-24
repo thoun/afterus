@@ -30,7 +30,6 @@ class TableCenter {
                 this.cardCounters[type] = new ebg.counter();
                 this.cardCounters[type].create(`hidden-deck-${type}-card-counter`);
                 this.cardCounters[type].setValue(count);
-                console.log(count, type, gamedatas.table);
             })
         );
         
