@@ -326,7 +326,7 @@ trait UtilTrait {
                 $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
                 $this->DbQuery("UPDATE `player` SET `player_score` = `player_score` + $tamarins WHERE `player_id` = $playerId");
                 break;
-            default: throw new BgaVisibleSystemException('invalid gainResource');
+            default: throw new BgaVisibleSystemException("invalid gainResource $quantity ".$resource[1]);
         }
     }
 
@@ -387,7 +387,7 @@ trait UtilTrait {
         $currentEffect = $args['currentEffect'];
 
         if ($this->getPlayer($playerId)->autoGain) {
-            while ($currentEffect != null && $this->isFreeEffect($currentEffect) && !$args['reactivate']) {
+            while ($currentEffect != null && $this->isFreeEffect($currentEffect) && !$this->array_some($currentEffect->right, fn($resource) => $resource[1] == REACTIVATE)) {
                 $line = $this->getCardsByLocation('line'.$playerId);
                 $this->applyActivateEffect($playerId, $currentEffect, $currentEffect, $line);
 

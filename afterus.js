@@ -1298,7 +1298,7 @@ var CardsManager = /** @class */ (function (_super) {
                     if (index == 0) {
                         leftFrameDiv = frameDiv;
                     }
-                    if (index == 1 && frames[row].length == 3) {
+                    if (leftFrameDiv && rightFrameDiv && index == 1 && frames[row].length == 3) {
                         var leftWidth = _this.propertyToNumber(leftFrameDiv, 'left') + _this.propertyToNumber(leftFrameDiv, 'width');
                         var space = 142 - leftWidth - _this.propertyToNumber(rightFrameDiv, 'width');
                         frameDiv.style.setProperty('--left', "".concat(leftWidth + (space - _this.propertyToNumber(frameDiv, 'width')) / 2, "px"));

@@ -125,6 +125,10 @@ trait ActionTrait {
             $rowEffects = array_filter($args['possibleEffects'], fn($effect) => $effect->row === $row && $effect->cardIndex === $cardIndex);
             $closedFrameIndex = $frame->type == CLOSED ? $index : null;
             $appliedEffect = $this->array_find($rowEffects, fn($effect) => $effect->closedFrameIndex === $closedFrameIndex);
+
+            foreach($currentEffect->left as $resource) {
+                $this->giveResource($playerId, $resource);
+            }
         }
 
         $this->applyActivateEffect($playerId, $appliedEffect, $currentEffect, $line);
@@ -268,11 +272,11 @@ trait ActionTrait {
             return;
         }
 
-        if (!$this->getPlayer($playerId)->phase2cardBought) {
+        //if (!$this->getPlayer($playerId)->phase2cardBought) {
             $this->gamestate->nextPrivateState($playerId, 'next');
-        } else {
+        /*} else {
             $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
-        }
+        }*/
     }
 
     public function cancelNeighborEffect() {
@@ -315,11 +319,11 @@ trait ActionTrait {
             'deckCount' => intval($this->cards->countCardInLocation("deck-$monkeyType-$level")),
         ]);
 
-        if ($args['canUseNeighborToken']) {
+        //if ($args['canUseNeighborToken']) {
             $this->gamestate->nextPrivateState($playerId, 'stay');
-        } else {
+        /*} else {
             $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
-        }
+        }*/
     }
 
     public function endTurn() {

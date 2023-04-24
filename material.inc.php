@@ -477,7 +477,7 @@ $this->ORANGUTANS2 = [
     new LevelCard(232, [
         [new LeftFrame([[1, ENERGY]], false), new ClosedFrame([[1, GRAIN]]), new RightFrame([[1, FRUIT]], false)],
         [new ClosedFrame([[1, FRUIT], [3, POINT]]), new RightFrame([[1, FRUIT]], true)],
-        [new LeftFrame([[3, ENERGY]], true), new ClosedFrame([[3, DIFFERENT], [2, POINT]]), new RightFrame([], true)],
+        [new LeftFrame([[3, ENERGY]], true), new ClosedFrame([[3, DIFFERENT]], [[2, POINT]]), new RightFrame([], true)],
     ]), 
     new LevelCard(233, [
         [new LeftFrame([[1, FRUIT]], false), new ClosedFrame([[1, GRAIN], [1, FRUIT]]), new RightFrame([[1, ENERGY]], false)],

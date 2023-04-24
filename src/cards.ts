@@ -93,7 +93,7 @@ class CardsManager extends CardManager<Card> {
                     if (index == 0) {
                         leftFrameDiv = frameDiv;
                     }
-                    if (index == 1 && frames[row].length == 3) {
+                    if (leftFrameDiv && rightFrameDiv && index == 1 && frames[row].length == 3) {
                         const leftWidth = this.propertyToNumber(leftFrameDiv, 'left') + this.propertyToNumber(leftFrameDiv, 'width');
                         const space = 142 - leftWidth - this.propertyToNumber(rightFrameDiv, 'width');
                         frameDiv.style.setProperty('--left', `${leftWidth + (space - this.propertyToNumber(frameDiv, 'width')) / 2}px`);
