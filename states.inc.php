@@ -94,6 +94,7 @@ $playerActionsGameStates = [
         "transitions" => [
             'stay' => ST_PRIVATE_ORDER_CARDS,
             'next' => ST_PRIVATE_ACTIVATE_EFFECT,
+            'confirm' => ST_PRIVATE_CONFIRM_ACTIVATIONS,
         ],
     ],
 
@@ -102,7 +103,6 @@ $playerActionsGameStates = [
         "descriptionmyturn" => clienttranslate('Phase 1 : ${you} can activate an effect'),
         "type" => "private",
         "args" => "argActivateEffect",
-        "action" => "stActivateEffect",
         "possibleactions" => [ "activateEffect", "skipEffect", "cancelLastMove", "cancelResolutions", "cancelAll" ],
         "transitions" => [
           'stay' => ST_PRIVATE_ACTIVATE_EFFECT,
@@ -157,6 +157,7 @@ $playerActionsGameStates = [
         "args" => "argActivateEffectToken",
         "possibleactions" => [ "activateEffectToken", "skipEffectToken" ],
         "transitions" => [
+            'stay' => ST_PRIVATE_ACTIVATE_EFFECT_TOKEN,
             'next' => ST_PRIVATE_BUY_CARD,
             'cancel' => ST_PRIVATE_APPLY_NEIGHBOR_EFFECT,
         ],
@@ -194,6 +195,7 @@ $playerActionsGameStates = [
         "args" => "argApplyNeighborEffect",
         "possibleactions" => [ "applyNeighborEffect", "cancelNeighborEffect" ],
         "transitions" => [
+          'stay' => ST_PRIVATE_APPLY_NEIGHBOR_EFFECT,
           'next' => ST_PRIVATE_BUY_CARD,
           'activateEffect' => ST_PRIVATE_ACTIVATE_EFFECT_TOKEN,
         ],

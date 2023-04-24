@@ -52,7 +52,9 @@ trait ActionTrait {
 
         $playerId = intval($this->getCurrentPlayerId());
 
-        $this->gamestate->nextPrivateState($playerId, 'next');
+        $remaining = $this->applyAutoGainEffects($playerId);
+
+        $this->gamestate->nextPrivateState($playerId, $remaining ? 'next' : 'confirm');
     }
 
     private function applyEffect(int $playerId, Effect $effect, array $line) {
@@ -97,6 +99,9 @@ trait ActionTrait {
         }
 
         $this->applyActivateEffect($playerId, $appliedEffect, $currentEffect, $line);
+
+        $remaining = $this->applyAutoGainEffects($playerId);
+        $this->gamestate->nextPrivateState($playerId, $remaining ? 'stay' : 'next');
     }
 
     function applyActivateEffect(int $playerId, Effect $appliedEffect, Effect $currentEffect, array $line) {
@@ -119,11 +124,6 @@ trait ActionTrait {
             'left' => $this->getResourcesStr($appliedEffect->left),
             'right' => $this->getResourcesStr($appliedEffect->right),
         ]);
-
-        $args = $this->argActivateEffect($playerId);
-        $newCurrentEffect = $args['currentEffect'];
-
-        $this->gamestate->nextPrivateState($playerId, $newCurrentEffect != null ? 'stay' : 'next');
     }
 
     public function activateEffectToken(int $row, int $cardIndex, int $index) {
@@ -172,10 +172,9 @@ trait ActionTrait {
 
         // TODO notif ?
 
-        $args = $this->argActivateEffect($playerId);
-        $effect = $args['currentEffect'];
+        $remaining = $this->applyAutoGainEffects($playerId);
 
-        $this->gamestate->nextPrivateState($playerId, $effect != null ? 'stay' : 'next');
+        $this->gamestate->nextPrivateState($playerId, $remaining ? 'stay' : 'next');
     }
 
     public function confirmActivations() {
@@ -382,7 +381,7 @@ trait ActionTrait {
 
         if ($privateState == ST_PRIVATE_ACTIVATE_EFFECT && $this->argActivateEffect($playerId)['currentEffect'] == null) {
             $this->gamestate->nextPrivateState($playerId, 'next');
-        } else {
+        } else if ($this->gamestate->state_id() != ST_MULTIPLAYER_CHOOSE_TOKEN) {
             $this->gamestate->nextPrivateState($playerId, 'stay');
         }
     }  

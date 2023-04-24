@@ -369,4 +369,21 @@ trait UtilTrait {
     function getPlayerPrivateState(int $playerId) {
         return intval($this->getUniqueValueFromDB("SELECT `player_state` FROM `player` WHERE `player_id` = $playerId"));
     }
+
+    function applyAutoGainEffects(int $playerId) {
+        $args = $this->argActivateEffect($playerId);
+        $currentEffect = $args['currentEffect'];
+
+        if ($this->getPlayer($playerId)->autoGain) {
+            while ($currentEffect != null && $this->isFreeEffect($currentEffect) && !$args['reactivate']) {
+                $line = $this->getCardsByLocation('line'.$playerId);
+                $this->applyActivateEffect($playerId, $currentEffect, $currentEffect, $line);
+
+                $args = $this->argActivateEffect($playerId);
+                $currentEffect = $args['currentEffect'];
+            }
+        }
+
+        return $currentEffect != null;
+    }
 }

@@ -71,6 +71,13 @@ class PlayerTable {
         this.newRound(player.line);
         this.setSelectedToken(player.chosenToken);
     }
+
+    private onDiscardCardClick(card: Card) {
+        (this.game as any).confirmationDialog(
+            _("Are you sure you want to discard this card ?"), 
+            () => this.game.useRage(card.id)
+        );
+    }
     
     public newRound(cards: Card[]) {            
         this.line.addCards(cards);
@@ -83,12 +90,7 @@ class PlayerTable {
             button.innerHTML = formatTextIcons('[Rage]');
             button.classList.toggle('disabled', this.game.getPlayerRage(this.playerId) < 4);
             div.appendChild(button);
-            button.addEventListener('click', () => {
-                (this.game as any).confirmationDialog(
-                    _("Are you sure you want to discard this card ?"), 
-                    () => this.game.useRage(card.id)
-                );
-            });
+            button.addEventListener('click', () => this.onDiscardCardClick(card));
             this.game.setTooltip(button.id, _('Discard this card') + formatTextIcons(' (4 [Rage])'));
         });
         this.updateVisibleMoveButtons();

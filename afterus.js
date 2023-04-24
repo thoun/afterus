@@ -1417,6 +1417,10 @@ var PlayerTable = /** @class */ (function () {
         this.newRound(player.line);
         this.setSelectedToken(player.chosenToken);
     }
+    PlayerTable.prototype.onDiscardCardClick = function (card) {
+        var _this = this;
+        this.game.confirmationDialog(_("Are you sure you want to discard this card ?"), function () { return _this.game.useRage(card.id); });
+    };
     PlayerTable.prototype.newRound = function (cards) {
         var _this = this;
         this.line.addCards(cards);
@@ -1429,9 +1433,7 @@ var PlayerTable = /** @class */ (function () {
             button.innerHTML = formatTextIcons('[Rage]');
             button.classList.toggle('disabled', _this.game.getPlayerRage(_this.playerId) < 4);
             div.appendChild(button);
-            button.addEventListener('click', function () {
-                _this.game.confirmationDialog(_("Are you sure you want to discard this card ?"), function () { return _this.game.useRage(card.id); });
-            });
+            button.addEventListener('click', function () { return _this.onDiscardCardClick(card); });
             _this.game.setTooltip(button.id, _('Discard this card') + formatTextIcons(' (4 [Rage])'));
         });
         this.updateVisibleMoveButtons();
