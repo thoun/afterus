@@ -294,7 +294,8 @@ class AfterUs implements AfterUsGame {
 
     private createPlayerPanels(gamedatas: AfterUsGamedatas) {
 
-        Object.values(gamedatas.players).forEach(player => {
+        const players = Object.values(gamedatas.players);
+        players.forEach((player, index) => {
             const playerId = Number(player.id);  
 
             let html = `
@@ -354,6 +355,23 @@ class AfterUs implements AfterUsGame {
             rageCounter.create(`rage-counter-${player.id}`);
             rageCounter.setValue(player.rage);
             this.rageCounters[playerId] = rageCounter;
+
+            if (players.length > 2) {
+                const leftPlayer = players[index == players.length - 1 ? 0 : index + 1];
+                const rightPlayer = players[index == 0 ? players.length - 1 : index - 1];
+                let html = `
+                <div class="neighbors">
+                    <div id="neighbor-left-${player.id}">
+                        🡄 <span style="color: #${leftPlayer.color};">${leftPlayer.name}</span>
+                    </div>
+                    <div id="neighbor-right-${player.id}">
+                        <span style="color: #${rightPlayer.color};">${rightPlayer.name}</span> 🡆
+                    </div>
+                </div>`;
+                dojo.place(html, `player_board_${player.id}`);
+                (this as any).addTooltipHtml(`neighbor-left-${player.id}`, _("Left neighbor"));
+                (this as any).addTooltipHtml(`neighbor-right-${player.id}`, _("Right neighbor"));
+            }
         });
     }
 

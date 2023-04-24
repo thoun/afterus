@@ -8,6 +8,13 @@
       background: white !important;
     }
   }
+
+  .neighbors {
+    margin-top: 5px;
+    font-size: 80%;
+    display: flex;
+    justify-content: space-between;
+  }
 }
 
 
@@ -26,3 +33,4 @@
     }
   }
 }
+

@@ -1725,7 +1725,8 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.createPlayerPanels = function (gamedatas) {
         var _this = this;
-        Object.values(gamedatas.players).forEach(function (player) {
+        var players = Object.values(gamedatas.players);
+        players.forEach(function (player, index) {
             var playerId = Number(player.id);
             var html = "\n            <div class=\"counters\">\n                <div id=\"flower-counter-wrapper-".concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon flower\"></div> \n                    <span id=\"flower-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"fruit-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon fruit\"></div> \n                    <span id=\"fruit-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"grain-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon grain\"></div> \n                    <span id=\"grain-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"energy-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon energy\"></div> \n                    <span id=\"energy-counter-").concat(player.id, "\"></span>\n                </div>\n            </div>\n            <div class=\"counters\">\n                <div id=\"rage-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon rage\"></div> \n                    <span id=\"rage-counter-").concat(player.id, "\"></span>\n                </div>\n            </div>");
             dojo.place(html, "player_board_".concat(player.id));
@@ -1754,6 +1755,14 @@ var AfterUs = /** @class */ (function () {
             rageCounter.create("rage-counter-".concat(player.id));
             rageCounter.setValue(player.rage);
             _this.rageCounters[playerId] = rageCounter;
+            if (players.length > 2) {
+                var leftPlayer = players[index == players.length - 1 ? 0 : index + 1];
+                var rightPlayer = players[index == 0 ? players.length - 1 : index - 1];
+                var html_1 = "\n                <div class=\"neighbors\">\n                    <div id=\"neighbor-left-".concat(player.id, "\">\n                        \uD83E\uDC44 <span style=\"color: #").concat(leftPlayer.color, ";\">").concat(leftPlayer.name, "</span>\n                    </div>\n                    <div id=\"neighbor-right-").concat(player.id, "\">\n                        <span style=\"color: #").concat(rightPlayer.color, ";\">").concat(rightPlayer.name, "</span> \uD83E\uDC46\n                    </div>\n                </div>");
+                dojo.place(html_1, "player_board_".concat(player.id));
+                _this.addTooltipHtml("neighbor-left-".concat(player.id), _("Left neighbor"));
+                _this.addTooltipHtml("neighbor-right-".concat(player.id), _("Right neighbor"));
+            }
         });
     };
     AfterUs.prototype.createPlayerTables = function (gamedatas) {

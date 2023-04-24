@@ -826,6 +826,12 @@ body > .card {
 .player-board.spectator-mode * {
   background: white !important;
 }
+.player-board .neighbors {
+  margin-top: 5px;
+  font-size: 80%;
+  display: flex;
+  justify-content: space-between;
+}
 
 .counters {
   display: flex;
