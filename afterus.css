@@ -827,7 +827,7 @@ body > .card {
   left: calc(50% - 12px);
 }
 #table-center .card-counter[data-level="1"] {
-  top: -14px;
+  top: -22px;
 }
 #table-center .card-counter[data-level="2"] {
   bottom: -14px;
