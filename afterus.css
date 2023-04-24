@@ -701,13 +701,13 @@ body > .card {
   height: 23px;
 }
 .card .card-sides .card-side.front .frame[data-position-index="0"] {
-  left: 0;
+  left: 7px;
 }
 .card .card-sides .card-side.front .frame[data-position-index="1"] {
   left: calc(50% - var(--width) / 2);
 }
 .card .card-sides .card-side.front .frame[data-position-index="2"] {
-  right: 0;
+  right: 7px;
 }
 .card .card-sides .card-side.front .frame[data-row="0"] {
   top: 92px;
@@ -735,9 +735,11 @@ body > .card {
   box-shadow: 0 0 3px 5px lightgreen;
 }
 .card .card-sides .card-side.front .frame.opened-right {
+  right: 0 !important;
   border-right-width: 0;
 }
 .card .card-sides .card-side.front .frame.opened-left {
+  left: 0 !important;
   border-left-width: 0;
 }
 .card.object {

@@ -11,6 +11,7 @@ const ACTION_TIMER_DURATION = 5;
 const LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
 
 const POINT = 5;
+const RAGE = 6;
 const DIFFERENT = 7;
 const PER_TAMARINS = 8;
 
@@ -28,6 +29,25 @@ function formatTextIcons(rawText: string) {
         .replace(/\[Different\]/ig, '<div class="icon different"></div>')
         .replace(/\[Tamarin\]/ig, '<div class="icon tamarin"></div>')
         .replace(/\[Reactivate\]/ig, '<div class="icon reactivate"></div>');
+}
+
+function getResourceCode(resource: number) {
+    switch (resource) {
+
+        case 1: return '[Flower]';
+        case 2: return '[Fruit]';
+        case 3: return '[Grain]';
+        case 4: return '[Energy]';
+        case 5: return '[Point]';
+        case 6: return '[Rage]';
+        case 7: return '[Different]';
+        case 8: return '/ [Tamarin]';
+        case 10: return '[Reactivate]';
+    }        
+}
+
+function getResourcesQuantityIcons(resources: number[][]) {
+    return formatTextIcons(resources.map(resource => `${resource[0]} ${getResourceCode(resource[1])}`).join(' '));
 }
 
 class AfterUs implements AfterUsGame {
@@ -159,13 +179,15 @@ class AfterUs implements AfterUsGame {
                             currentEffect.left[0][0] *= activateEffectArgs.tamarins;
                             currentEffect.left[0][1] = POINT;
                         }
+                    } else if (currentEffect.left.length == 0) {
+                        currentEffect.convertSign = false;
                     }
 
                     let label;
                     if (!currentEffect.convertSign) {
-                        label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                        label = _("Gain ${resources}").replace('${resources}', getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
                     } else {
-                        label = _("Spend ${left} to gain ${right}").replace('${left}', this.getResourcesQuantityIcons(currentEffect.left)).replace('${right}', this.getResourcesQuantityIcons(currentEffect.right));
+                        label = _("Spend ${left} to gain ${right}").replace('${left}', getResourcesQuantityIcons(currentEffect.left)).replace('${right}', getResourcesQuantityIcons(currentEffect.right));
                     }
                     (this as any).addActionButton(`activateEffect-button`, label, () => this.activateEffect());
                 }
@@ -198,7 +220,7 @@ class AfterUs implements AfterUsGame {
                                 .replace('${level}', `${level}`)
                                 .replace('${type}', _(buyCardArgs.type))
                                 .replace('${cost}', `${level * 3}`)
-                                .replace('${resource}', formatTextIcons(this.getResourceCode(type)));
+                                .replace('${resource}', formatTextIcons(getResourceCode(type)));
                             (this as any).addActionButton(`buyCard${level}-${type}-button`, label, () => this.buyCard(level, type));
                             if (!canBuy) {
                                 document.getElementById(`buyCard${level}-${type}-button`).classList.add('disabled');
@@ -215,7 +237,7 @@ class AfterUs implements AfterUsGame {
                     const type = +cardCost[0];
                     const canBuy = cardCost[1];
                     const label = _("Spend ${left} to gain ${right}")
-                        .replace('${left}', this.getResourcesQuantityIcons([[2, type]]))
+                        .replace('${left}', getResourcesQuantityIcons([[2, type]]))
                         .replace('${right}', formatTextIcons(applyNeighborEffectArgs.gain));
                     (this as any).addActionButton(`applyNeighborEffect-${type}-button`, label, () => this.applyNeighborEffect(type));
                     if (!canBuy) {
@@ -232,25 +254,6 @@ class AfterUs implements AfterUsGame {
 
 
     ///////////////////////////////////////////////////
-
-    private getResourceCode(resource: number) {
-        switch (resource) {
-
-            case 1: return '[Flower]';
-            case 2: return '[Fruit]';
-            case 3: return '[Grain]';
-            case 4: return '[Energy]';
-            case 5: return '[Point]';
-            case 6: return '[Rage]';
-            case 7: return '[Different]';
-            case 8: return '/ [Tamarin]';
-            case 10: return '[Reactivate]';
-        }        
-    }
-
-    private getResourcesQuantityIcons(resources: number[][]) {
-        return formatTextIcons(resources.map(resource => `${resource[0]} ${this.getResourceCode(resource[1])}`).join(' '));
-    }
 
     public setTooltip(id: string, html: string) {
         (this as any).addTooltipHtml(id, html, this.TOOLTIP_DELAY);

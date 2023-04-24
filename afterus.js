@@ -1216,6 +1216,7 @@ var CardsManager = /** @class */ (function (_super) {
             getId: function (card) { return "card-".concat(card.id); },
             setupDiv: function (card, div) {
                 div.dataset.cardId = '' + card.id;
+                _this.game.setTooltip(div.id, _this.getTooltip(card));
             },
             setupFrontDiv: function (card, div) {
                 div.dataset.level = '' + card.level;
@@ -1234,7 +1235,16 @@ var CardsManager = /** @class */ (function (_super) {
     }
     CardsManager.prototype.createFrame = function (div, frame, row, index, positionIndex) {
         var _this = this;
-        var width = 11 + (frame.left.length * 17) + (frame.convertSign ? 8 : 0) + (frame.right.length * 17);
+        var width = 11 + (Math.max(1, frame.left.length + frame.right.length) * 17) + (frame.convertSign ? 8 : 0);
+        if (frame.left.some(function (resource) { return resource[1] == PER_TAMARINS; })) {
+            width += 16;
+        }
+        if (frame.left.some(function (resource) { return resource[1] == DIFFERENT; })) {
+            width += 3;
+        }
+        if (frame.right.some(function (resource) { return resource[1] == RAGE; })) {
+            width += 5;
+        }
         var frameDiv = document.createElement('div');
         frameDiv.classList.add('frame');
         if (frame.type == OPENED_LEFT) {
@@ -1267,6 +1277,21 @@ var CardsManager = /** @class */ (function (_super) {
         for (var row = 0; row < 3; row++) {
             _loop_2(row);
         }
+    };
+    CardsManager.prototype.getMonkeyType = function (type) {
+        switch (type) {
+            case 0: return _('tamarin');
+            case 1: return _('mandrill');
+            case 2: return _('orangutan');
+            case 3: return _('gorilla');
+            case 4: return _('chimpanzee');
+        }
+    };
+    CardsManager.prototype.getTooltip = function (card) {
+        if (!card.number) {
+            return undefined;
+        }
+        return "".concat(_('${type} level ${level}').replace('${type}', "<strong>".concat(this.getMonkeyType(card.type), "</strong>")).replace('${level}', "<strong>".concat(card.level, "</strong>")), "<br>\n        ").concat(_('Card number:'), " ").concat(card.number, "\n        <br>TODO card index = ").concat(card.subType);
     };
     return CardsManager;
 }(CardManager));
@@ -1434,7 +1459,7 @@ var PlayerTable = /** @class */ (function () {
             button.classList.toggle('disabled', _this.game.getPlayerRage(_this.playerId) < 4);
             div.appendChild(button);
             button.addEventListener('click', function () { return _this.onDiscardCardClick(card); });
-            _this.game.setTooltip(button.id, _('Discard this card') + formatTextIcons(' (4 [Rage])'));
+            _this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
         });
         this.updateVisibleMoveButtons();
     };
@@ -1525,6 +1550,7 @@ var ANIMATION_MS = 500;
 var ACTION_TIMER_DURATION = 5;
 var LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
 var POINT = 5;
+var RAGE = 6;
 var DIFFERENT = 7;
 var PER_TAMARINS = 8;
 function formatTextIcons(rawText) {
@@ -1541,6 +1567,22 @@ function formatTextIcons(rawText) {
         .replace(/\[Different\]/ig, '<div class="icon different"></div>')
         .replace(/\[Tamarin\]/ig, '<div class="icon tamarin"></div>')
         .replace(/\[Reactivate\]/ig, '<div class="icon reactivate"></div>');
+}
+function getResourceCode(resource) {
+    switch (resource) {
+        case 1: return '[Flower]';
+        case 2: return '[Fruit]';
+        case 3: return '[Grain]';
+        case 4: return '[Energy]';
+        case 5: return '[Point]';
+        case 6: return '[Rage]';
+        case 7: return '[Different]';
+        case 8: return '/ [Tamarin]';
+        case 10: return '[Reactivate]';
+    }
+}
+function getResourcesQuantityIcons(resources) {
+    return formatTextIcons(resources.map(function (resource) { return "".concat(resource[0], " ").concat(getResourceCode(resource[1])); }).join(' '));
 }
 var AfterUs = /** @class */ (function () {
     function AfterUs() {
@@ -1651,12 +1693,15 @@ var AfterUs = /** @class */ (function () {
                             currentEffect.left[0][1] = POINT;
                         }
                     }
+                    else if (currentEffect.left.length == 0) {
+                        currentEffect.convertSign = false;
+                    }
                     var label = void 0;
                     if (!currentEffect.convertSign) {
-                        label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                        label = _("Gain ${resources}").replace('${resources}', getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
                     }
                     else {
-                        label = _("Spend ${left} to gain ${right}").replace('${left}', this.getResourcesQuantityIcons(currentEffect.left)).replace('${right}', this.getResourcesQuantityIcons(currentEffect.right));
+                        label = _("Spend ${left} to gain ${right}").replace('${left}', getResourcesQuantityIcons(currentEffect.left)).replace('${right}', getResourcesQuantityIcons(currentEffect.right));
                     }
                     this.addActionButton("activateEffect-button", label, function () { return _this.activateEffect(); });
                 }
@@ -1688,7 +1733,7 @@ var AfterUs = /** @class */ (function () {
                                 .replace('${level}', "".concat(level))
                                 .replace('${type}', _(buyCardArgs_1.type))
                                 .replace('${cost}', "".concat(level * 3))
-                                .replace('${resource}', formatTextIcons(_this.getResourceCode(type)));
+                                .replace('${resource}', formatTextIcons(getResourceCode(type)));
                             _this.addActionButton("buyCard".concat(level, "-").concat(type, "-button"), label, function () { return _this.buyCard(level, type); });
                             if (!canBuy) {
                                 document.getElementById("buyCard".concat(level, "-").concat(type, "-button")).classList.add('disabled');
@@ -1704,7 +1749,7 @@ var AfterUs = /** @class */ (function () {
                     var type = +cardCost[0];
                     var canBuy = cardCost[1];
                     var label = _("Spend ${left} to gain ${right}")
-                        .replace('${left}', _this.getResourcesQuantityIcons([[2, type]]))
+                        .replace('${left}', getResourcesQuantityIcons([[2, type]]))
                         .replace('${right}', formatTextIcons(applyNeighborEffectArgs_1.gain));
                     _this.addActionButton("applyNeighborEffect-".concat(type, "-button"), label, function () { return _this.applyNeighborEffect(type); });
                     if (!canBuy) {
@@ -1718,23 +1763,6 @@ var AfterUs = /** @class */ (function () {
     ///////////////////////////////////////////////////
     //// Utility methods
     ///////////////////////////////////////////////////
-    AfterUs.prototype.getResourceCode = function (resource) {
-        switch (resource) {
-            case 1: return '[Flower]';
-            case 2: return '[Fruit]';
-            case 3: return '[Grain]';
-            case 4: return '[Energy]';
-            case 5: return '[Point]';
-            case 6: return '[Rage]';
-            case 7: return '[Different]';
-            case 8: return '/ [Tamarin]';
-            case 10: return '[Reactivate]';
-        }
-    };
-    AfterUs.prototype.getResourcesQuantityIcons = function (resources) {
-        var _this = this;
-        return formatTextIcons(resources.map(function (resource) { return "".concat(resource[0], " ").concat(_this.getResourceCode(resource[1])); }).join(' '));
-    };
     AfterUs.prototype.setTooltip = function (id, html) {
         this.addTooltipHtml(id, html, this.TOOLTIP_DELAY);
     };

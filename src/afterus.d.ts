@@ -25,6 +25,7 @@ interface Card {
     subType: number;
     number: number;
     frames: Frame[][];
+    rageGain: number[];
 }
 
 interface AfterUsPlayer extends Player {

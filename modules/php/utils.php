@@ -190,7 +190,7 @@ trait UtilTrait {
                 foreach ($card->frames[$i] as $frameIndex => $frame) {
                     if ($frame->type === OPENED_LEFT && $openedRightFrame !== null && $openedRightFrameCardIndex !== null && $openedRightFrameCardIndex === $cardIndex - 1) {
                         //$this->debug([$cardIndex, $openedRightFrameCardIndex, $openedRightFrame]);
-                        $effects[] = new Effect($i, $openedRightFrame->right, $frame->left, $openedRightFrame->convertSign || $frame->convertSign, $openedRightFrameCardIndex);
+                        $effects[] = new Effect($i, $openedRightFrame->left, $frame->right, $openedRightFrame->convertSign || $frame->convertSign, $openedRightFrameCardIndex);
                     }
                     $openedRightFrame = null;
 

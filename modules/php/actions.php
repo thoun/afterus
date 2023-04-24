@@ -84,6 +84,24 @@ trait ActionTrait {
         }
     }
 
+    private function notifAppliedEffect(int $playerId, Effect $appliedEffect) {
+        $message = '';
+        if (!$appliedEffect->convertSign || count($appliedEffect->left) == 0) {
+            $message = _('${player_name} gains ${resources} with activated effect');
+        } else {
+            $message = _('${player_name} spends ${left} to gain ${right} with activated effect');
+        }
+        
+        self::notifyAllPlayers('activatedEffect', $message, [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'player' => $this->getPlayer($playerId),
+            'resources' => $this->getResourcesStr(array_merge($appliedEffect->left, $appliedEffect->right)),
+            'left' => $this->getResourcesStr($appliedEffect->left),
+            'right' => $this->getResourcesStr($appliedEffect->right),
+        ]);
+    }
+
     public function activateEffect(?int $row, ?int $cardIndex, ?int $index) {
         self::checkAction('activateEffect');
 
@@ -120,21 +138,7 @@ trait ActionTrait {
 
         $this->markedPlayedEffect($playerId, $currentEffect);
 
-        $message = '';
-        if (!$appliedEffect->convertSign) {
-            $message = _('${player_name} gains ${resources} with activated effect');
-        } else {
-            $message = _('${player_name} spends ${left} to gain ${right} with activated effect');
-        }
-        
-        self::notifyAllPlayers('activatedEffect', $message, [
-            'playerId' => $playerId,
-            'player_name' => $this->getPlayerName($playerId),
-            'player' => $this->getPlayer($playerId),
-            'resources' => $this->getResourcesStr(array_merge($appliedEffect->left, $appliedEffect->right)),
-            'left' => $this->getResourcesStr($appliedEffect->left),
-            'right' => $this->getResourcesStr($appliedEffect->right),
-        ]);
+        $this->notifAppliedEffect($playerId, $appliedEffect);
     }
 
     public function activateEffectToken(int $row, int $cardIndex, int $index) {
@@ -148,21 +152,7 @@ trait ActionTrait {
 
         $this->applyEffect($playerId, $appliedEffect, $line);
 
-        $message = '';
-        if (!$appliedEffect->convertSign) {
-            $message = _('${player_name} gains ${resources} with activated effect');
-        } else {
-            $message = _('${player_name} spends ${left} to gain ${right} with activated effect');
-        }
-        
-        self::notifyAllPlayers('activatedEffect', $message, [
-            'playerId' => $playerId,
-            'player_name' => $this->getPlayerName($playerId),
-            'player' => $this->getPlayer($playerId),
-            'resources' => $this->getResourcesStr(array_merge($appliedEffect->left, $appliedEffect->right)),
-            'left' => $this->getResourcesStr($appliedEffect->left),
-            'right' => $this->getResourcesStr($appliedEffect->right),
-        ]);
+        $this->notifAppliedEffect($playerId, $appliedEffect);
 
         if (intval($this->gamestate->state_id()) == ST_MULTIPLAYER_PHASE2) {
             $this->gamestate->nextPrivateState($playerId, 'next');
@@ -392,7 +382,7 @@ trait ActionTrait {
 
         if ($privateState == ST_PRIVATE_ACTIVATE_EFFECT && $this->argActivateEffect($playerId)['currentEffect'] == null) {
             $this->gamestate->nextPrivateState($playerId, 'next');
-        } else if ($this->gamestate->state_id() != ST_MULTIPLAYER_CHOOSE_TOKEN) {
+        } else if ($this->gamestate->state_id() != ST_MULTIPLAYER_CHOOSE_TOKEN && $this->gamestate->isPlayerActive($playerId)) {
             $this->gamestate->nextPrivateState($playerId, 'stay');
         }
     }  

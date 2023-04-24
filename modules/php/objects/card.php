@@ -17,8 +17,8 @@ class Frame {
 }
 
 class LeftFrame extends Frame {
-    public function __construct(array $left, bool $convertSign) {
-        parent::__construct(OPENED_LEFT, $left, [], $convertSign);
+    public function __construct(array $right, bool $convertSign) {
+        parent::__construct(OPENED_LEFT, [], $right, $convertSign);
     } 
 }
 
@@ -29,8 +29,8 @@ class ClosedFrame extends Frame {
 }
 
 class RightFrame extends Frame {
-    public function __construct(array $right, bool $convertSign) {
-        parent::__construct(OPENED_RIGHT, [], $right, $convertSign);
+    public function __construct(array $left, bool $convertSign) {
+        parent::__construct(OPENED_RIGHT, $left, [], $convertSign);
     } 
 }
 

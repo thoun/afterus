@@ -91,7 +91,7 @@ class PlayerTable {
             button.classList.toggle('disabled', this.game.getPlayerRage(this.playerId) < 4);
             div.appendChild(button);
             button.addEventListener('click', () => this.onDiscardCardClick(card));
-            this.game.setTooltip(button.id, _('Discard this card') + formatTextIcons(' (4 [Rage])'));
+            this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
         });
         this.updateVisibleMoveButtons();
     }

@@ -74,13 +74,13 @@
                     height: 23px;
 
                     &[data-position-index="0"] {
-                        left: 0;
+                        left: 7px;
                     }
                     &[data-position-index="1"] {
                         left: calc(50% - (var(--width) / 2));
                     }
                     &[data-position-index="2"] {
-                        right: 0;
+                        right: 7px;
                     }
 
                     &[data-row="0"] {
@@ -112,9 +112,11 @@
                     }
 
                     &.opened-right {
+                        right: 0 !important;
                         border-right-width: 0;
                     }
                     &.opened-left {
+                        left: 0 !important;
                         border-left-width: 0;
                     }
                 }
