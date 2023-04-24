@@ -223,21 +223,34 @@ trait UtilTrait {
         }
 
         $effect = null;
-        if ($frame->type == OPENED_RIGHT) {
-            $effect = $this->array_find($possibleEffects, fn($effect) => $effect->row === $row && $effect->cardIndex === $cardIndex && $effect->closedFrameIndex === null);
-        } else { // closed
-            $effect = $this->array_find($possibleEffects, fn($effect) => $effect->row === $row && $effect->cardIndex === $cardIndex && $effect->closedFrameIndex === $index);
-        }
+        $searchIndex = $frame->type == OPENED_RIGHT ? null : /* closed */ $index;
+        $effect = $this->array_find($possibleEffects, fn($effect) => 
+            $effect->row === $row && $effect->cardIndex === $cardIndex && $effect->closedFrameIndex === $searchIndex
+        );
 
         return $effect;
     }
 
     public function getPossibleEffects(int $playerId, array $allEffects, array $line, bool $ignoreReactivate) {
         $player = $this->getPlayer($playerId);
-        $possibleEffects = array_values(array_filter($allEffects, fn($effect) => !$effect->convertSign || count($effect->left) == 0 || $this->array_every($effect->left, fn($condition) => $this->playerMeetsCondition($player, $condition, $line))));
+        $possibleEffects = array_values(array_filter($allEffects, fn($effect) => 
+            !$effect->convertSign || 
+            count($effect->left) == 0 || 
+            $this->array_every($effect->left, fn($condition) => $this->playerMeetsCondition($player, $condition, $line))
+        ));
+
+        $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
+        if ($tamarins == 0) {
+            $possibleEffects = array_values(array_filter($allEffects, fn($effect) => 
+                count($effect->left) != 1 || 
+                !$this->array_some($effect->left, fn($condition) => $condition[1] == PER_TAMARINS)
+            ));
+        }
 
         if ($ignoreReactivate) {
-            $possibleEffects = array_values(array_filter($possibleEffects, fn($effect) => count($effect->right) == 0 || !$this->array_some($effect->right, fn($condition) => $condition[1] == REACTIVATE)));
+            $possibleEffects = array_values(array_filter($possibleEffects, fn($effect) => 
+                count($effect->right) == 0 || !$this->array_some($effect->right, fn($condition) => $condition[1] == REACTIVATE)
+            ));
         }
 
         return $possibleEffects;

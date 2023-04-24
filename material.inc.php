@@ -22,18 +22,6 @@
 require_once(__DIR__.'/modules/php/constants.inc.php');
 require_once(__DIR__.'/modules/php/objects/card.php');
 
-/*
-// resources
-define('FLOWER', 1);
-define('FRUIT', 2);
-define('GRAIN', 3);
-define('ENERGY', 4);
-define('POINT', 5);
-define('RAGE', 6);
-define('DIFFERENT', 7);
-define('PER_TAMARINS', 8);
-*/
-
 $this->TAMARINS = [
     new CardType(1, [1, FRUIT], [
         [new LeftFrame([[1, FRUIT]], false), new RightFrame([[1, GRAIN]], false)],
@@ -104,7 +92,7 @@ $this->ORANGUTANS1 = [
         [new LeftFrame([[2, ENERGY]], true), new RightFrame([], true)],
     ]),
     new LevelCard(142, [
-        [new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[3, DIFFERENT]], [[2, GRAIN]]), new LeftFrame([[1, FRUIT]], false)],
+        [new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[3, DIFFERENT]], [[2, FRUIT]]), new LeftFrame([[1, FLOWER]], false)],
         [new LeftFrame([[2, POINT]], true), new RightFrame([[1, FLOWER], [1, FRUIT]], true)],
         [new LeftFrame([[2, ENERGY]], true), new RightFrame([], true)],
     ]),

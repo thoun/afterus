@@ -34,6 +34,7 @@ trait ArgsTrait {
 
         return [
             'line' => $line,
+            'tamarins' => count(array_filter($line, fn($card) => $card->type == 0)),
             'effects' => $effects,
             'remainingEffects' => $remainingEffects,
             'appliedEffects' => $appliedEffects,

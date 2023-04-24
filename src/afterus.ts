@@ -10,6 +10,10 @@ const ACTION_TIMER_DURATION = 5;
 
 const LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
 
+const POINT = 5;
+const DIFFERENT = 7;
+const PER_TAMARINS = 8;
+
 function formatTextIcons(rawText: string) {
     if (!rawText) {
         return '';
@@ -147,6 +151,16 @@ class AfterUs implements AfterUsGame {
                 const activateEffectArgs = args as EnteringActivateEffectArgs;
                 const currentEffect = activateEffectArgs.currentEffect;
                 if (currentEffect && !activateEffectArgs.reactivate) {
+                    if (currentEffect.left.length == 1) {
+                        if (currentEffect.left[0][1] == DIFFERENT) {
+                            currentEffect.left = [];
+                            currentEffect.convertSign = false;
+                        } else if (currentEffect.left[0][1] == PER_TAMARINS) {
+                            currentEffect.left[0][0] *= activateEffectArgs.tamarins;
+                            currentEffect.left[0][1] = POINT;
+                        }
+                    }
+
                     let label;
                     if (!currentEffect.convertSign) {
                         label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));

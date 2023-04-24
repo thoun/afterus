@@ -57,7 +57,18 @@ trait ActionTrait {
         $this->gamestate->nextPrivateState($playerId, $remaining ? 'next' : 'confirm');
     }
 
-    private function applyEffect(int $playerId, Effect $effect, array $line) {
+    private function applyEffect(int $playerId, Effect &$effect, array $line) {        
+        if (count($effect->left) == 1) {
+            if ($effect->left[0][1] == DIFFERENT) {
+                $effect->left = [];
+                $effect->convertSign = false;
+            } else if ($effect->left[0][1] == PER_TAMARINS) {
+                $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
+                $effect->left[0][0] *= $tamarins;
+                $effect->left[0][1] = POINT;
+            }
+        }
+
         if (!$effect->convertSign) {
             $resources = array_merge($effect->left, $effect->right);
             foreach($resources as $resource) {

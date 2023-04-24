@@ -74,6 +74,7 @@ interface EnteringOrderCardsArgs {
 }
 
 interface EnteringActivateEffectArgs {
+    tamarins: number;
     effects: Effect[];
     remainingEffects: Effect[];
     appliedEffects: Effect[];

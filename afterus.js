@@ -1524,6 +1524,9 @@ var PlayerTable = /** @class */ (function () {
 var ANIMATION_MS = 500;
 var ACTION_TIMER_DURATION = 5;
 var LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
+var POINT = 5;
+var DIFFERENT = 7;
+var PER_TAMARINS = 8;
 function formatTextIcons(rawText) {
     if (!rawText) {
         return '';
@@ -1638,6 +1641,16 @@ var AfterUs = /** @class */ (function () {
                 var activateEffectArgs = args;
                 var currentEffect = activateEffectArgs.currentEffect;
                 if (currentEffect && !activateEffectArgs.reactivate) {
+                    if (currentEffect.left.length == 1) {
+                        if (currentEffect.left[0][1] == DIFFERENT) {
+                            currentEffect.left = [];
+                            currentEffect.convertSign = false;
+                        }
+                        else if (currentEffect.left[0][1] == PER_TAMARINS) {
+                            currentEffect.left[0][0] *= activateEffectArgs.tamarins;
+                            currentEffect.left[0][1] = POINT;
+                        }
+                    }
                     var label = void 0;
                     if (!currentEffect.convertSign) {
                         label = _("Gain ${resources}").replace('${resources}', this.getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
