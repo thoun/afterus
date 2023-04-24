@@ -11,6 +11,16 @@ trait ArgsTrait {
         These methods function is to return some additional information that is specific to the current
         game state.
     */
+
+    function argOrderCards(int $playerId) {
+        $line = $this->getCardsByLocation('line'.$playerId);
+        $effects = $this->getEffects($line);
+
+        return [
+            'line' => $line,
+            'effects' => $effects,
+        ];
+    }
    
     function argActivateEffect(int $playerId) {
         $line = $this->getCardsByLocation('line'.$playerId);

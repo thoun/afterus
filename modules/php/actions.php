@@ -43,6 +43,8 @@ trait ActionTrait {
             'card' => $card,
             'otherCard' => $otherCard,
         ]);
+
+        $this->gamestate->nextPrivateState($playerId, 'stay');
     }
 
     public function validateCardOrder() {

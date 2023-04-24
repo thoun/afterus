@@ -105,15 +105,16 @@ class PlayerTable {
     private markRemainingFramesDisabled() {
         const line = document.getElementById(`player-table-${this.playerId}-line`);
         line.querySelectorAll('.frame').forEach(element => {
-            if (!['current', 'applied', 'remaining'].some(frameClass => element.classList.contains(frameClass))) {
-                element.classList.add('disabled')
+            if (!['selectable', 'current', 'applied', 'remaining'].some(frameClass => element.classList.contains(frameClass))) {
+                element.classList.add('disabled');
             }
         });
-
     }
     
     public setActivableEffect(currentEffect: Effect, appliedEffects: Effect[], remainingEffects: Effect[], reactivate: boolean, possibleEffects: Effect[]) {
-        this.setEffectClass(currentEffect, 'current');
+        if (currentEffect) {
+            this.setEffectClass(currentEffect, 'current');
+        }
         if (reactivate) {
             this.setActivableEffectToken(possibleEffects);
         } else {
@@ -123,8 +124,8 @@ class PlayerTable {
         }
     }
 
-    public setActivableEffectToken(/*effects: Effect[],*/ possibleEffects: Effect[]) {
-        possibleEffects.forEach(effect => this.setEffectClass(effect, 'selectable'));
+    public setActivableEffectToken(possibleEffects: Effect[], className = 'selectable') {
+        possibleEffects.forEach(effect => this.setEffectClass(effect, className));
         this.markRemainingFramesDisabled();
     }
     

@@ -1443,14 +1443,16 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.markRemainingFramesDisabled = function () {
         var line = document.getElementById("player-table-".concat(this.playerId, "-line"));
         line.querySelectorAll('.frame').forEach(function (element) {
-            if (!['current', 'applied', 'remaining'].some(function (frameClass) { return element.classList.contains(frameClass); })) {
+            if (!['selectable', 'current', 'applied', 'remaining'].some(function (frameClass) { return element.classList.contains(frameClass); })) {
                 element.classList.add('disabled');
             }
         });
     };
     PlayerTable.prototype.setActivableEffect = function (currentEffect, appliedEffects, remainingEffects, reactivate, possibleEffects) {
         var _this = this;
-        this.setEffectClass(currentEffect, 'current');
+        if (currentEffect) {
+            this.setEffectClass(currentEffect, 'current');
+        }
         if (reactivate) {
             this.setActivableEffectToken(possibleEffects);
         }
@@ -1460,9 +1462,10 @@ var PlayerTable = /** @class */ (function () {
             this.markRemainingFramesDisabled();
         }
     };
-    PlayerTable.prototype.setActivableEffectToken = function (/*effects: Effect[],*/ possibleEffects) {
+    PlayerTable.prototype.setActivableEffectToken = function (possibleEffects, className) {
         var _this = this;
-        possibleEffects.forEach(function (effect) { return _this.setEffectClass(effect, 'selectable'); });
+        if (className === void 0) { className = 'selectable'; }
+        possibleEffects.forEach(function (effect) { return _this.setEffectClass(effect, className); });
         this.markRemainingFramesDisabled();
     };
     PlayerTable.prototype.removeActivableEffect = function () {
@@ -1545,32 +1548,35 @@ var AfterUs = /** @class */ (function () {
     //                  You can use this method to perform some user interface changes at this moment.
     //
     AfterUs.prototype.onEnteringState = function (stateName, args) {
-        var _a, _b, _c;
         log('Entering state: ' + stateName, args.args);
         switch (stateName) {
             case 'orderCards':
-                (_a = this.getCurrentPlayerTable()) === null || _a === void 0 ? void 0 : _a.setMovable(true);
+                var playerTable = this.getCurrentPlayerTable();
+                playerTable.setMovable(true);
+                playerTable.setActivableEffectToken(args.args.effects, 'remaining');
                 break;
             case 'activateEffect':
+            case 'confirmActivations':
                 var activateEffectArgs = args.args;
-                (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects, activateEffectArgs.reactivate, activateEffectArgs.possibleEffects);
+                this.getCurrentPlayerTable().setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects, activateEffectArgs.reactivate, activateEffectArgs.possibleEffects);
                 break;
             case 'activateEffectToken':
                 var activateEffectTokenArgs = args.args;
-                (_c = this.getCurrentPlayerTable()) === null || _c === void 0 ? void 0 : _c.setActivableEffectToken(/*activateEffectTokenArgs.effects, */ activateEffectTokenArgs.possibleEffects);
+                this.getCurrentPlayerTable().setActivableEffectToken(activateEffectTokenArgs.possibleEffects);
                 break;
         }
     };
     AfterUs.prototype.onLeavingState = function (stateName) {
-        var _a, _b;
         log('Leaving state: ' + stateName);
         switch (stateName) {
             case 'orderCards':
-                (_a = this.getCurrentPlayerTable()) === null || _a === void 0 ? void 0 : _a.setMovable(false);
+                var playerTable = this.getCurrentPlayerTable();
+                playerTable.setMovable(false);
+                playerTable.removeActivableEffect();
                 break;
             case 'activateEffect':
             case 'activateEffectToken':
-                (_b = this.getCurrentPlayerTable()) === null || _b === void 0 ? void 0 : _b.removeActivableEffect();
+                this.getCurrentPlayerTable().removeActivableEffect();
                 break;
         }
     };
@@ -1652,8 +1658,7 @@ var AfterUs = /** @class */ (function () {
                         document.getElementById("applyNeighborEffect-".concat(type, "-button")).classList.add('disabled');
                     }
                 });
-                label =
-                    this.addActionButton("cancelNeighborEffect-button", _("Cancel"), function () { return _this.cancelNeighborEffect(); }, null, null, 'gray');
+                this.addActionButton("cancelNeighborEffect-button", _("Cancel"), function () { return _this.cancelNeighborEffect(); }, null, null, 'gray');
                 break;
         }
     };
@@ -1781,20 +1786,14 @@ var AfterUs = /** @class */ (function () {
         (_a = this.scoreCtrl[playerId]) === null || _a === void 0 ? void 0 : _a.toValue(score);
     };
     AfterUs.prototype.onFrameClicked = function (row, cardIndex, index) {
-        if (['tokenSelectReactivate', 'phase2'].includes(this.gamedatas.gamestate.name)) {
-            this.takeAction('activateEffectToken', {
-                row: row,
-                cardIndex: cardIndex,
-                index: index,
-            });
-        }
-        else {
-            this.takeAction('activateEffect', {
-                row: row,
-                cardIndex: cardIndex,
-                index: index,
-            });
-        }
+        var actionName = ['tokenSelectReactivate', 'phase2'].includes(this.gamedatas.gamestate.name) ?
+            'activateEffectToken' :
+            'activateEffect';
+        this.takeAction(actionName, {
+            row: row,
+            cardIndex: cardIndex,
+            index: index,
+        });
     };
     AfterUs.prototype.moveCard = function (index, direction) {
         if (!this.checkAction('moveCard')) {

@@ -89,10 +89,11 @@ $playerActionsGameStates = [
         "name" => "orderCards",
         "descriptionmyturn" => clienttranslate('Phase 1 : ${you} must order the picked cards'),
         "type" => "private",
-        //"args" => "argOrderCards",
+        "args" => "argOrderCards",
         "possibleactions" => [ "moveCard", "validateCardOrder" ],
         "transitions" => [
-          'next' => ST_PRIVATE_ACTIVATE_EFFECT,
+            'stay' => ST_PRIVATE_ORDER_CARDS,
+            'next' => ST_PRIVATE_ACTIVATE_EFFECT,
         ],
     ],
 
@@ -112,6 +113,7 @@ $playerActionsGameStates = [
         "name" => "confirmActivations",
         "descriptionmyturn" => clienttranslate('Phase 1 : ${you} must confirm your turn'),
         "type" => "private",
+        "args" => "argActivateEffect",
         "possibleactions" => [ "confirmActivations", "cancelLastMove", "cancelResolutions", "cancelAll" ],
         "transitions" => [
           'next' => ST_PRIVATE_ACTIVATE_EFFECT,

@@ -67,6 +67,10 @@ interface AfterUsGame extends Game {
     onFrameClicked(row: number, cardIndex: number, index: number): void;
 }
 
+interface EnteringOrderCardsArgs {
+    effects: Effect[];
+}
+
 interface EnteringActivateEffectArgs {
     effects: Effect[];
     remainingEffects: Effect[];

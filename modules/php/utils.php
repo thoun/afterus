@@ -274,7 +274,7 @@ trait UtilTrait {
                 foreach($line as $card) {
                     $groupByType[$card->type][] = $card;
                 }
-                return $quantity = count($groupByType);
+                return count($groupByType) >= $quantity;
             case PER_TAMARINS: return $this->array_some($line, fn($card) => $card->type == 0);
             default: throw new BgaVisibleSystemException('invalid condition');
         }

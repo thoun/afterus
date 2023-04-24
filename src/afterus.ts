@@ -97,15 +97,18 @@ class AfterUs implements AfterUsGame {
 
         switch (stateName) {
             case 'orderCards':
-                this.getCurrentPlayerTable()?.setMovable(true);
+                const playerTable = this.getCurrentPlayerTable();
+                playerTable.setMovable(true);
+                playerTable.setActivableEffectToken(args.args.effects, 'remaining');
                 break;
             case 'activateEffect':
+            case 'confirmActivations':
                 const activateEffectArgs = args.args as EnteringActivateEffectArgs;
-                this.getCurrentPlayerTable()?.setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects, activateEffectArgs.reactivate, activateEffectArgs.possibleEffects);
+                this.getCurrentPlayerTable().setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects, activateEffectArgs.reactivate, activateEffectArgs.possibleEffects);
                 break;
             case 'activateEffectToken':
                 const activateEffectTokenArgs = args.args as EnteringActivateEffectArgs;
-                this.getCurrentPlayerTable()?.setActivableEffectToken(/*activateEffectTokenArgs.effects, */activateEffectTokenArgs.possibleEffects);
+                this.getCurrentPlayerTable().setActivableEffectToken(activateEffectTokenArgs.possibleEffects);
                 break;
         }
     }
@@ -115,11 +118,13 @@ class AfterUs implements AfterUsGame {
 
         switch (stateName) {
            case 'orderCards':
-                this.getCurrentPlayerTable()?.setMovable(false);
+                const playerTable = this.getCurrentPlayerTable();
+                playerTable.setMovable(false);
+                playerTable.removeActivableEffect();
                 break;
             case 'activateEffect':
             case 'activateEffectToken':
-                this.getCurrentPlayerTable()?.removeActivableEffect();
+                this.getCurrentPlayerTable().removeActivableEffect();
                 break;
         }
     }
@@ -203,9 +208,6 @@ class AfterUs implements AfterUsGame {
                         document.getElementById(`applyNeighborEffect-${type}-button`).classList.add('disabled');
                     }
                 });
-                label = 
-
-
                 (this as any).addActionButton(`cancelNeighborEffect-button`, _("Cancel"), () => this.cancelNeighborEffect(), null, null, 'gray');
                 break;
         }
@@ -393,19 +395,14 @@ class AfterUs implements AfterUsGame {
     }
 
     public onFrameClicked(row: number, cardIndex: number, index: number): void {
-        if (['tokenSelectReactivate', 'phase2'].includes(this.gamedatas.gamestate.name)) {
-            this.takeAction('activateEffectToken', {
-                row, 
-                cardIndex,
-                index,
-            });
-        } else {
-            this.takeAction('activateEffect', {
-                row, 
-                cardIndex,
-                index,
-            });
-        }
+        const actionName = ['tokenSelectReactivate', 'phase2'].includes(this.gamedatas.gamestate.name) ? 
+            'activateEffectToken' : 
+            'activateEffect';
+        this.takeAction(actionName, {
+            row, 
+            cardIndex,
+            index,
+        });
     }
   	
     public moveCard(index: number, direction: number) {
