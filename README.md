@@ -40,7 +40,6 @@ Can we use Game Console on a tamarin ?
 No, you can't
 
 ## TODO
-last turn banner
 left move on left card shift every other card (same last right)
 user pref to diable confirm discard
 powers

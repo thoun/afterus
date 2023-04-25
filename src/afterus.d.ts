@@ -54,6 +54,7 @@ interface AfterUsGamedatas {
     // Add here variables you set up in getAllDatas
     table: { [type: number]: number };
     objects: number[];
+    lastTurn: boolean;
 }
 
 interface AfterUsGame extends Game {

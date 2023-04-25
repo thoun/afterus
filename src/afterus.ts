@@ -104,6 +104,10 @@ class AfterUs implements AfterUsGame {
             localStorageZoomKey: LOCAL_STORAGE_ZOOM_KEY,
         });
 
+        if (gamedatas.lastTurn) {
+            this.notif_lastTurn(false);
+        }
+
         this.setupNotifications();
         this.setupPreferences();
 
@@ -589,6 +593,7 @@ class AfterUs implements AfterUsGame {
             ['buyCard', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
             ['discardedCard', ANIMATION_MS],
+            ['lastTurn', 1],
         ];
     
         notifs.forEach((notif) => {
@@ -641,6 +646,15 @@ class AfterUs implements AfterUsGame {
         this.getPlayerTable(notif.args.playerId).discardCard(notif.args.card, notif.args.line);
         this.notif_activatedEffect(notif);
     }  
+    
+    /** 
+     * Show last turn banner.
+     */ 
+    notif_lastTurn(animate: boolean = true) {
+        dojo.place(`<div id="last-round">
+            <span class="last-round-text ${animate ? 'animate' : ''}">${_("This is the final round!")}</span>
+        </div>`, 'page-title');
+    }
 
     /*private getColorName(color: number) {
         switch (color) {

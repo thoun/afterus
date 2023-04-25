@@ -45,6 +45,8 @@ class AfterUs extends Table {
         parent::__construct();
         
         self::initGameStateLabels([
+            LAST_TURN => LAST_TURN,
+
             OBJECTS_OPTION => OBJECTS_OPTION,
         ]);   
 		
@@ -94,6 +96,7 @@ class AfterUs extends Table {
         /************ Start the game initialization *****/
 
         // Init global values with their initial values
+        $this->setGameStateInitialValue(LAST_TURN, 0);
         
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
@@ -141,7 +144,7 @@ class AfterUs extends Table {
   
         // Gather all information about current game situation (visible by player $current_player_id).
 
-        //$isEndScore = ;
+        $isEndScore = intval($this->gamestate->state_id()) >= ST_END_SCORE;
         
         foreach($result['players'] as $playerId => &$player) {
             $player['playerNo'] = intval($player['playerNo']);
@@ -169,6 +172,7 @@ class AfterUs extends Table {
         }
         $result['table'] = $table;
         $result['objects'] = $this->getGlobalVariable(OBJECTS, true) ?? [];
+        $result['lastTurn'] = !$isEndScore && boolval($this->getGameStateValue(LAST_TURN));
   
         return $result;
     }

@@ -121,23 +121,7 @@ trait StateTrait {
             ]);
         }
 
-        $endScoreReached = $this->isEndScoreReached();        
-
-        /* TODO $playersIds = $this->getPlayersIds();
-        foreach ($playersIds as $playerId) {
-            $score = $this->getPlayerScore($playerId);
-            $scoreAux = $this->getPlayerScoreAux($playerId);
-            self::notifyAllPlayers('log', clienttranslate('${player_name} ends round ${roundNumber} with ${totalScore} points (${roundScore} points this round)'), [
-                'playerId' => $playerId,
-                'player_name' => $this->getPlayerName($playerId),
-                'roundNumber' => $roundNumber,
-                'totalScore' => $score + $scoreAux,
-                'roundScore' => $scoreAux,
-            ]);
-        }
-
-        // apply round score (scoreAux) to score
-        $this->DbQuery("UPDATE player SET `player_score` = `player_score` + `player_score_aux`");*/
+        $endScoreReached = $this->isEndScoreReached();
 
         $this->gamestate->nextState($endScoreReached ? 'endScore' : 'newRound');
     }

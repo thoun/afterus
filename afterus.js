@@ -1672,6 +1672,9 @@ var AfterUs = /** @class */ (function () {
             },
             localStorageZoomKey: LOCAL_STORAGE_ZOOM_KEY,
         });
+        if (gamedatas.lastTurn) {
+            this.notif_lastTurn(false);
+        }
         this.setupNotifications();
         this.setupPreferences();
         log("Ending game setup");
@@ -2062,6 +2065,7 @@ var AfterUs = /** @class */ (function () {
             ['buyCard', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
             ['discardedCard', ANIMATION_MS],
+            ['lastTurn', 1],
         ];
         notifs.forEach(function (notif) {
             dojo.subscribe(notif[0], _this, "notif_".concat(notif[0]));
@@ -2105,6 +2109,13 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.notif_discardedCard = function (notif) {
         this.getPlayerTable(notif.args.playerId).discardCard(notif.args.card, notif.args.line);
         this.notif_activatedEffect(notif);
+    };
+    /**
+     * Show last turn banner.
+     */
+    AfterUs.prototype.notif_lastTurn = function (animate) {
+        if (animate === void 0) { animate = true; }
+        dojo.place("<div id=\"last-round\">\n            <span class=\"last-round-text ".concat(animate ? 'animate' : '', "\">").concat(_("This is the final round!"), "</span>\n        </div>"), 'page-title');
     };
     /*private getColorName(color: number) {
         switch (color) {

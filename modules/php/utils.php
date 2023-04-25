@@ -98,7 +98,7 @@ trait UtilTrait {
     }
 
     function isEndScoreReached() {
-        return intval($this->getUniqueValueFromDB("SELECT count(*) FROM player where `player_score` >= 80")) > 0;
+        return boolval($this->getGameStateValue(LAST_TURN));
     }
 
     function getCardById(int $id) {
@@ -312,6 +312,14 @@ trait UtilTrait {
         }
     }
 
+    private function checkLastTurn() {        
+        if (!boolval($this->getGameStateValue(LAST_TURN))) {
+            $this->setGameStateValue(LAST_TURN, 1);
+
+            self::notifyAllPlayers('lastTurn', clienttranslate('A player reached 80 points, triggering the end of the game !'), []);
+        }
+    }
+
     private function gainResource(int $playerId, array $resource, array $line) {
         $quantity = $resource[0];
 
@@ -320,11 +328,15 @@ trait UtilTrait {
             case FRUIT: $this->DbQuery("UPDATE `player` SET `player_fruit` = `player_fruit` + $quantity WHERE `player_id` = $playerId"); break;
             case GRAIN: $this->DbQuery("UPDATE `player` SET `player_grain` = `player_grain` + $quantity WHERE `player_id` = $playerId"); break;
             case ENERGY: $this->DbQuery("UPDATE `player` SET `player_energy` = `player_energy` + $quantity WHERE `player_id` = $playerId"); break;
-            case POINT: $this->DbQuery("UPDATE `player` SET `player_score` = `player_score` + $quantity WHERE `player_id` = $playerId"); break;
+            case POINT: 
+                $this->DbQuery("UPDATE `player` SET `player_score` = `player_score` + $quantity WHERE `player_id` = $playerId");
+                $this->checkLastTurn();
+                break;
             case RAGE: $this->DbQuery("UPDATE `player` SET `player_rage` = `player_rage` + $quantity WHERE `player_id` = $playerId"); break;
             case PER_TAMARINS: 
                 $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
                 $this->DbQuery("UPDATE `player` SET `player_score` = `player_score` + $tamarins WHERE `player_id` = $playerId");
+                $this->checkLastTurn();
                 break;
             default: throw new BgaVisibleSystemException("invalid gainResource $quantity ".$resource[1]);
         }
