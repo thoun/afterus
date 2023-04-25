@@ -40,7 +40,7 @@ Can we use Game Console on a tamarin ?
 No, you can't
 
 ## TODO
-left move on left card shift every other card (same last right)
+fix swap animations
 user pref to diable confirm discard
 powers
 remove player boards ?
