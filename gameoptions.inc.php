@@ -54,4 +54,15 @@ $game_preferences = [
         ],
         'default' => 0,
     ],
+
+    202 => [
+        'name' => totranslate('Confirmation before discarding a card'),
+        'needReload' => false,
+        'values' => [
+            1 => ['name' => totranslate('Enabled')],
+            2 => ['name' => totranslate('Enabled (except for tamarins)')],
+            3 => ['name' => totranslate('Disabled')],
+        ],
+        'default' => 1,
+    ],
 ];

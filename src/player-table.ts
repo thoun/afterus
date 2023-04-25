@@ -73,10 +73,15 @@ class PlayerTable {
     }
 
     private onDiscardCardClick(card: Card) {
-        (this.game as any).confirmationDialog(
-            _("Are you sure you want to discard this card ?"), 
-            () => this.game.useRage(card.id)
-        );
+        const pref = Number((this.game as any).prefs[202]?.value);
+        if (pref == 3 || (pref == 2 && card.type == 0)) {
+            this.game.useRage(card.id);
+        } else {
+            (this.game as any).confirmationDialog(
+                _("Are you sure you want to discard this card ?"), 
+                () => this.game.useRage(card.id)
+            );
+        }
     }
     
     public newRound(cards: Card[]) {            

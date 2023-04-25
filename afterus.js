@@ -1493,7 +1493,14 @@ var PlayerTable = /** @class */ (function () {
     }
     PlayerTable.prototype.onDiscardCardClick = function (card) {
         var _this = this;
-        this.game.confirmationDialog(_("Are you sure you want to discard this card ?"), function () { return _this.game.useRage(card.id); });
+        var _a;
+        var pref = Number((_a = this.game.prefs[202]) === null || _a === void 0 ? void 0 : _a.value);
+        if (pref == 3 || (pref == 2 && card.type == 0)) {
+            this.game.useRage(card.id);
+        }
+        else {
+            this.game.confirmationDialog(_("Are you sure you want to discard this card ?"), function () { return _this.game.useRage(card.id); });
+        }
     };
     PlayerTable.prototype.newRound = function (cards) {
         var _this = this;
@@ -2076,7 +2083,7 @@ var AfterUs = /** @class */ (function () {
         this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards);
     };
     AfterUs.prototype.notif_switchedCards = function (notif) {
-        this.getPlayerTable(notif.args.playerId).switchCards([notif.args.card, notif.args.otherCard]);
+        this.getPlayerTable(notif.args.playerId).switchCards(notif.args.movedCards);
     };
     AfterUs.prototype.notif_activatedEffect = function (notif) {
         var playerId = notif.args.playerId;

@@ -11,8 +11,6 @@ trait ActionTrait {
         (note: each method below must match an input method in nicodemus.action.php)
     */
 
-    
-
     public function moveCard(int $index, int $direction /* -1 | 1 */) {
         self::checkAction('moveCard');
 
@@ -20,28 +18,51 @@ trait ActionTrait {
 
         $location = 'line'.$playerId;
         $line = $this->getCardsByLocation($location);
+        $movedCards = [];
 
-        $otherCardIndex = $index + $direction;
-        if ($otherCardIndex < 0) {
-            $otherCardIndex = count($line) - 1;
-        } else if ($otherCardIndex >= count($line)) {
-            $otherCardIndex = 0;
+        $card = $line[$index];
+        if ($index == 0 && $direction == -1) {
+            $otherCards = array_slice($line, 1);
+
+            $this->cards->moveCard($card->id, $location, count($otherCards));
+            $card->locationArg = count($otherCards);
+
+            foreach ($otherCards as &$otherCard) {
+                $this->cards->moveCard($otherCard->id, $location, $otherCard->locationArg - 1);
+                $otherCard->locationArg = $otherCard->locationArg - 1;
+            }
+            $movedCards = array_merge($otherCards, [$card]);
+        } else if ($index == count($line) - 1 && $direction == 1) {
+            $otherCards = array_slice($line, 0, count($line) - 1);
+
+            $this->cards->moveCard($card->id, $location, 0);
+            $card->locationArg = 0;
+
+            foreach ($otherCards as &$otherCard) {
+                $this->cards->moveCard($otherCard->id, $location, $otherCard->locationArg + 1);
+                $otherCard->locationArg = $otherCard->locationArg + 1;
+            }
+            $movedCards = array_merge([$card], $otherCards);
+        } else {
+            $otherCardIndex = $index + $direction;
+            if ($otherCardIndex < 0) {
+                $otherCardIndex = count($line) - 1;
+            } else if ($otherCardIndex >= count($line)) {
+                $otherCardIndex = 0;
+            }
+
+            $otherCard = $line[$otherCardIndex];
+
+            $this->cards->moveCard($card->id, $location, $otherCardIndex);
+            $this->cards->moveCard($otherCard->id, $location, $index);
+            $card->locationArg = $otherCardIndex;
+            $otherCard->locationArg = $index;
+            $movedCards = [$card, $otherCard];
         }
-
-        $card = $this->getCardByLocation($location, $index);
-        $otherCard = $this->getCardByLocation($location, $otherCardIndex);
-
-        $this->cards->moveCard($card->id, $location, $otherCardIndex);
-        $this->cards->moveCard($otherCard->id, $location, $index);
-        $card->locationArg = $otherCardIndex;
-        $otherCard->locationArg = $index;
 
         self::notifyAllPlayers('switchedCards', '', [
             'playerId' => $playerId,
-            'index' => $index,
-            'otherCardIndex' => $otherCardIndex,
-            'card' => $card,
-            'otherCard' => $otherCard,
+            'movedCards' => $movedCards,
         ]);
 
         $this->gamestate->nextPrivateState($playerId, 'stay');

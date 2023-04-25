@@ -607,7 +607,7 @@ class AfterUs implements AfterUsGame {
     }
 
     notif_switchedCards(notif: Notif<NotifSwitchedCardsArgs>) {
-        this.getPlayerTable(notif.args.playerId).switchCards([notif.args.card, notif.args.otherCard]);
+        this.getPlayerTable(notif.args.playerId).switchCards(notif.args.movedCards);
     }
 
     notif_activatedEffect(notif: Notif<NotifActivatedEffectArgs>) {

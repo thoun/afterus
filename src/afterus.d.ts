@@ -113,10 +113,7 @@ interface NotifNewRoundArgs {
 // switchedCards
 interface NotifSwitchedCardsArgs {
     playerId: number;
-    card: Card;
-    otherCard: Card;
-    index: number;
-    otherCardIndex: number;
+    movedCards: Card[];
 } 
 
 // activatedEffect

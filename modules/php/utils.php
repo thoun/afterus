@@ -313,7 +313,7 @@ trait UtilTrait {
     }
 
     private function checkLastTurn() {        
-        if (!boolval($this->getGameStateValue(LAST_TURN))) {
+        if (!boolval($this->getGameStateValue(LAST_TURN)) && intval($this->getUniqueValueFromDB("SELECT count(*) FROM player where `player_score` >= 80")) > 0) {
             $this->setGameStateValue(LAST_TURN, 1);
 
             self::notifyAllPlayers('lastTurn', clienttranslate('A player reached 80 points, triggering the end of the game !'), []);

@@ -41,6 +41,5 @@ No, you can't
 
 ## TODO
 fix swap animations
-user pref to diable confirm discard
 powers
 remove player boards ?
