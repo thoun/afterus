@@ -431,6 +431,9 @@ trait ActionTrait {
         }
         
         switch ($number) {
+            case 5:
+                $this->usePinballMachine($playerId);
+                break;
             case 6:
                 $this->useComputer($playerId);
                 break;
@@ -465,6 +468,32 @@ trait ActionTrait {
         $this->applyCancelObject($playerId);
     }
 
+    function usePinballMachine(int $playerId) {
+        if ($this->getPlayer($playerId)->energy < 4) {
+            throw new BgaUserException("Not enough energy");
+        }
+
+        $left = [4, ENERGY];
+        $this->giveResource($playerId, $left);
+
+        $this->refillPlayerDeckIfEmpty($playerId);
+        $card = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, intval($this->cards->countCardInLocation('deck'.$playerId))));
+        
+        self::notifyAllPlayers('addCardToLine', clienttranslate('${player_name} uses object ${object} to add a 5th card'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'object' => $this->getObjectName(6),
+            'i18n' => ['object'],
+            'player' => $this->getPlayer($playerId),
+            'card' => $card,
+            'line' => $this->getCardsByLocation('line'.$playerId),
+        ]);
+
+        if ($this->gamestate->isPlayerActive($playerId)) {
+            $this->gamestate->nextPrivateState($playerId, 'stay');
+        }
+    }
+
     function useComputer(int $playerId) {
         if ($this->getPlayer($playerId)->energy < 5) {
             throw new BgaUserException("Not enough energy");
@@ -484,6 +513,10 @@ trait ActionTrait {
             'left' => $this->getResourcesStr([$left]),
             'right' => $this->getResourcesStr([$right]),
         ]);
+
+        if ($this->gamestate->isPlayerActive($playerId)) {
+            $this->gamestate->nextPrivateState($playerId, 'stay');
+        }
     }
 
     function useMoped(int $type, int $level) {

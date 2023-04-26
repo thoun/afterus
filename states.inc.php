@@ -213,6 +213,46 @@ $playerActionsGameStates = [
         ],
     ],
 
+    ST_PRIVATE_MOBILE_PHONE => [
+        "name" => "mobilePhone",
+        "descriptionmyturn" => clienttranslate('You can exchange a level 1 or 2 card with a new one from the main board'),
+        "type" => "private",
+        "possibleactions" => [ "useMobilePhone", "cancelObject" ],
+        "transitions" => [
+            'stay' => ST_PRIVATE_MOBILE_PHONE,
+        ],
+    ],
+
+    ST_PRIVATE_MINIBAR => [
+        "name" => "minibar",
+        "descriptionmyturn" => clienttranslate('You can exchange resources'),
+        "type" => "private",
+        "possibleactions" => [ "useMinibar", "cancelObject" ],
+        "transitions" => [
+            'stay' => ST_PRIVATE_MINIBAR,
+        ],
+    ],
+
+    ST_PRIVATE_GHETTO_BLASTER => [
+        "name" => "ghettoBlaster",
+        "descriptionmyturn" => clienttranslate('You can replace one card by a new one from your deck'),
+        "type" => "private",
+        "possibleactions" => [ "useGhettoBlaster", "cancelObject" ],
+        "transitions" => [
+            'stay' => ST_PRIVATE_GHETTO_BLASTER,
+        ],
+    ],
+
+    ST_PRIVATE_GAME_CONSOLE => [
+        "name" => "gameConsole",
+        "descriptionmyturn" => clienttranslate('You can select cards to place on top of your draw pile'),
+        "type" => "private",
+        "possibleactions" => [ "useGameConsole", "cancelObject" ],
+        "transitions" => [
+            'stay' => ST_PRIVATE_GAME_CONSOLE,
+        ],
+    ],
+
     ST_PRIVATE_MOPED => [
         "name" => "moped",
         "descriptionmyturn" => clienttranslate('You can attract an ape of your choice'),

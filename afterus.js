@@ -1488,9 +1488,17 @@ var isDebug = window.location.host == 'studio.boardgamearena.com' || window.loca
 var log = isDebug ? console.log.bind(window.console) : function () { };
 var CardLine = /** @class */ (function (_super) {
     __extends(CardLine, _super);
-    function CardLine() {
-        return _super !== null && _super.apply(this, arguments) || this;
+    function CardLine(manager, element, settings, game, currentPlayer) {
+        var _this = _super.call(this, manager, element, settings) || this;
+        _this.manager = manager;
+        _this.element = element;
+        _this.game = game;
+        _this.currentPlayer = currentPlayer;
+        return _this;
     }
+    CardLine.prototype.getSlotsIds = function () {
+        return this.slotsIds;
+    };
     CardLine.prototype.switchCards = function (switchedCards) {
         var _this = this;
         var removedCards = this.getCards().filter(function (card) { return switchedCards.some(function (c) { return c.id == card.id; }); });
@@ -1506,11 +1514,23 @@ var CardLine = /** @class */ (function (_super) {
             });
         }
     };
+    CardLine.prototype.createSlot = function (slotId) {
+        var _this = this;
+        _super.prototype.createSlot.call(this, slotId);
+        if (this.currentPlayer) {
+            this.element.querySelectorAll('[data-slot-id]').forEach(function (slot, index) {
+                if (slot.querySelectorAll('.move').length == 0) {
+                    slot.insertAdjacentHTML('afterbegin', "\n                        <button id=\"move-left-".concat(index, "\" class=\"move left\"></button>\n                        <button id=\"move-right-").concat(index, "\" class=\"move right\"></button>\n                    "));
+                    document.getElementById("move-left-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, -1); });
+                    document.getElementById("move-right-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, 1); });
+                }
+            });
+        }
+    };
     return CardLine;
 }(SlotStock));
 var PlayerTable = /** @class */ (function () {
     function PlayerTable(game, player) {
-        var _this = this;
         this.game = game;
         this.playerId = Number(player.id);
         this.currentPlayer = this.playerId == this.game.getPlayerId();
@@ -1524,26 +1544,12 @@ var PlayerTable = /** @class */ (function () {
         }*/
         html += "\n        <div id=\"player-table-".concat(this.playerId, "-line\"></div>\n        </div>\n        ");
         dojo.place(html, document.getElementById('tables'));
-        var handDiv = document.getElementById("player-table-".concat(this.playerId, "-line"));
-        this.line = new CardLine(this.game.cardsManager, handDiv, {
+        this.line = new CardLine(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-line")), {
+            wrap: 'nowrap',
             gap: '0',
-            slotsIds: [0, 1, 2, 3],
-            mapCardToSlot: function (card) { return card.locationArg; },
-        });
-        if (this.currentPlayer) {
-            /*this.line.onCardClick = (card: Card) => {
-                if (handDiv.classList.contains('selectable')) {
-                    this.game.onHandCardClick(card);
-                    this.line.getCards().forEach(c => this.line.getCardElement(c).classList.toggle('selected', c.id == card.id));
-                }
-            }
-            */
-            handDiv.querySelectorAll('[data-slot-id]').forEach(function (slot, index) {
-                slot.insertAdjacentHTML('afterbegin', "\n                    <button id=\"move-left-".concat(index, "\" class=\"move left\"></button>\n                    <button id=\"move-right-").concat(index, "\" class=\"move right\"></button>\n                "));
-                document.getElementById("move-left-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, -1); });
-                document.getElementById("move-right-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, 1); });
-            });
-        }
+            slotsIds: Array.from(Array(Math.max.apply(Math, player.line.map(function (card) { return card.locationArg; })) + 1).keys()),
+            mapCardToSlot: function (card) { return card.locationArg; }
+        }, game, this.currentPlayer);
         this.newRound(player.line);
         this.setSelectedToken(player.chosenToken);
     }
@@ -1558,21 +1564,25 @@ var PlayerTable = /** @class */ (function () {
             this.game.confirmationDialog(_("Are you sure you want to discard this card ?"), function () { return _this.game.useRage(card.id); });
         }
     };
+    PlayerTable.prototype.addRageButton = function (card) {
+        var _this = this;
+        var div = this.line.getCardElement(card);
+        var button = document.createElement('button');
+        button.id = "rage-button-".concat(card.id);
+        button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
+        button.dataset.playerId = '' + this.playerId;
+        button.innerHTML = formatTextIcons('[Rage]');
+        div.appendChild(button);
+        button.addEventListener('click', function () { return _this.onDiscardCardClick(card); });
+        this.game.setButtonActivation(button.id, 'rage', 4);
+        this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
+    };
     PlayerTable.prototype.newRound = function (cards) {
         var _this = this;
+        this.line.removeAll();
+        this.line.setSlotsIds(Array.from(Array(Math.max.apply(Math, cards.map(function (card) { return card.locationArg; })) + 1).keys()));
         this.line.addCards(cards);
-        cards.forEach(function (card) {
-            var div = _this.line.getCardElement(card);
-            var button = document.createElement('button');
-            button.id = "rage-button-".concat(card.id);
-            button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
-            button.dataset.playerId = '' + _this.playerId;
-            button.innerHTML = formatTextIcons('[Rage]');
-            div.appendChild(button);
-            button.addEventListener('click', function () { return _this.onDiscardCardClick(card); });
-            _this.game.setButtonActivation(button.id, 'rage', 4);
-            _this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
-        });
+        cards.forEach(function (card) { return _this.addRageButton(card); });
         this.updateVisibleMoveButtons();
     };
     PlayerTable.prototype.setMovable = function (movable) {
@@ -1643,6 +1653,16 @@ var PlayerTable = /** @class */ (function () {
             this.line.removeCard(card);
         }
         this.updateVisibleMoveButtons();
+    };
+    PlayerTable.prototype.addCardToLine = function (card, line) {
+        /*if (card.locationArg > this.line.getSlotsIds().length) {
+            this.line.setSlotsIds() = new CardLine(this.game.cardsManager, handDiv, {
+                gap: '0',
+                slotsIds: [0, 1, 2, 3],
+                mapCardToSlot: card => card.locationArg,
+            });
+        }*/
+        this.newRound(line);
     };
     PlayerTable.prototype.updateVisibleMoveButtons = function () {
         var cards = this.line.getCards();
@@ -2189,6 +2209,7 @@ var AfterUs = /** @class */ (function () {
             ['buyCard', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
             ['discardedCard', ANIMATION_MS],
+            ['addCardToLine', ANIMATION_MS],
             ['lastTurn', 1],
         ];
         notifs.forEach(function (notif) {
@@ -2249,6 +2270,10 @@ var AfterUs = /** @class */ (function () {
         this.getPlayerTable(notif.args.playerId).discardCard(notif.args.card, notif.args.line);
         this.notif_activatedEffect(notif);
     };
+    AfterUs.prototype.notif_addCardToLine = function (notif) {
+        this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line);
+        this.notif_activatedEffect(notif);
+    };
     /**
      * Show last turn banner.
      */
@@ -2271,17 +2296,8 @@ var AfterUs = /** @class */ (function () {
         var _a, _b;
         try {
             if (log && args && !args.processed) {
-                /*['scoredCard', 'cardOver', 'cardUnder', 'addedCard'].forEach(attr => {
-                    if ((typeof args[attr] !== 'string' || args[attr][0] !== '<') && args[attr + 'Obj']) {
-                        const obj: Card = args[attr + 'Obj'];
-                        args[attr] = `<strong data-color="${obj.color}">${obj.number}</strong>`;
-                        if (obj.points != 0) {
-                            args[attr] += ` <div class="points-circle" data-negative="${(obj.points < 0).toString()}">${obj.points > 0 ? '+' : ''}${obj.points}</div>`;
-                        }
-                    }
-                });*/
                 for (var property in args) {
-                    if (['level', 'type'].includes(property) && args[property][0] != '<') {
+                    if (['level', 'type', 'object'].includes(property) && args[property][0] != '<') {
                         args[property] = "<strong>".concat(_(args[property]), "</strong>");
                     }
                 }

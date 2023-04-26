@@ -2,6 +2,14 @@ const isDebug = window.location.host == 'studio.boardgamearena.com' || window.lo
 const log = isDebug ? console.log.bind(window.console) : function () { };
 
 class CardLine extends SlotStock<Card> {
+    constructor(protected manager: CardManager<Card>, protected element: HTMLElement, settings: SlotStockSettings<Card>, private game: AfterUsGame, private currentPlayer: boolean) {
+        super(manager, element, settings);
+    }
+
+    public getSlotsIds() {
+        return this.slotsIds;
+    }
+
     public switchCards(switchedCards: Card[]) {
         const removedCards = this.getCards().filter(card => switchedCards.some(c => c.id == card.id));
         const origins = removedCards.map(card => this.getCardElement(card).parentElement);
@@ -14,6 +22,24 @@ class CardLine extends SlotStock<Card> {
                 });
                 this.cards.find(c => c.id == card.id).locationArg = card.locationArg;
                 (this.getCardElement(card).querySelector('.front') as HTMLElement).dataset.index = ''+card.locationArg;
+            });
+        }
+    }
+
+    protected createSlot(slotId: SlotId) {
+        super.createSlot(slotId);
+           
+        if (this.currentPlayer) {
+            this.element.querySelectorAll('[data-slot-id]').forEach((slot, index) => {
+                if (slot.querySelectorAll('.move').length == 0) {
+                    slot.insertAdjacentHTML('afterbegin', `
+                        <button id="move-left-${index}" class="move left"></button>
+                        <button id="move-right-${index}" class="move right"></button>
+                    `);
+
+                    document.getElementById(`move-left-${index}`).addEventListener('click', () => this.game.moveCard(index, -1));
+                    document.getElementById(`move-right-${index}`).addEventListener('click', () => this.game.moveCard(index, 1));
+                }
             });
         }
     }
@@ -50,31 +76,12 @@ class PlayerTable {
         `;
         dojo.place(html, document.getElementById('tables'));
 
-        const handDiv = document.getElementById(`player-table-${this.playerId}-line`);
-        this.line = new CardLine(this.game.cardsManager, handDiv, {
+        this.line = new CardLine(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-line`), {
+            wrap: 'nowrap',
             gap: '0',
-            slotsIds: [0, 1, 2, 3],
-            mapCardToSlot: card => card.locationArg,
-        });
-           
-        if (this.currentPlayer) {
-            /*this.line.onCardClick = (card: Card) => {
-                if (handDiv.classList.contains('selectable')) {
-                    this.game.onHandCardClick(card);
-                    this.line.getCards().forEach(c => this.line.getCardElement(c).classList.toggle('selected', c.id == card.id));
-                }
-            }
-            */
-            handDiv.querySelectorAll('[data-slot-id]').forEach((slot, index) => {
-                slot.insertAdjacentHTML('afterbegin', `
-                    <button id="move-left-${index}" class="move left"></button>
-                    <button id="move-right-${index}" class="move right"></button>
-                `);
-
-                document.getElementById(`move-left-${index}`).addEventListener('click', () => this.game.moveCard(index, -1));
-                document.getElementById(`move-right-${index}`).addEventListener('click', () => this.game.moveCard(index, 1));
-            });
-        }
+            slotsIds: Array.from(Array(Math.max(...player.line.map(card => card.locationArg)) + 1).keys()),
+            mapCardToSlot: card => card.locationArg
+        }, game, this.currentPlayer);
             
         this.newRound(player.line);
         this.setSelectedToken(player.chosenToken);
@@ -91,21 +98,25 @@ class PlayerTable {
             );
         }
     }
+
+    private addRageButton(card: Card) {
+        const div = this.line.getCardElement(card);
+        const button = document.createElement('button');
+        button.id = `rage-button-${card.id}`;
+        button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
+        button.dataset.playerId = ''+this.playerId;
+        button.innerHTML = formatTextIcons('[Rage]');
+        div.appendChild(button);
+        button.addEventListener('click', () => this.onDiscardCardClick(card));
+        this.game.setButtonActivation(button.id, 'rage', 4);
+        this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
+    }
     
-    public newRound(cards: Card[]) {            
+    public newRound(cards: Card[]) { 
+        this.line.removeAll();
+        this.line.setSlotsIds(Array.from(Array(Math.max(...cards.map(card => card.locationArg)) + 1).keys()));
         this.line.addCards(cards);
-        cards.forEach(card => {
-            const div = this.line.getCardElement(card);
-            const button = document.createElement('button');
-            button.id = `rage-button-${card.id}`;
-            button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
-            button.dataset.playerId = ''+this.playerId;
-            button.innerHTML = formatTextIcons('[Rage]');
-            div.appendChild(button);
-            button.addEventListener('click', () => this.onDiscardCardClick(card));
-            this.game.setButtonActivation(button.id, 'rage', 4);
-            this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
-        });
+        cards.forEach(card => this.addRageButton(card));
         this.updateVisibleMoveButtons();
     }
 
@@ -186,6 +197,17 @@ class PlayerTable {
 
         this.updateVisibleMoveButtons();
         
+    }
+
+    public addCardToLine(card: Card, line: Card[]) {
+        /*if (card.locationArg > this.line.getSlotsIds().length) {
+            this.line.setSlotsIds() = new CardLine(this.game.cardsManager, handDiv, {
+                gap: '0',
+                slotsIds: [0, 1, 2, 3],
+                mapCardToSlot: card => card.locationArg,
+            });
+        }*/
+        this.newRound(line);
     }
 
     private updateVisibleMoveButtons() {

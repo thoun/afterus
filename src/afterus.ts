@@ -664,6 +664,7 @@ class AfterUs implements AfterUsGame {
             ['buyCard', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
             ['discardedCard', ANIMATION_MS],
+            ['addCardToLine', ANIMATION_MS],
             ['lastTurn', 1],
         ];
     
@@ -733,6 +734,11 @@ class AfterUs implements AfterUsGame {
         this.getPlayerTable(notif.args.playerId).discardCard(notif.args.card, notif.args.line);
         this.notif_activatedEffect(notif);
     }  
+
+    notif_addCardToLine(notif: Notif<NotifAddCardToLineArgs>) {
+        this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line);
+        this.notif_activatedEffect(notif);
+    }
     
     /** 
      * Show last turn banner.
@@ -758,19 +764,8 @@ class AfterUs implements AfterUsGame {
     public format_string_recursive(log: string, args: any) {
         try {
             if (log && args && !args.processed) {
-
-                /*['scoredCard', 'cardOver', 'cardUnder', 'addedCard'].forEach(attr => {
-                    if ((typeof args[attr] !== 'string' || args[attr][0] !== '<') && args[attr + 'Obj']) {
-                        const obj: Card = args[attr + 'Obj'];
-                        args[attr] = `<strong data-color="${obj.color}">${obj.number}</strong>`;
-                        if (obj.points != 0) {
-                            args[attr] += ` <div class="points-circle" data-negative="${(obj.points < 0).toString()}">${obj.points > 0 ? '+' : ''}${obj.points}</div>`;
-                        }
-                    }
-                });*/
-
                 for (const property in args) {
-                    if (['level', 'type'].includes(property) && args[property][0] != '<') {
+                    if (['level', 'type', 'object'].includes(property) && args[property][0] != '<') {
                         args[property] = `<strong>${_(args[property])}</strong>`;
                     }
                 }

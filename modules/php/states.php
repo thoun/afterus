@@ -18,15 +18,7 @@ trait StateTrait {
         foreach ($playersIds as $playerId) {
             $line = [];
             for ($i = 0; $i < 4; $i++) {
-                if (intval($this->cards->countCardInLocation('deck'.$playerId)) == 0) {
-                    $this->cards->moveAllCardsInLocation('discard'.$playerId, 'deck'.$playerId);
-                    $this->cards->shuffle('deck'.$playerId);
-
-                    self::notifyAllPlayers('log', _('${player_name} shuffles discarded cards back to form a new deck (deck was empty)'), [
-                        'playerId' => $playerId,
-                        'player_name' => $this->getPlayerName($playerId),
-                    ]);
-                }
+                $this->refillPlayerDeckIfEmpty($playerId);
                 $line[] = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, $i));
             }
 

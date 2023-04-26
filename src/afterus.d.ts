@@ -152,3 +152,9 @@ interface NotifDiscardedCardArgs extends NotifActivatedEffectArgs {
     card: Card;
     line?: Card[];
 }
+
+// addCardToLine
+interface NotifAddCardToLineArgs extends NotifActivatedEffectArgs {
+    card: Card;
+    line: Card[];
+}

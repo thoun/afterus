@@ -937,6 +937,9 @@ body > .card {
 .player-table .action-token[data-type="0"][data-color="9f79b5"] {
   background-position-x: 100%;
 }
+.player-table .line-stock {
+  min-width: 710px;
+}
 .player-table .slot {
   position: relative;
   width: 142px;
