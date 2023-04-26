@@ -15,13 +15,18 @@ trait DebugUtilTrait {
         
         //$this->debugLastTurn();
     }
+	
+    function debugSet($field, $amount) {
+        $this->DbQuery("UPDATE player SET `player_$field` = $amount");
+    }
+    function debugSetPlayer($playerId, $field, $amount) {
+        $this->DbQuery("UPDATE player SET `player_$field` = $amount where `player_id` = $playerId");
+    }
 
-    function debugSetRage($rage) {
-        $this->DbQuery("UPDATE player SET `player_rage` = $rage");
-    }
-    function debugSetPlayerRage($playerId, $rage) {
-        $this->DbQuery("UPDATE player SET `player_rage` = $rage where `player_id` = $playerId");
-    }
+    function debugSetEnergy($amount) { $this->debugSet('energy', $amount); }
+    function debugSetPlayerEnergy($playerId, $amount) { $this->debugSetPlayer($playerId, 'energy', $amount); }
+    function debugSetRage($amount) { $this->debugSet('rage', $amount); }
+    function debugSetPlayerRage($playerId, $amount) { $this->debugSetPlayer($playerId, 'rage', $amount); }
 
     public function debugReplacePlayersIds() {
         if ($this->getBgaEnvironment() != 'studio') { 

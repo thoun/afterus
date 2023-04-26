@@ -390,6 +390,18 @@ trait UtilTrait {
         }
     }
 
+    function getObjectName(int $number) {
+        switch ($number) {
+            case 1: return clienttranslate("Mobile phone");
+            case 2: return clienttranslate("Minibar");
+            case 3: return clienttranslate("Ghetto blaster");
+            case 4: return clienttranslate("Game console");
+            case 5: return clienttranslate("Pinball Machine");
+            case 6: return clienttranslate("Computer");
+            case 7: return clienttranslate("Moped");
+        }
+    }
+
     function getPlayerPrivateState(int $playerId) {
         return intval($this->getUniqueValueFromDB("SELECT `player_state` FROM `player` WHERE `player_id` = $playerId"));
     }

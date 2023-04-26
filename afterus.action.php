@@ -175,6 +175,15 @@
         self::ajaxResponse();
     }  
 
+    public function useObject() {
+        self::setAjaxMode();
+
+        $number = self::getArg("number", AT_posint, true);
+        $this->game->useObject($number);
+
+        self::ajaxResponse();
+    }  
+
   }
   
 

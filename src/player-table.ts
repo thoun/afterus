@@ -3,11 +3,19 @@ const log = isDebug ? console.log.bind(window.console) : function () { };
 
 class CardLine extends SlotStock<Card> {
     public switchCards(switchedCards: Card[]) {
-        switchedCards.forEach(card => {
-            this.addCard(card);
-            this.cards.find(c => c.id == card.id).locationArg = card.locationArg;
-            (this.getCardElement(card).querySelector('.front') as HTMLElement).dataset.index = ''+card.locationArg;
-        });
+        const removedCards = this.getCards().filter(card => switchedCards.some(c => c.id == card.id));
+        const origins = removedCards.map(card => this.getCardElement(card).parentElement);
+
+        if (origins.length == switchedCards.length) {
+            removedCards.forEach(card => this.removeCard(card));
+            switchedCards.forEach((card, index) => {
+                this.addCard(card, {
+                    fromElement: origins[index],
+                });
+                this.cards.find(c => c.id == card.id).locationArg = card.locationArg;
+                (this.getCardElement(card).querySelector('.front') as HTMLElement).dataset.index = ''+card.locationArg;
+            });
+        }
     }
 }
 

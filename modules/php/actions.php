@@ -374,6 +374,9 @@ trait ActionTrait {
         }
         $this->cards->moveCard($card->id, 'discard');
 
+        if ($this->getPlayer($playerId)->rage < 4) {
+            throw new BgaUserException("Not enough rage");
+        }
         $resource = $card->rageGain;
         $this->giveResource($playerId, [4, RAGE]);
         $this->gainResource($playerId, $resource, []);
@@ -409,6 +412,43 @@ trait ActionTrait {
             $this->gamestate->nextPrivateState($playerId, 'next');
         } else if ($this->gamestate->state_id() != ST_MULTIPLAYER_CHOOSE_TOKEN && $this->gamestate->isPlayerActive($playerId)) {
             $this->gamestate->nextPrivateState($playerId, 'stay');
+        }
+    }  
+
+    function useComputer(int $playerId) {
+        if ($this->getPlayer($playerId)->energy < 5) {
+            throw new BgaUserException("Not enough energy");
+        }
+
+        $left = [5, ENERGY];
+        $right = [5, POINT];
+        $this->giveResource($playerId, $left);
+        $this->gainResource($playerId, $right, []);        
+        
+        self::notifyAllPlayers('activatedEffect', clienttranslate('${player_name} uses object ${object} to convert ${left} to ${right}'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'object' => $this->getObjectName(6),
+            'i18n' => ['object'],
+            'player' => $this->getPlayer($playerId),
+            'left' => $this->getResourcesStr([$left]),
+            'right' => $this->getResourcesStr([$right]),
+        ]);
+    }
+
+    function useObject(int $number) {        
+        if ($number < 1 || $number > 7) {
+            throw new BgaUserException("Invalid card number");
+        }
+
+        $playerId = intval($this->getCurrentPlayerId());
+        
+        switch ($number) {
+            case 6:
+                $this->useComputer($playerId);
+                break;
+            default:
+                throw new BgaUserException("Not yet implemented");
         }
     }  
 }

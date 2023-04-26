@@ -69,6 +69,7 @@ interface AfterUsGame extends Game {
     moveCard(index: number, direction: number): void;
     onFrameClicked(row: number, cardIndex: number, index: number): void;
     useRage(id: number): void;
+    useObject(number: number): void;
 }
 
 interface EnteringOrderCardsArgs {

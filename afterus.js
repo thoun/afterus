@@ -1427,6 +1427,7 @@ var TableCenter = /** @class */ (function () {
         this.objectsManager = new ObjectsManager(this.game);
         this.objects = new LineStock(this.objectsManager, document.getElementById("objects"));
         this.objects.addCards(gamedatas.objects);
+        this.objects.onCardClick = function (number) { return _this.game.useObject(number); };
     }
     TableCenter.prototype.setRemaining = function (deckType, deckCount) {
         this.hiddenDecks[deckType].setCardNumber(deckCount);
@@ -1444,11 +1445,18 @@ var CardLine = /** @class */ (function (_super) {
     }
     CardLine.prototype.switchCards = function (switchedCards) {
         var _this = this;
-        switchedCards.forEach(function (card) {
-            _this.addCard(card);
-            _this.cards.find(function (c) { return c.id == card.id; }).locationArg = card.locationArg;
-            _this.getCardElement(card).querySelector('.front').dataset.index = '' + card.locationArg;
-        });
+        var removedCards = this.getCards().filter(function (card) { return switchedCards.some(function (c) { return c.id == card.id; }); });
+        var origins = removedCards.map(function (card) { return _this.getCardElement(card).parentElement; });
+        if (origins.length == switchedCards.length) {
+            removedCards.forEach(function (card) { return _this.removeCard(card); });
+            switchedCards.forEach(function (card, index) {
+                _this.addCard(card, {
+                    fromElement: origins[index],
+                });
+                _this.cards.find(function (c) { return c.id == card.id; }).locationArg = card.locationArg;
+                _this.getCardElement(card).querySelector('.front').dataset.index = '' + card.locationArg;
+            });
+        }
     };
     return CardLine;
 }(SlotStock));
@@ -1884,6 +1892,11 @@ var AfterUs = /** @class */ (function () {
         var players = Object.values(gamedatas.players);
         players.forEach(function (player, index) {
             var playerId = Number(player.id);
+            console.log(document.querySelectorAll('#player_boards .player_score i.fa-star'));
+            document.querySelectorAll('#player_boards .player_score i.fa-star').forEach(function (elem) {
+                elem.classList.remove('fa', 'fa-star');
+                elem.classList.add('icon', 'point');
+            });
             var html = "\n            <div class=\"counters\">\n                <div id=\"flower-counter-wrapper-".concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon flower\"></div> \n                    <span id=\"flower-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"fruit-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon fruit\"></div> \n                    <span id=\"fruit-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"grain-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon grain\"></div> \n                    <span id=\"grain-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"energy-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon energy\"></div> \n                    <span id=\"energy-counter-").concat(player.id, "\"></span>\n                </div>\n            </div>\n            <div class=\"counters\">\n                <div id=\"rage-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon rage\"></div> \n                    <span id=\"rage-counter-").concat(player.id, "\"></span>\n                </div>\n            </div>");
             dojo.place(html, "player_board_".concat(player.id));
             _this.addTooltipHtml("flower-counter-wrapper-".concat(player.id), _("Flowers"));
@@ -2038,6 +2051,11 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.useRage = function (id) {
         this.takeAction('useRage', {
             id: id,
+        });
+    };
+    AfterUs.prototype.useObject = function (number) {
+        this.takeAction('useObject', {
+            number: number,
         });
     };
     AfterUs.prototype.takeAction = function (action, data) {

@@ -332,7 +332,13 @@ class AfterUs implements AfterUsGame {
 
         const players = Object.values(gamedatas.players);
         players.forEach((player, index) => {
-            const playerId = Number(player.id);  
+            const playerId = Number(player.id);
+
+            console.log(document.querySelectorAll('#player_boards .player_score i.fa-star'));
+            document.querySelectorAll('#player_boards .player_score i.fa-star').forEach(elem => {
+                elem.classList.remove('fa', 'fa-star');
+                elem.classList.add('icon', 'point');
+            });
 
             let html = `
             <div class="counters">
@@ -556,6 +562,12 @@ class AfterUs implements AfterUsGame {
     public useRage(id: number): void {
         this.takeAction('useRage', {
             id,
+        });
+    }
+
+    public useObject(number: number): void {
+        this.takeAction('useObject', {
+            number,
         });
     }
 

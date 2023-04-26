@@ -36,6 +36,7 @@ class TableCenter {
         this.objectsManager = new ObjectsManager(this.game);
         this.objects = new LineStock<number>(this.objectsManager, document.getElementById(`objects`));
         this.objects.addCards(gamedatas.objects);
+        this.objects.onCardClick = number => this.game.useObject(number);
     }
     
     public setRemaining(deckType: number, deckCount: number) {        
