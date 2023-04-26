@@ -63,6 +63,7 @@ class AfterUs implements AfterUsGame {
     private grainCounters: Counter[] = [];
     private energyCounters: Counter[] = [];
     private rageCounters: Counter[] = [];
+    private lastSelectedToken: number | null | undefined = undefined;
     
     private TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
 
@@ -157,6 +158,9 @@ class AfterUs implements AfterUsGame {
             case 'activateEffectToken':
                 this.getCurrentPlayerTable().removeActivableEffect();
                 break;
+            case 'chooseToken':
+                this.lastSelectedToken = undefined;
+                break;
         }
     }
 
@@ -166,6 +170,10 @@ class AfterUs implements AfterUsGame {
     public onUpdateActionButtons(stateName: string, args: any) {
         if (stateName === 'chooseToken') {
             if (!(this as any).isCurrentPlayerActive() && Object.keys(this.gamedatas.players).includes(''+this.getPlayerId())) { // ignore spectators
+                [1, 2, 3, 4].forEach(type => 
+                    (this as any).addActionButton(`chooseToken${type}-button`, `<div class="action-token" data-type="${type}"></div>`, () => this.chooseToken(type), null, null, 'gray')
+                );
+                document.getElementById(`chooseToken${this.lastSelectedToken !== undefined ? this.lastSelectedToken : args._private?.token}-button`)?.classList.add('selected-token-button');
                 (this as any).addActionButton(`cancelChooseToken-button`, _("I changed my mind"), () => this.cancelChooseToken(), null, null, 'gray');
             }
         }
@@ -203,7 +211,7 @@ class AfterUs implements AfterUsGame {
             case 'confirmActivations':
                 (this as any).addActionButton(`confirmActivations-button`, _("Confirm"), () => this.confirmActivations());
                 break;
-            case 'chooseToken':
+            case 'privateChooseToken':
                 [1, 2, 3, 4].forEach(type => 
                     (this as any).addActionButton(`chooseToken${type}-button`, `<div class="action-token" data-type="${type}"></div>`, () => this.chooseToken(type))
                 );
@@ -640,8 +648,14 @@ class AfterUs implements AfterUsGame {
 
     notif_selectedToken(notif: Notif<NotifSelectedTokenArgs>) {
         const currentPlayer = this.getPlayerId() == notif.args.playerId;
-        if (notif.args.token || !currentPlayer) {
+        if (notif.args.token || !currentPlayer || notif.args.cancel) {
             this.getPlayerTable(notif.args.playerId).setSelectedToken(notif.args.cancel ? null : notif.args.token);
+            if (currentPlayer) {
+                this.lastSelectedToken = notif.args.cancel ? null : notif.args.token;
+                [1, 2, 3, 4].forEach(type => 
+                    document.getElementById(`chooseToken${type}-button`)?.classList.toggle('selected-token-button', type == this.lastSelectedToken)
+                );
+            }
         }
     }
 

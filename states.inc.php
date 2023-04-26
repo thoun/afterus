@@ -125,16 +125,27 @@ $playerActionsGameStates = [
     ST_MULTIPLAYER_CHOOSE_TOKEN => [
         "name" => "chooseToken",
         "description" => clienttranslate('Waiting for other players'),
-        "descriptionmyturn" => clienttranslate('Phase 2 : ${you} must choose a token'),
+        "descriptionmyturn" => '',
         "type" => "multipleactiveplayer",
+        "initialprivate" => ST_PRIVATE_CHOOSE_TOKEN,
         "action" => "stChooseToken",
         "args" => "argChooseToken",
         "possibleactions" => [ 
-            "chooseToken",
             "cancelChooseToken",
         ],
         "transitions" => [
             "next" => ST_REVEAL_TOKENS,
+        ],
+    ],
+
+    ST_PRIVATE_CHOOSE_TOKEN => [
+        "name" => "privateChooseToken",
+        "descriptionmyturn" => clienttranslate('Phase 2 : ${you} must choose a token'),
+        "type" => "private",
+        "args" => "argChooseToken",
+        "possibleactions" => [ "chooseToken" ],
+        "transitions" => [
+            'stay' => ST_PRIVATE_CHOOSE_TOKEN,
         ],
     ],
 

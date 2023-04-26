@@ -56,6 +56,7 @@ trait StateTrait {
 
     function stChooseToken() {
         $this->gamestate->setAllPlayersMultiactive();
+        $this->gamestate->initializePrivateStateForAllActivePlayers(); 
     }
 
     function stRevealTokens() {

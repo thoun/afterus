@@ -1003,6 +1003,10 @@ html, .mode_3d #game_play_area_background {
   background-repeat: repeat;
 }
 
+.selected-token-button {
+  border: 3px solid #4871b6;
+}
+
 #tables-and-center {
   position: relative;
   display: flex;

@@ -235,6 +235,7 @@ trait ActionTrait {
         $this->setPlayerSelectedToken($playerId, null);
 
         $this->gamestate->setPlayersMultiactive([$playerId], 'next', false);
+        $this->gamestate->initializePrivateState($playerId);
     }
 
     public function neighborEffect(int $type) {
@@ -410,7 +411,7 @@ trait ActionTrait {
 
         if ($privateState == ST_PRIVATE_ACTIVATE_EFFECT && $this->argActivateEffect($playerId)['currentEffect'] == null) {
             $this->gamestate->nextPrivateState($playerId, 'next');
-        } else if ($this->gamestate->state_id() != ST_MULTIPLAYER_CHOOSE_TOKEN && $this->gamestate->isPlayerActive($playerId)) {
+        } else if ($this->gamestate->isPlayerActive($playerId)) {
             $this->gamestate->nextPrivateState($playerId, 'stay');
         }
     }  

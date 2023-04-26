@@ -1704,6 +1704,7 @@ var AfterUs = /** @class */ (function () {
         this.grainCounters = [];
         this.energyCounters = [];
         this.rageCounters = [];
+        this.lastSelectedToken = undefined;
         this.TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
     }
     /*
@@ -1781,6 +1782,9 @@ var AfterUs = /** @class */ (function () {
             case 'activateEffectToken':
                 this.getCurrentPlayerTable().removeActivableEffect();
                 break;
+            case 'chooseToken':
+                this.lastSelectedToken = undefined;
+                break;
         }
     };
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
@@ -1788,8 +1792,13 @@ var AfterUs = /** @class */ (function () {
     //
     AfterUs.prototype.onUpdateActionButtons = function (stateName, args) {
         var _this = this;
+        var _a, _b;
         if (stateName === 'chooseToken') {
             if (!this.isCurrentPlayerActive() && Object.keys(this.gamedatas.players).includes('' + this.getPlayerId())) { // ignore spectators
+                [1, 2, 3, 4].forEach(function (type) {
+                    return _this.addActionButton("chooseToken".concat(type, "-button"), "<div class=\"action-token\" data-type=\"".concat(type, "\"></div>"), function () { return _this.chooseToken(type); }, null, null, 'gray');
+                });
+                (_b = document.getElementById("chooseToken".concat(this.lastSelectedToken !== undefined ? this.lastSelectedToken : (_a = args._private) === null || _a === void 0 ? void 0 : _a.token, "-button"))) === null || _b === void 0 ? void 0 : _b.classList.add('selected-token-button');
                 this.addActionButton("cancelChooseToken-button", _("I changed my mind"), function () { return _this.cancelChooseToken(); }, null, null, 'gray');
             }
         }
@@ -1828,7 +1837,7 @@ var AfterUs = /** @class */ (function () {
             case 'confirmActivations':
                 this.addActionButton("confirmActivations-button", _("Confirm"), function () { return _this.confirmActivations(); });
                 break;
-            case 'chooseToken':
+            case 'privateChooseToken':
                 [1, 2, 3, 4].forEach(function (type) {
                     return _this.addActionButton("chooseToken".concat(type, "-button"), "<div class=\"action-token\" data-type=\"".concat(type, "\"></div>"), function () { return _this.chooseToken(type); });
                 });
@@ -2168,9 +2177,14 @@ var AfterUs = /** @class */ (function () {
         }
     };
     AfterUs.prototype.notif_selectedToken = function (notif) {
+        var _this = this;
         var currentPlayer = this.getPlayerId() == notif.args.playerId;
-        if (notif.args.token || !currentPlayer) {
+        if (notif.args.token || !currentPlayer || notif.args.cancel) {
             this.getPlayerTable(notif.args.playerId).setSelectedToken(notif.args.cancel ? null : notif.args.token);
+            if (currentPlayer) {
+                this.lastSelectedToken = notif.args.cancel ? null : notif.args.token;
+                [1, 2, 3, 4].forEach(function (type) { var _a; return (_a = document.getElementById("chooseToken".concat(type, "-button"))) === null || _a === void 0 ? void 0 : _a.classList.toggle('selected-token-button', type == _this.lastSelectedToken); });
+            }
         }
     };
     AfterUs.prototype.notif_revealTokens = function (notif) {
