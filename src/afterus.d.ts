@@ -54,6 +54,7 @@ interface AfterUsGamedatas {
     // Add here variables you set up in getAllDatas
     table: { [type: number]: number };
     objects: number[];
+    usedObjects?: number[];
     lastTurn: boolean;
 }
 
@@ -63,6 +64,7 @@ interface AfterUsGame extends Game {
     getPlayerId(): number;
     getPlayer(playerId: number): AfterUsPlayer;
     getPlayerColor(playerId: number): string;    
+    getCurrentPlayerEnergy(): number;
     getPlayerRage(playerId: number): number;
 
     setButtonActivation(id: string, type: string, min: number): void;
@@ -145,6 +147,11 @@ interface NotifBuyCardArgs extends NotifActivatedEffectArgs {
 // endRound
 interface NotifEndRoundArgs {
     playerId: number;
+}
+
+// useObject
+interface NotifUseObjectArgs {
+    object: number;
 }
 
 // discardedCard

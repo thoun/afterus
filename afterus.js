@@ -1455,6 +1455,8 @@ var TableCenter = /** @class */ (function () {
         this.objects = new LineStock(this.objectsManager, document.getElementById("objects"));
         this.objects.addCards(gamedatas.objects);
         this.objects.onCardClick = function (number) { return _this.game.useObject(number); };
+        this.usedObjects = gamedatas.usedObjects;
+        this.setUsedClass();
         var stateId = +gamedatas.gamestate.id;
         this.onEnteringState(stateId);
         if (gamedatas.players[this.game.getPlayerId()]) {
@@ -1480,6 +1482,18 @@ var TableCenter = /** @class */ (function () {
     TableCenter.prototype.setCurrentPlayerEnergy = function (energy) {
         var _this = this;
         this.objects.getCards().forEach(function (object) { return _this.objects.getCardElement(object).classList.toggle('disabled', OBJECT_MIN_COST[object] > energy); });
+    };
+    TableCenter.prototype.addUsedObject = function (object) {
+        this.usedObjects.push(object);
+        this.setUsedClass();
+    };
+    TableCenter.prototype.newRound = function () {
+        this.usedObjects = [];
+        this.setUsedClass();
+    };
+    TableCenter.prototype.setUsedClass = function () {
+        var _this = this;
+        this.objects.getCards().forEach(function (object) { return _this.objects.getCardElement(object).classList.toggle('used', _this.usedObjects.includes(object)); });
     };
     return TableCenter;
 }());
@@ -1960,6 +1974,10 @@ var AfterUs = /** @class */ (function () {
         var _this = this;
         return this.playersTables.find(function (playerTable) { return playerTable.playerId === _this.getPlayerId(); });
     };
+    AfterUs.prototype.getCurrentPlayerEnergy = function () {
+        var _a, _b;
+        return (_b = (_a = this.energyCounters[this.getPlayerId()]) === null || _a === void 0 ? void 0 : _a.getValue()) !== null && _b !== void 0 ? _b : 0;
+    };
     AfterUs.prototype.setupPreferences = function () {
         var _this = this;
         // Extract the ID and value from the UI control
@@ -2211,6 +2229,7 @@ var AfterUs = /** @class */ (function () {
             ['discardedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
             ['lastTurn', 1],
+            ['useObject', 1],
         ];
         notifs.forEach(function (notif) {
             dojo.subscribe(notif[0], _this, "notif_".concat(notif[0]));
@@ -2218,6 +2237,7 @@ var AfterUs = /** @class */ (function () {
         });
     };
     AfterUs.prototype.notif_newRound = function (notif) {
+        this.tableCenter.newRound();
         this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards);
     };
     AfterUs.prototype.notif_switchedCards = function (notif) {
@@ -2273,6 +2293,9 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.notif_addCardToLine = function (notif) {
         this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line);
         this.notif_activatedEffect(notif);
+    };
+    AfterUs.prototype.notif_useObject = function (notif) {
+        this.tableCenter.addUsedObject(notif.args.object);
     };
     /**
      * Show last turn banner.

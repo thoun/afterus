@@ -34,6 +34,7 @@ class TableCenter {
 
     private objectsManager: ObjectsManager;
     private objects: LineStock<number>;
+    private usedObjects: number[];
 
     constructor(private game: AfterUsGame, gamedatas: AfterUsGamedatas) {
 
@@ -68,6 +69,9 @@ class TableCenter {
         this.objects.addCards(gamedatas.objects);
         this.objects.onCardClick = number => this.game.useObject(number);
 
+        this.usedObjects = gamedatas.usedObjects;
+        this.setUsedClass();
+
         const stateId = +gamedatas.gamestate.id;
         this.onEnteringState(stateId);
 
@@ -96,5 +100,19 @@ class TableCenter {
     
     public setCurrentPlayerEnergy(energy: number) {
         this.objects.getCards().forEach(object => this.objects.getCardElement(object).classList.toggle('disabled', OBJECT_MIN_COST[object] > energy));
+    }
+    
+    public addUsedObject(object: number) {
+        this.usedObjects.push(object);
+        this.setUsedClass();
+    }
+    
+    public newRound() {
+        this.usedObjects = [];
+        this.setUsedClass();
+    }
+
+    private setUsedClass() {
+        this.objects.getCards().forEach(object => this.objects.getCardElement(object).classList.toggle('used', this.usedObjects.includes(object)));
     }
 }

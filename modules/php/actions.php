@@ -425,6 +425,11 @@ trait ActionTrait {
         }
 
         $playerId = intval($this->getCurrentPlayerId());
+        $usedObjects =  $this->getUsedObjects($playerId);
+        if (in_array($number, $usedObjects)) {
+            throw new BgaUserException("You already used this object in the round");
+        }
+
         $stateId = $this->getPlayerPrivateState($playerId);
         if ($stateId >= 80 && $stateId < 90) {
             throw new BgaUserException("You're already activating an object");
@@ -473,12 +478,14 @@ trait ActionTrait {
             throw new BgaUserException("Not enough energy");
         }
 
+        $this->saveUsedObject($playerId, 5);
+
         $left = [4, ENERGY];
         $this->giveResource($playerId, $left);
 
         $this->refillPlayerDeckIfEmpty($playerId);
         $card = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, intval($this->cards->countCardInLocation('deck'.$playerId))));
-        
+
         self::notifyAllPlayers('addCardToLine', clienttranslate('${player_name} uses object ${object} to add a 5th card'), [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
@@ -498,6 +505,8 @@ trait ActionTrait {
         if ($this->getPlayer($playerId)->energy < 5) {
             throw new BgaUserException("Not enough energy");
         }
+
+        $this->saveUsedObject($playerId, 6);
 
         $left = [5, ENERGY];
         $right = [5, POINT];
@@ -528,6 +537,8 @@ trait ActionTrait {
         if ($this->getPlayer($playerId)->energy < $cost) {
             throw new BgaUserException("Not enough energy");
         }
+        
+        $this->saveUsedObject($playerId, 7);
 
         $this->takeCard($playerId, $level, $type, [$cost, ENERGY]);
 

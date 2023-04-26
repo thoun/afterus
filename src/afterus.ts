@@ -332,6 +332,10 @@ class AfterUs implements AfterUsGame {
         return this.playersTables.find(playerTable => playerTable.playerId === this.getPlayerId());
     }
 
+    public getCurrentPlayerEnergy(): number {
+        return this.energyCounters[this.getPlayerId()]?.getValue() ?? 0;
+    }
+
     private setupPreferences() {
         // Extract the ID and value from the UI control
         const onchange = (e) => {
@@ -666,6 +670,7 @@ class AfterUs implements AfterUsGame {
             ['discardedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
             ['lastTurn', 1],
+            ['useObject', 1],
         ];
     
         notifs.forEach((notif) => {
@@ -675,6 +680,7 @@ class AfterUs implements AfterUsGame {
     }
 
     notif_newRound(notif: Notif<NotifNewRoundArgs>) {
+        this.tableCenter.newRound();
         this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards);
     }
 
@@ -738,6 +744,10 @@ class AfterUs implements AfterUsGame {
     notif_addCardToLine(notif: Notif<NotifAddCardToLineArgs>) {
         this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line);
         this.notif_activatedEffect(notif);
+    }  
+
+    notif_useObject(notif: Notif<NotifUseObjectArgs>) {
+        this.tableCenter.addUsedObject(notif.args.object);
     }
     
     /** 

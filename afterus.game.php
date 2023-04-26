@@ -157,6 +157,10 @@ class AfterUs extends Table {
                 $player['chosenToken'] = $currentPlayerId == $playerId ? intval($player['chosenToken']) : 0;
             }
             $player['line'] = $this->getCardsByLocation('line'.$playerId);
+
+            if ($currentPlayerId == $playerId) {
+                $result['usedObjects'] =  $this->getUsedObjects($playerId);
+            }
         }
 
         /*$result['costs'] = $this->getGlobalVariable(COSTS, true);

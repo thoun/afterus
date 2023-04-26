@@ -178,6 +178,16 @@
             cursor: not-allowed;
             filter: contrast(0.6);
         }
+
+        &.used {
+            .card-sides .card-side.front {
+                box-shadow: 0px 0px 3px 2px darkorange !important;
+                cursor: not-allowed !important;
+            } 
+            
+            cursor: not-allowed;
+            filter: contrast(0.6);
+        }
     }
 }
 

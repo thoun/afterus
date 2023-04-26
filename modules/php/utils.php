@@ -438,4 +438,21 @@ trait UtilTrait {
             ]);
         }
     }
+
+    function getUsedObjects(int $playerId) {
+        return json_decode($this->getUniqueValueFromDB("SELECT `used_objects` FROM `player` WHERE `player_id` = $playerId") ?? '[]', true);
+    }
+
+    private function saveUsedObject(int $playerId, int $object) {
+        $usedObjects = json_decode($this->getUniqueValueFromDB("SELECT `used_objects` FROM `player` WHERE `player_id` = $playerId") ?? '[]', true);
+
+        $usedObjects[] = $object;
+        $jsonObj = json_encode($usedObjects);
+        $this->DbQuery("UPDATE `player` SET `used_objects` = '$jsonObj' WHERE `player_id` = $playerId");
+
+        self::notifyPlayer($playerId, 'useObject', '', [
+            'playerId' => $playerId,
+            'object' => $object,
+        ]);
+    }
 }
