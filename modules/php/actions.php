@@ -482,6 +482,44 @@ trait ActionTrait {
         $this->applyCancelObject($playerId);
     }
 
+    public function useMobilePhone(int $id) {
+        self::checkAction('useMobilePhone');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $currentCard = $this->getCardFromDb($this->cards->getCard($id));       
+        $level = $currentCard->level;
+        if ($level < 1) {
+            throw new BgaUserException("Invalid card");
+        }
+        $cost = $level + 1;
+        if ($this->getPlayer($playerId)->energy < $cost) {
+            throw new BgaUserException("Not enough energy");
+        }
+        
+        $this->saveUsedObject($playerId, 1);
+
+        $type = $currentCard->type; 
+        $left = [$cost, ENERGY];
+        $this->giveResource($playerId, $left);
+
+        $deck = "deck-$type-$level";
+        $this->DbQuery("UPDATE `card` SET `card_location_arg` = `card_location_arg` + 1 WHERE `card_location` = '$deck'");
+        $this->cards->moveCard($currentCard->id, $deck, 0);
+        $card = $this->getCardFromDb($this->cards->pickCardForLocation($deck, 'line'.$playerId, $currentCard->locationArg));
+
+        self::notifyAllPlayers('replaceLineCard', clienttranslate('${player_name} uses object ${object} to permanently replace a card with a new card of same type and level from the main board'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'object' => $this->getObjectName(1),
+            'i18n' => ['object'],
+            'player' => $this->getPlayer($playerId),
+            'card' => $card,
+        ]);
+
+        $this->applyCancelObject($playerId);
+    }
+
     public function useMinibar(int $left, int $right) {
         self::checkAction('useMinibar');
 

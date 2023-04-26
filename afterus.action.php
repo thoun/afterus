@@ -192,6 +192,15 @@
         self::ajaxResponse();
     }  
 
+    public function useMobilePhone() {
+        self::setAjaxMode();
+
+        $id = self::getArg("id", AT_posint, true);
+        $this->game->useMobilePhone($id);
+
+        self::ajaxResponse();
+    }
+
     public function useMinibar() {
         self::setAjaxMode();
 

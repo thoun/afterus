@@ -1698,11 +1698,13 @@ var PlayerTable = /** @class */ (function () {
             slot.querySelectorAll('button.move').forEach(function (btn) { return btn.classList.toggle('hidden', !hasCard); });
         });
     };
-    PlayerTable.prototype.addButtonsOnCards = function (label, onClick) {
+    PlayerTable.prototype.addButtonsOnCards = function (getLabel, onClick, minLevel) {
         var _this = this;
+        if (minLevel === void 0) { minLevel = 0; }
         document.getElementById("player-table-".concat(this.playerId, "-line")).querySelectorAll('[data-slot-id]').forEach(function (slot, index) {
-            if (_this.line.getCards().some(function (card) { return card.locationArg == index; })) {
-                slot.insertAdjacentHTML('afterbegin', "\n                    <button id=\"use-object-on-card-".concat(index, "\" class=\"remove bgabutton bgabutton_blue\">").concat(label, "</button>\n                "));
+            var card = _this.line.getCards().find(function (card) { return card.locationArg == index; });
+            if (card && card.level >= minLevel) {
+                slot.insertAdjacentHTML('afterbegin', "\n                    <button id=\"use-object-on-card-".concat(index, "\" class=\"remove bgabutton bgabutton_blue\">").concat(getLabel(card), "</button>\n                "));
                 document.getElementById("use-object-on-card-".concat(index)).addEventListener('click', function () { return onClick(_this.line.getCards().find(function (card) { return card.locationArg == index; })); });
             }
         });
@@ -1803,6 +1805,10 @@ var AfterUs = /** @class */ (function () {
                 color: 'white',
             },
             localStorageZoomKey: LOCAL_STORAGE_ZOOM_KEY,
+            onDimensionsChange: function () {
+                var tablesAndCenter = document.getElementById('tables-and-center');
+                tablesAndCenter.classList.toggle('double-column', tablesAndCenter.clientWidth > 1600);
+            },
         });
         if (gamedatas.lastTurn) {
             this.notif_lastTurn(false);
@@ -1837,8 +1843,11 @@ var AfterUs = /** @class */ (function () {
                 var activateEffectTokenArgs = args.args;
                 this.getCurrentPlayerTable().setActivableEffectToken(activateEffectTokenArgs.possibleEffects);
                 break;
+            case 'mobilePhone':
+                this.getCurrentPlayerTable().addButtonsOnCards(function (card) { return _('Replace this card') + formatTextIcons(" (".concat(card.level + 1, " [Energy])")); }, function (card) { return _this.useMobilePhone(card.id); }, 1);
+                break;
             case 'ghettoBlaster':
-                this.getCurrentPlayerTable().addButtonsOnCards(_('Replace this card') + formatTextIcons(' (2 [Energy])'), function (card) { return _this.useGhettoBlaster(card.id); });
+                this.getCurrentPlayerTable().addButtonsOnCards(function (card) { return _('Replace this card') + formatTextIcons(' (2 [Energy])'); }, function (card) { return _this.useGhettoBlaster(card.id); });
                 break;
         }
     };
@@ -1857,6 +1866,7 @@ var AfterUs = /** @class */ (function () {
             case 'chooseToken':
                 this.lastSelectedToken = undefined;
                 break;
+            case 'mobilePhone':
             case 'ghettoBlaster':
                 this.getCurrentPlayerTable().removeButtonsOnCards();
                 break;
@@ -2246,6 +2256,14 @@ var AfterUs = /** @class */ (function () {
             return;
         }
         this.takeAction('cancelObject');
+    };
+    AfterUs.prototype.useMobilePhone = function (id) {
+        if (!this.checkAction('useMobilePhone')) {
+            return;
+        }
+        this.takeAction('useMobilePhone', {
+            id: id,
+        });
     };
     AfterUs.prototype.useMinibar = function (left, right) {
         if (!this.checkAction('useMinibar')) {

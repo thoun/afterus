@@ -1046,17 +1046,15 @@ html, .mode_3d #game_play_area_background {
   gap: 20px;
   flex-direction: column;
 }
-
-@media (min-width: 1500px) {
-  #tables-and-center {
-    flex-direction: row-reverse;
-    justify-content: center;
-    align-items: start;
-  }
-  #tables-and-center > div {
-    flex: 1;
-  }
+#tables-and-center.double-column {
+  flex-direction: row-reverse;
+  justify-content: center;
+  align-items: start;
 }
+#tables-and-center.double-column > div {
+  flex: 1;
+}
+
 .icon {
   display: inline-block;
   position: relative;

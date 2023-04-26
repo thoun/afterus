@@ -234,11 +234,12 @@ class PlayerTable {
         });
     }
     
-    public addButtonsOnCards(label: string, onClick: (card: any) => void) {
+    public addButtonsOnCards(getLabel: (card: Card) => string, onClick: (card: any) => void, minLevel: number = 0) {
         document.getElementById(`player-table-${this.playerId}-line`).querySelectorAll('[data-slot-id]').forEach((slot, index) => {
-            if (this.line.getCards().some(card => card.locationArg == index)) {
+            const card = this.line.getCards().find(card => card.locationArg == index);
+            if (card && card.level >= minLevel) {
                 slot.insertAdjacentHTML('afterbegin', `
-                    <button id="use-object-on-card-${index}" class="remove bgabutton bgabutton_blue">${label}</button>
+                    <button id="use-object-on-card-${index}" class="remove bgabutton bgabutton_blue">${getLabel(card)}</button>
                 `);
 
                 document.getElementById(`use-object-on-card-${index}`).addEventListener('click', () => onClick(this.line.getCards().find(card => card.locationArg == index)));

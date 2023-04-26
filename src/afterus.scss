@@ -42,17 +42,15 @@ html, .mode_3d #game_play_area_background {
     gap: 20px;
     flex-direction: column;
   }
-}
 
-@media (min-width: 1500px) { 
-  #tables-and-center {
-    flex-direction: row-reverse;
-    justify-content: center;
-    align-items: start;
-
-    &>div {
-      flex: 1
-    }
+  &.double-column {
+      flex-direction: row-reverse;
+      justify-content: center;
+      align-items: start;
+  
+      &>div {
+        flex: 1
+      }
   }
 }
 

@@ -117,6 +117,10 @@ class AfterUs implements AfterUsGame {
                 color: 'white',
             },
             localStorageZoomKey: LOCAL_STORAGE_ZOOM_KEY,
+            onDimensionsChange: () => {
+                const tablesAndCenter = document.getElementById('tables-and-center');
+                tablesAndCenter.classList.toggle('double-column', tablesAndCenter.clientWidth > 1600);
+            },
         });
 
         if (gamedatas.lastTurn) {
@@ -157,8 +161,11 @@ class AfterUs implements AfterUsGame {
                 this.getCurrentPlayerTable().setActivableEffectToken(activateEffectTokenArgs.possibleEffects);
                 break;
 
+            case 'mobilePhone':
+                this.getCurrentPlayerTable().addButtonsOnCards(card => _('Replace this card') + formatTextIcons(` (${card.level + 1} [Energy])`), card => this.useMobilePhone(card.id), 1);
+                break;
             case 'ghettoBlaster':
-                this.getCurrentPlayerTable().addButtonsOnCards(_('Replace this card') + formatTextIcons(' (2 [Energy])'), card => this.useGhettoBlaster(card.id));
+                this.getCurrentPlayerTable().addButtonsOnCards(card => _('Replace this card') + formatTextIcons(' (2 [Energy])'), card => this.useGhettoBlaster(card.id));
                 break;
         }
     }
@@ -180,6 +187,7 @@ class AfterUs implements AfterUsGame {
                 this.lastSelectedToken = undefined;
                 break;
 
+            case 'mobilePhone':
             case 'ghettoBlaster':
                 this.getCurrentPlayerTable().removeButtonsOnCards();
                 break;
@@ -660,6 +668,16 @@ class AfterUs implements AfterUsGame {
         }
 
         this.takeAction('cancelObject');
+    }
+
+    public useMobilePhone(id: number): void {
+        if(!(this as any).checkAction('useMobilePhone')) {
+            return;
+        }
+
+        this.takeAction('useMobilePhone', {
+            id,
+        });
     }
 
     public useMinibar(left: number, right: number): void {
