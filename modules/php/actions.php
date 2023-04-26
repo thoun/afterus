@@ -376,11 +376,20 @@ trait ActionTrait {
         if ($card == null || $card->location != 'line'.$playerId) {
             throw new BgaUserException("You can't discard this card");
         }
-        $this->cards->moveCard($card->id, 'discard');
 
         if ($this->getPlayer($playerId)->rage < 4) {
             throw new BgaUserException("Not enough rage");
         }
+
+        $totalPlayerCards = intval($this->cards->countCardInLocation('deck'.$playerId)) +
+            intval($this->cards->countCardInLocation('line'.$playerId)) +
+            intval($this->cards->countCardInLocation('discard'.$playerId));
+        if ($totalPlayerCards <= 4) {
+            throw new BgaUserException("You can't have less than 4 cards in play");
+        }
+        
+        $this->cards->moveCard($card->id, 'discard');
+
         $resource = $card->rageGain;
         $this->giveResource($playerId, [4, RAGE]);
         $this->gainResource($playerId, $resource, []);
