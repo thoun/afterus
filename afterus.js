@@ -1692,6 +1692,10 @@ var PlayerTable = /** @class */ (function () {
 var ANIMATION_MS = 500;
 var ACTION_TIMER_DURATION = 5;
 var LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
+var FLOWER = 4;
+var FRUIT = 4;
+var GRAIN = 4;
+var ENERGY = 4;
 var POINT = 5;
 var RAGE = 6;
 var DIFFERENT = 7;
@@ -1926,6 +1930,31 @@ var AfterUs = /** @class */ (function () {
                 });
                 this.addActionButton("cancelNeighborEffect-button", _("Cancel"), function () { return _this.cancelNeighborEffect(); }, null, null, 'gray');
                 break;
+            case 'mobilePhone':
+            case 'ghettoBlaster':
+            case 'gameConsole':
+                this.addActionButton("cancelObject-button", _("Cancel"), function () { return _this.cancelObject(); }, null, null, 'gray');
+                break;
+            case 'minibar':
+                [1, 2, 3, 4].forEach(function (left) {
+                    return [1, 2, 3 /*, 4*/].filter(function (right) { return left != right; }).forEach(function (right) {
+                        var label = formatTextIcons(getResourceCode(left) + ' >> ' + getResourceCode(right) /* + (' (1 [Energy])')*/);
+                        _this.addActionButton("minibar-".concat(left, "-").concat(right, "-button"), label, function () { return _this.useMinibar(left, right); });
+                        if (left == ENERGY) {
+                            if (_this.getCurrentPlayerEnergy() < 2) {
+                                document.getElementById("minibar-".concat(left, "-").concat(right, "-button")).classList.add('disabled');
+                            }
+                        }
+                        else {
+                            var currentPlayerCounter = _this["".concat(TYPE_FIELD_BY_NUMBER[left], "Counters")][_this.getPlayerId()];
+                            if (_this.getCurrentPlayerEnergy() < 1 || currentPlayerCounter.getValue() < 1) {
+                                document.getElementById("minibar-".concat(left, "-").concat(right, "-button")).classList.add('disabled');
+                            }
+                        }
+                    });
+                });
+                this.addActionButton("cancelObject-button", _("Cancel"), function () { return _this.cancelObject(); }, null, null, 'gray');
+                break;
             case 'moped':
                 [1, 2].forEach(function (level) {
                     return [1, 2, 3, 4].forEach(function (type) {
@@ -1936,6 +1965,7 @@ var AfterUs = /** @class */ (function () {
                     });
                 });
                 this.addActionButton("cancelObject-button", _("Cancel"), function () { return _this.cancelObject(); }, null, null, 'gray');
+                break;
         }
     };
     ///////////////////////////////////////////////////
@@ -2185,6 +2215,15 @@ var AfterUs = /** @class */ (function () {
             return;
         }
         this.takeAction('cancelObject');
+    };
+    AfterUs.prototype.useMinibar = function (left, right) {
+        if (!this.checkAction('useMinibar')) {
+            return;
+        }
+        this.takeAction('useMinibar', {
+            left: left,
+            right: right,
+        });
     };
     AfterUs.prototype.useMoped = function (type, level) {
         if (!this.checkAction('useMoped')) {

@@ -434,24 +434,26 @@ trait ActionTrait {
         if ($stateId >= 80 && $stateId < 90) {
             throw new BgaUserException("You're already activating an object");
         }
+
+        if ($this->getPlayer($playerId)->energy < $this->OBJECT_MIN_COST[$number]) {
+            throw new BgaUserException("Not enough energy");
+        }
         
         switch ($number) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 7:
+                $this->savePrivateStateBeforeObject($playerId, $stateId);
+                $this->gamestate->setPrivateState($playerId, 80 + $number);
+                break;
             case 5:
                 $this->usePinballMachine($playerId);
                 break;
             case 6:
                 $this->useComputer($playerId);
                 break;
-            case 7:
-                if ($this->getPlayer($playerId)->energy < 6) {
-                    throw new BgaUserException("Not enough energy");
-                }
-
-                $this->savePrivateStateBeforeObject($playerId, $stateId);
-                $this->gamestate->setPrivateState($playerId, 80 + $number);
-                break;
-            default:
-                throw new BgaUserException("Not yet implemented");
         }
     }  
 
@@ -470,6 +472,58 @@ trait ActionTrait {
         self::checkAction('cancelObject');
 
         $playerId = intval($this->getCurrentPlayerId());
+        $this->applyCancelObject($playerId);
+    }
+
+    public function useMinibar(int $left, int $right) {
+        self::checkAction('useMinibar');
+
+        $playerId = intval($this->getCurrentPlayerId());
+        $player = $this->getPlayer($playerId);
+
+        if ($player->energy < ($left == ENERGY ? 2 : 1)) {
+            throw new BgaUserException("Not enough energy");
+        }
+        if ($left != ENERGY) {
+            switch ($left) {
+                case FLOWER: 
+                    if ($player->flowers < 1) {
+                        throw new BgaUserException("Not enough flowers");
+                    }
+                    break;
+                case FRUIT: 
+                    if ($player->fruits < 1) {
+                        throw new BgaUserException("Not enough fruits");
+                    }
+                    break;
+                case GRAIN: 
+                    if ($player->grains < 1) {
+                        throw new BgaUserException("Not enough grains");
+                    }
+                    break;
+            }
+        }
+        
+        $this->saveUsedObject($playerId, 2);
+
+        if ($left == ENERGY) {
+            $this->giveResource($playerId, [2, ENERGY]);
+        } else {
+            $this->giveResource($playerId, [1, ENERGY]);
+            $this->giveResource($playerId, [1, $left]);
+        }
+        $this->gainResource($playerId, [1, $right], []);
+
+        self::notifyAllPlayers('activatedEffect', clienttranslate('${player_name} uses object ${object} to convert ${left} to ${right}'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'object' => $this->getObjectName(2),
+            'i18n' => ['object'],
+            'player' => $this->getPlayer($playerId),
+            'left' => $this->getResourcesStr([[1, $left]]),
+            'right' => $this->getResourcesStr([[1, $right]]),
+        ]);
+
         $this->applyCancelObject($playerId);
     }
 

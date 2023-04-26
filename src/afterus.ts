@@ -10,6 +10,10 @@ const ACTION_TIMER_DURATION = 5;
 
 const LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
 
+const FLOWER = 4;
+const FRUIT = 4;
+const GRAIN = 4;
+const ENERGY = 4;
 const POINT = 5;
 const RAGE = 6;
 const DIFFERENT = 7;
@@ -273,6 +277,32 @@ class AfterUs implements AfterUsGame {
                 (this as any).addActionButton(`cancelNeighborEffect-button`, _("Cancel"), () => this.cancelNeighborEffect(), null, null, 'gray');
                 break;
 
+            case 'mobilePhone':
+            case 'ghettoBlaster':
+            case 'gameConsole':
+                (this as any).addActionButton(`cancelObject-button`, _("Cancel"), () => this.cancelObject(), null, null, 'gray');
+                break;
+            case 'minibar':
+                [1, 2, 3, 4].forEach(left => 
+                    [1, 2, 3/*, 4*/].filter(right => left != right).forEach(right => {
+                        const label = formatTextIcons(getResourceCode(left) + ' >> ' + getResourceCode(right)/* + (' (1 [Energy])')*/);
+                        (this as any).addActionButton(`minibar-${left}-${right}-button`, label, () => this.useMinibar(left, right));
+                        if (left == ENERGY) {
+                            if (this.getCurrentPlayerEnergy() < 2) {
+                                document.getElementById(`minibar-${left}-${right}-button`).classList.add('disabled');
+                            }
+                        } else {
+                            const currentPlayerCounter: Counter = this[`${TYPE_FIELD_BY_NUMBER[left]}Counters`][this.getPlayerId()];
+                            if (this.getCurrentPlayerEnergy() < 1 || currentPlayerCounter.getValue() < 1) {
+                                document.getElementById(`minibar-${left}-${right}-button`).classList.add('disabled');
+                            }
+                        }
+                        
+                    })
+                );
+
+                (this as any).addActionButton(`cancelObject-button`, _("Cancel"), () => this.cancelObject(), null, null, 'gray');
+                break;
             case 'moped':
                 [1, 2].forEach(level => 
                     [1, 2, 3, 4].forEach(type => {
@@ -283,6 +313,7 @@ class AfterUs implements AfterUsGame {
                     })
                 );
                 (this as any).addActionButton(`cancelObject-button`, _("Cancel"), () => this.cancelObject(), null, null, 'gray');
+                break;
         }
     }
 
@@ -621,6 +652,17 @@ class AfterUs implements AfterUsGame {
         }
 
         this.takeAction('cancelObject');
+    }
+
+    public useMinibar(left: number, right: number): void {
+        if(!(this as any).checkAction('useMinibar')) {
+            return;
+        }
+
+        this.takeAction('useMinibar', {
+            left,
+            right,
+        });
     }
 
     public useMoped(type: number, level: number): void {

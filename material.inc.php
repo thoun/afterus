@@ -22,6 +22,16 @@
 require_once(__DIR__.'/modules/php/constants.inc.php');
 require_once(__DIR__.'/modules/php/objects/card.php');
 
+$this->OBJECT_MIN_COST = [
+    1 => 2,
+    2 => 1,
+    3 => 2,
+    4 => 3,
+    5 => 4,
+    6 => 5,
+    7 => 6,
+];
+
 $this->TAMARINS = [
     new CardType(1, [1, FRUIT], [
         [new LeftFrame([[1, FRUIT]], false), new RightFrame([[1, GRAIN]], false)],

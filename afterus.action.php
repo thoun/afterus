@@ -192,6 +192,16 @@
         self::ajaxResponse();
     }  
 
+    public function useMinibar() {
+        self::setAjaxMode();
+
+        $left = self::getArg("left", AT_posint, true);
+        $right = self::getArg("right", AT_posint, true);
+        $this->game->useMinibar($left, $right);
+
+        self::ajaxResponse();
+    }
+
     public function useMoped() {
         self::setAjaxMode();
 
