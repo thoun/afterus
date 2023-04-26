@@ -1508,6 +1508,9 @@ var CardLine = /** @class */ (function (_super) {
         _this.element = element;
         _this.game = game;
         _this.currentPlayer = currentPlayer;
+        if (_this.currentPlayer) {
+            _this.createSlotButtons();
+        }
         return _this;
     }
     CardLine.prototype.getSlotsIds = function () {
@@ -1528,17 +1531,21 @@ var CardLine = /** @class */ (function (_super) {
             });
         }
     };
-    CardLine.prototype.createSlot = function (slotId) {
+    CardLine.prototype.createSlotButtons = function () {
         var _this = this;
+        this.element.querySelectorAll('[data-slot-id]').forEach(function (slot, index) {
+            console.log("slot.querySelectorAll('button.move')", slot.querySelectorAll('button.move'));
+            if (slot.querySelectorAll('button.move').length == 0) {
+                slot.insertAdjacentHTML('afterbegin', "\n                    <button id=\"move-left-".concat(index, "\" class=\"move left\"></button>\n                    <button id=\"move-right-").concat(index, "\" class=\"move right\"></button>\n                "));
+                document.getElementById("move-left-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, -1); });
+                document.getElementById("move-right-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, 1); });
+            }
+        });
+    };
+    CardLine.prototype.createSlot = function (slotId) {
         _super.prototype.createSlot.call(this, slotId);
         if (this.currentPlayer) {
-            this.element.querySelectorAll('[data-slot-id]').forEach(function (slot, index) {
-                if (slot.querySelectorAll('.move').length == 0) {
-                    slot.insertAdjacentHTML('afterbegin', "\n                        <button id=\"move-left-".concat(index, "\" class=\"move left\"></button>\n                        <button id=\"move-right-").concat(index, "\" class=\"move right\"></button>\n                    "));
-                    document.getElementById("move-left-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, -1); });
-                    document.getElementById("move-right-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, 1); });
-                }
-            });
+            this.createSlotButtons();
         }
     };
     return CardLine;
@@ -1678,6 +1685,10 @@ var PlayerTable = /** @class */ (function () {
         }*/
         this.newRound(line);
     };
+    PlayerTable.prototype.replaceLineCard = function (card) {
+        this.line.removeCard(this.line.getCards().find(function (c) { return c.locationArg == card.locationArg; }));
+        this.line.addCard(card);
+    };
     PlayerTable.prototype.updateVisibleMoveButtons = function () {
         var cards = this.line.getCards();
         var slots = document.getElementById("player-table-".concat(this.playerId)).querySelectorAll(".slot");
@@ -1686,6 +1697,19 @@ var PlayerTable = /** @class */ (function () {
             var hasCard = cards.some(function (card) { return card.locationArg == slotId; });
             slot.querySelectorAll('button.move').forEach(function (btn) { return btn.classList.toggle('hidden', !hasCard); });
         });
+    };
+    PlayerTable.prototype.addButtonsOnCards = function (label, onClick) {
+        var _this = this;
+        document.getElementById("player-table-".concat(this.playerId, "-line")).querySelectorAll('[data-slot-id]').forEach(function (slot, index) {
+            if (_this.line.getCards().some(function (card) { return card.locationArg == index; })) {
+                slot.insertAdjacentHTML('afterbegin', "\n                    <button id=\"use-object-on-card-".concat(index, "\" class=\"remove bgabutton bgabutton_blue\">").concat(label, "</button>\n                "));
+                document.getElementById("use-object-on-card-".concat(index)).addEventListener('click', function () { return onClick(_this.line.getCards().find(function (card) { return card.locationArg == index; })); });
+            }
+        });
+    };
+    PlayerTable.prototype.removeButtonsOnCards = function () {
+        var slots = document.getElementById("player-table-".concat(this.playerId)).querySelectorAll(".slot");
+        slots.forEach(function (slot) { return slot.querySelectorAll('button.remove').forEach(function (btn) { return btn.remove(); }); });
     };
     return PlayerTable;
 }());
@@ -1793,6 +1817,7 @@ var AfterUs = /** @class */ (function () {
     //                  You can use this method to perform some user interface changes at this moment.
     //
     AfterUs.prototype.onEnteringState = function (stateName, args) {
+        var _this = this;
         log('Entering state: ' + stateName, args.args);
         if (!this.isSpectator) {
             this.tableCenter.onEnteringState(+args.id);
@@ -1812,6 +1837,9 @@ var AfterUs = /** @class */ (function () {
                 var activateEffectTokenArgs = args.args;
                 this.getCurrentPlayerTable().setActivableEffectToken(activateEffectTokenArgs.possibleEffects);
                 break;
+            case 'ghettoBlaster':
+                this.getCurrentPlayerTable().addButtonsOnCards(_('Replace this card') + formatTextIcons(' (2 [Energy])'), function (card) { return _this.useGhettoBlaster(card.id); });
+                break;
         }
     };
     AfterUs.prototype.onLeavingState = function (stateName) {
@@ -1828,6 +1856,9 @@ var AfterUs = /** @class */ (function () {
                 break;
             case 'chooseToken':
                 this.lastSelectedToken = undefined;
+                break;
+            case 'ghettoBlaster':
+                this.getCurrentPlayerTable().removeButtonsOnCards();
                 break;
         }
     };
@@ -2225,6 +2256,14 @@ var AfterUs = /** @class */ (function () {
             right: right,
         });
     };
+    AfterUs.prototype.useGhettoBlaster = function (id) {
+        if (!this.checkAction('useGhettoBlaster')) {
+            return;
+        }
+        this.takeAction('useGhettoBlaster', {
+            id: id,
+        });
+    };
     AfterUs.prototype.useMoped = function (type, level) {
         if (!this.checkAction('useMoped')) {
             return;
@@ -2267,6 +2306,7 @@ var AfterUs = /** @class */ (function () {
             ['endRound', ANIMATION_MS],
             ['discardedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
+            ['replaceLineCard', ANIMATION_MS],
             ['lastTurn', 1],
             ['useObject', 1],
         ];
@@ -2331,6 +2371,10 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.notif_addCardToLine = function (notif) {
         this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line);
+        this.notif_activatedEffect(notif);
+    };
+    AfterUs.prototype.notif_replaceLineCard = function (notif) {
+        this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.card);
         this.notif_activatedEffect(notif);
     };
     AfterUs.prototype.notif_useObject = function (notif) {

@@ -2,8 +2,11 @@ const isDebug = window.location.host == 'studio.boardgamearena.com' || window.lo
 const log = isDebug ? console.log.bind(window.console) : function () { };
 
 class CardLine extends SlotStock<Card> {
-    constructor(protected manager: CardManager<Card>, protected element: HTMLElement, settings: SlotStockSettings<Card>, private game: AfterUsGame, private currentPlayer: boolean) {
+    constructor(protected manager: CardManager<Card>, protected element: HTMLElement, settings: SlotStockSettings<Card>, private game: AfterUsGame, protected currentPlayer: boolean) {
         super(manager, element, settings);
+        if (this.currentPlayer) {
+            this.createSlotButtons();
+        }
     }
 
     public getSlotsIds() {
@@ -26,21 +29,26 @@ class CardLine extends SlotStock<Card> {
         }
     }
 
+    private createSlotButtons() {
+        this.element.querySelectorAll('[data-slot-id]').forEach((slot, index) => {
+            console.log("slot.querySelectorAll('button.move')", slot.querySelectorAll('button.move'));
+            if (slot.querySelectorAll('button.move').length == 0) {
+                slot.insertAdjacentHTML('afterbegin', `
+                    <button id="move-left-${index}" class="move left"></button>
+                    <button id="move-right-${index}" class="move right"></button>
+                `);
+
+                document.getElementById(`move-left-${index}`).addEventListener('click', () => this.game.moveCard(index, -1));
+                document.getElementById(`move-right-${index}`).addEventListener('click', () => this.game.moveCard(index, 1));
+            }
+        });
+    }
+
     protected createSlot(slotId: SlotId) {
         super.createSlot(slotId);
            
         if (this.currentPlayer) {
-            this.element.querySelectorAll('[data-slot-id]').forEach((slot, index) => {
-                if (slot.querySelectorAll('.move').length == 0) {
-                    slot.insertAdjacentHTML('afterbegin', `
-                        <button id="move-left-${index}" class="move left"></button>
-                        <button id="move-right-${index}" class="move right"></button>
-                    `);
-
-                    document.getElementById(`move-left-${index}`).addEventListener('click', () => this.game.moveCard(index, -1));
-                    document.getElementById(`move-right-${index}`).addEventListener('click', () => this.game.moveCard(index, 1));
-                }
-            });
+            this.createSlotButtons();
         }
     }
 }
@@ -209,15 +217,37 @@ class PlayerTable {
         }*/
         this.newRound(line);
     }
+    
+    public replaceLineCard(card: Card) {
+        this.line.removeCard(this.line.getCards().find(c => c.locationArg == card.locationArg));
+        this.line.addCard(card);
+    }
 
     private updateVisibleMoveButtons() {
         const cards = this.line.getCards();
 
-        const slots =  document.getElementById(`player-table-${this.playerId}`).querySelectorAll(`.slot`);
+        const slots = document.getElementById(`player-table-${this.playerId}`).querySelectorAll(`.slot`);
         slots.forEach((slot: HTMLElement) => {
             const slotId = +slot.dataset.slotId;
             const hasCard = cards.some(card => card.locationArg == slotId);
             slot.querySelectorAll('button.move').forEach(btn => btn.classList.toggle('hidden', !hasCard));
         });
+    }
+    
+    public addButtonsOnCards(label: string, onClick: (card: any) => void) {
+        document.getElementById(`player-table-${this.playerId}-line`).querySelectorAll('[data-slot-id]').forEach((slot, index) => {
+            if (this.line.getCards().some(card => card.locationArg == index)) {
+                slot.insertAdjacentHTML('afterbegin', `
+                    <button id="use-object-on-card-${index}" class="remove bgabutton bgabutton_blue">${label}</button>
+                `);
+
+                document.getElementById(`use-object-on-card-${index}`).addEventListener('click', () => onClick(this.line.getCards().find(card => card.locationArg == index)));
+            }
+        });
+    }
+    
+    public removeButtonsOnCards() {
+        const slots = document.getElementById(`player-table-${this.playerId}`).querySelectorAll(`.slot`);
+        slots.forEach(slot => slot.querySelectorAll('button.remove').forEach(btn => btn.remove()));
     }
 }

@@ -156,6 +156,10 @@ class AfterUs implements AfterUsGame {
                 const activateEffectTokenArgs = args.args as EnteringActivateEffectArgs;
                 this.getCurrentPlayerTable().setActivableEffectToken(activateEffectTokenArgs.possibleEffects);
                 break;
+
+            case 'ghettoBlaster':
+                this.getCurrentPlayerTable().addButtonsOnCards(_('Replace this card') + formatTextIcons(' (2 [Energy])'), card => this.useGhettoBlaster(card.id));
+                break;
         }
     }
 
@@ -174,6 +178,10 @@ class AfterUs implements AfterUsGame {
                 break;
             case 'chooseToken':
                 this.lastSelectedToken = undefined;
+                break;
+
+            case 'ghettoBlaster':
+                this.getCurrentPlayerTable().removeButtonsOnCards();
                 break;
         }
     }
@@ -665,6 +673,16 @@ class AfterUs implements AfterUsGame {
         });
     }
 
+    public useGhettoBlaster(id: number): void {
+        if(!(this as any).checkAction('useGhettoBlaster')) {
+            return;
+        }
+
+        this.takeAction('useGhettoBlaster', {
+            id,
+        });
+    }
+
     public useMoped(type: number, level: number): void {
         if(!(this as any).checkAction('useMoped')) {
             return;
@@ -711,6 +729,7 @@ class AfterUs implements AfterUsGame {
             ['endRound', ANIMATION_MS],
             ['discardedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
+            ['replaceLineCard', ANIMATION_MS],
             ['lastTurn', 1],
             ['useObject', 1],
         ];
@@ -786,7 +805,12 @@ class AfterUs implements AfterUsGame {
     notif_addCardToLine(notif: Notif<NotifAddCardToLineArgs>) {
         this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line);
         this.notif_activatedEffect(notif);
-    }  
+    }   
+
+    notif_replaceLineCard(notif: Notif<NotifReplaceLineCardArgs>) {
+        this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.card);
+        this.notif_activatedEffect(notif);
+    }
 
     notif_useObject(notif: Notif<NotifUseObjectArgs>) {
         this.tableCenter.addUsedObject(notif.args.object);

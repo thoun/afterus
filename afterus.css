@@ -977,6 +977,17 @@ body > .card {
 .player-table .slot button.move.right {
   right: 5px;
 }
+.player-table .slot button.remove {
+  position: absolute;
+  z-index: 120;
+  cursor: pointer;
+  top: 30px;
+  white-space: break-spaces;
+}
+.player-table .slot button.remove .icon {
+  width: 24px;
+  height: 24px;
+}
 .player-table.move-phase button.move {
   display: block;
 }

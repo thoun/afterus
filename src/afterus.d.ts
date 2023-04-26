@@ -165,3 +165,8 @@ interface NotifAddCardToLineArgs extends NotifActivatedEffectArgs {
     card: Card;
     line: Card[];
 }
+
+// replaceLineCard
+interface NotifReplaceLineCardArgs extends NotifActivatedEffectArgs {
+    card: Card;
+}

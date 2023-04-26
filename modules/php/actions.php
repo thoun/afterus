@@ -391,7 +391,7 @@ trait ActionTrait {
 
         $line = null;
         $privateState = $this->getPlayerPrivateState($playerId);
-        if ($privateState == ST_PRIVATE_ORDER_CARDS) {
+        if ($privateState == ST_PRIVATE_ORDER_CARDS || ($privateState >= 80 && $privateState <= 90 && $this->getPlayer($playerId)->privateStateBeforeObject == ST_PRIVATE_ORDER_CARDS)) {
             // we need to reorder the line so the player isn't bothered with holes in the line
             $line = $this->getCardsByLocation('line'.$playerId);
             foreach ($line as $index => &$card) {
@@ -437,6 +437,13 @@ trait ActionTrait {
 
         if ($this->getPlayer($playerId)->energy < $this->OBJECT_MIN_COST[$number]) {
             throw new BgaUserException("Not enough energy");
+        }
+
+        if (in_array($number, [1, 4])) {
+            $line = $this->getCardsByLocation('line'.$playerId);
+            if (!$this->array_some($line, fn($card) => $card->level > 0)) {
+                throw new BgaUserException("There is no level 1/2 card on your line");
+            }
         }
         
         switch ($number) {
@@ -527,6 +534,37 @@ trait ActionTrait {
         $this->applyCancelObject($playerId);
     }
 
+    public function useGhettoBlaster(int $id) {
+        self::checkAction('useGhettoBlaster');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        if ($this->getPlayer($playerId)->energy < 2) {
+            throw new BgaUserException("Not enough energy");
+        }
+        
+        $this->saveUsedObject($playerId, 3);
+
+        $left = [2, ENERGY];
+        $this->giveResource($playerId, $left);
+
+        $currentCard = $this->getCardFromDb($this->cards->getCard($id));
+        $this->cards->moveCard($currentCard->id, 'discard'.$playerId);
+        $this->refillPlayerDeckIfEmpty($playerId);
+        $card = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, $currentCard->locationArg));
+
+        self::notifyAllPlayers('replaceLineCard', clienttranslate('${player_name} uses object ${object} to replace a card with a new card from the deck'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'object' => $this->getObjectName(3),
+            'i18n' => ['object'],
+            'player' => $this->getPlayer($playerId),
+            'card' => $card,
+        ]);
+
+        $this->applyCancelObject($playerId);
+    }
+
     function usePinballMachine(int $playerId) {
         if ($this->getPlayer($playerId)->energy < 4) {
             throw new BgaUserException("Not enough energy");
@@ -543,7 +581,7 @@ trait ActionTrait {
         self::notifyAllPlayers('addCardToLine', clienttranslate('${player_name} uses object ${object} to add a 5th card'), [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
-            'object' => $this->getObjectName(6),
+            'object' => $this->getObjectName(5),
             'i18n' => ['object'],
             'player' => $this->getPlayer($playerId),
             'card' => $card,
