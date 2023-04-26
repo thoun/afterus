@@ -15,6 +15,16 @@ const RAGE = 6;
 const DIFFERENT = 7;
 const PER_TAMARINS = 8;
 
+const TYPE_FIELD_BY_NUMBER = [
+    null,
+    'flower',
+    'fruit',
+    'grain',
+    'energy',
+    'point',
+    'rage',
+];
+
 function formatTextIcons(rawText: string) {
     if (!rawText) {
         return '';
@@ -250,17 +260,29 @@ class AfterUs implements AfterUsGame {
                 const applyNeighborEffectArgs = args as EnteringApplyNeighborEffectArgs;
                 Object.entries(applyNeighborEffectArgs.cost).forEach(cardCost => {
                     const type = +cardCost[0];
-                    const canBuy = cardCost[1];
+                    //const canBuy = cardCost[1];
                     const label = _("Spend ${left} to gain ${right}")
                         .replace('${left}', getResourcesQuantityIcons([[2, type]]))
                         .replace('${right}', formatTextIcons(applyNeighborEffectArgs.gain));
                     (this as any).addActionButton(`applyNeighborEffect-${type}-button`, label, () => this.applyNeighborEffect(type));
-                    if (!canBuy) {
+                    /*if (!canBuy) {
                         document.getElementById(`applyNeighborEffect-${type}-button`).classList.add('disabled');
-                    }
+                    }*/
+                    this.setButtonActivation(`applyNeighborEffect-${type}-button`, TYPE_FIELD_BY_NUMBER[type], 2);
                 });
                 (this as any).addActionButton(`cancelNeighborEffect-button`, _("Cancel"), () => this.cancelNeighborEffect(), null, null, 'gray');
                 break;
+
+            case 'moped':
+                [1, 2].forEach(level => 
+                    [1, 2, 3, 4].forEach(type => {
+                        const cost = level == 2 ? 9 : 6;
+                        const label = _("Attract a level ${level} ${type}").replace('${level}', level).replace('${type}', this.cardsManager.getMonkeyType(type)) + formatTextIcons(` (${cost} [Energy])`);
+                        (this as any).addActionButton(`useMoped-${type}-${level}-button`, label, () => this.useMoped(type, level))
+                        this.setButtonActivation(`useMoped-${type}-${level}-button`, 'energy', cost);
+                    })
+                );
+                (this as any).addActionButton(`cancelObject-button`, _("Cancel"), () => this.cancelObject(), null, null, 'gray');
         }
     }
 
@@ -269,6 +291,15 @@ class AfterUs implements AfterUsGame {
 
 
     ///////////////////////////////////////////////////
+
+    public setButtonActivation(id: string, type: string, min: number): void {
+        const button = document.getElementById(id);
+        button.setAttribute(`data-activate-at-${type}`, ''+min);
+        const currentPlayerCounter: Counter = this[`${type}Counters`][this.getPlayerId()];
+        if (currentPlayerCounter && currentPlayerCounter.getValue() < min) {
+            button.classList.add('disabled');
+        }
+    }
 
     public setTooltip(id: string, html: string) {
         (this as any).addTooltipHtml(id, html, this.TOOLTIP_DELAY);
@@ -580,6 +611,25 @@ class AfterUs implements AfterUsGame {
         });
     }
 
+    public cancelObject(): void {
+        if(!(this as any).checkAction('cancelObject')) {
+            return;
+        }
+
+        this.takeAction('cancelObject');
+    }
+
+    public useMoped(type: number, level: number): void {
+        if(!(this as any).checkAction('useMoped')) {
+            return;
+        }
+
+        this.takeAction('useMoped', {
+            type,
+            level,
+        });
+    }
+
     public takeAction(action: string, data?: any) {
         data = data || {};
         data.lock = true;
@@ -640,10 +690,17 @@ class AfterUs implements AfterUsGame {
         this.energyCounters[playerId].toValue(player.energy);
         this.rageCounters[playerId].toValue(player.rage);
         this.setScore(playerId, +player.score);
-        this.getPlayerTable(playerId).updateRage(player.rage);
         if (playerId == this.getPlayerId()) {
             this.tableCenter.setCurrentPlayerEnergy(player.energy);
         }
+
+        ['flower', 'fruit', 'grain', 'energy', 'rage'].forEach(type => 
+            document.querySelectorAll(`[data-activate-at-${type}]`).forEach(button => {
+                const min = +button.getAttribute(`data-activate-at-${type}`);
+                const currentPlayerCounter: Counter = this[`${type}Counters`][this.getPlayerId()];
+                button.classList.toggle('disabled', currentPlayerCounter && currentPlayerCounter.getValue() < min);
+            })
+        );
     }
 
     notif_selectedToken(notif: Notif<NotifSelectedTokenArgs>) {

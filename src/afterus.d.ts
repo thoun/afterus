@@ -65,6 +65,7 @@ interface AfterUsGame extends Game {
     getPlayerColor(playerId: number): string;    
     getPlayerRage(playerId: number): number;
 
+    setButtonActivation(id: string, type: string, min: number): void;
     setTooltip(id: string, html: string): void;
     moveCard(index: number, direction: number): void;
     onFrameClicked(row: number, cardIndex: number, index: number): void;

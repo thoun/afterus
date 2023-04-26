@@ -809,16 +809,16 @@ body > .card {
   position: absolute;
 }
 #table-center #center-board .hidden-deck[data-type="1"] {
-  left: 226px;
+  left: 24px;
 }
 #table-center #center-board .hidden-deck[data-type="2"] {
-  left: 633px;
+  left: 226px;
 }
 #table-center #center-board .hidden-deck[data-type="3"] {
   left: 432px;
 }
 #table-center #center-board .hidden-deck[data-type="4"] {
-  left: 24px;
+  left: 633px;
 }
 #table-center #center-board .hidden-deck[data-level="1"] {
   top: 333px;

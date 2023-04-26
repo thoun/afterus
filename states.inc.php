@@ -212,6 +212,16 @@ $playerActionsGameStates = [
           'activateEffect' => ST_PRIVATE_ACTIVATE_EFFECT_TOKEN,
         ],
     ],
+
+    ST_PRIVATE_MOPED => [
+        "name" => "moped",
+        "descriptionmyturn" => clienttranslate('You can attract an ape of your choice'),
+        "type" => "private",
+        "possibleactions" => [ "useMoped", "cancelObject" ],
+        "transitions" => [
+            'stay' => ST_PRIVATE_MOPED,
+        ],
+    ],
 ];
 
 $gameGameStates = [

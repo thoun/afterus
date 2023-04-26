@@ -1568,9 +1568,9 @@ var PlayerTable = /** @class */ (function () {
             button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
             button.dataset.playerId = '' + _this.playerId;
             button.innerHTML = formatTextIcons('[Rage]');
-            button.classList.toggle('disabled', _this.game.getPlayerRage(_this.playerId) < 4);
             div.appendChild(button);
             button.addEventListener('click', function () { return _this.onDiscardCardClick(card); });
+            _this.game.setButtonActivation(button.id, 'rage', 4);
             _this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
         });
         this.updateVisibleMoveButtons();
@@ -1634,9 +1634,6 @@ var PlayerTable = /** @class */ (function () {
         this.setSelectedToken(null);
         this.line.removeAll();
     };
-    PlayerTable.prototype.updateRage = function (rage) {
-        document.getElementById("player-table-".concat(this.playerId)).querySelectorAll('.rage-button').forEach(function (elem) { return elem.classList.toggle('disabled', rage < 4); });
-    };
     PlayerTable.prototype.discardCard = function (card, line) {
         if (line) {
             this.line.removeAll();
@@ -1665,6 +1662,15 @@ var POINT = 5;
 var RAGE = 6;
 var DIFFERENT = 7;
 var PER_TAMARINS = 8;
+var TYPE_FIELD_BY_NUMBER = [
+    null,
+    'flower',
+    'fruit',
+    'grain',
+    'energy',
+    'point',
+    'rage',
+];
 function formatTextIcons(rawText) {
     if (!rawText) {
         return '';
@@ -1874,22 +1880,41 @@ var AfterUs = /** @class */ (function () {
                 var applyNeighborEffectArgs_1 = args;
                 Object.entries(applyNeighborEffectArgs_1.cost).forEach(function (cardCost) {
                     var type = +cardCost[0];
-                    var canBuy = cardCost[1];
+                    //const canBuy = cardCost[1];
                     var label = _("Spend ${left} to gain ${right}")
                         .replace('${left}', getResourcesQuantityIcons([[2, type]]))
                         .replace('${right}', formatTextIcons(applyNeighborEffectArgs_1.gain));
                     _this.addActionButton("applyNeighborEffect-".concat(type, "-button"), label, function () { return _this.applyNeighborEffect(type); });
-                    if (!canBuy) {
-                        document.getElementById("applyNeighborEffect-".concat(type, "-button")).classList.add('disabled');
-                    }
+                    /*if (!canBuy) {
+                        document.getElementById(`applyNeighborEffect-${type}-button`).classList.add('disabled');
+                    }*/
+                    _this.setButtonActivation("applyNeighborEffect-".concat(type, "-button"), TYPE_FIELD_BY_NUMBER[type], 2);
                 });
                 this.addActionButton("cancelNeighborEffect-button", _("Cancel"), function () { return _this.cancelNeighborEffect(); }, null, null, 'gray');
                 break;
+            case 'moped':
+                [1, 2].forEach(function (level) {
+                    return [1, 2, 3, 4].forEach(function (type) {
+                        var cost = level == 2 ? 9 : 6;
+                        var label = _("Attract a level ${level} ${type}").replace('${level}', level).replace('${type}', _this.cardsManager.getMonkeyType(type)) + formatTextIcons(" (".concat(cost, " [Energy])"));
+                        _this.addActionButton("useMoped-".concat(type, "-").concat(level, "-button"), label, function () { return _this.useMoped(type, level); });
+                        _this.setButtonActivation("useMoped-".concat(type, "-").concat(level, "-button"), 'energy', cost);
+                    });
+                });
+                this.addActionButton("cancelObject-button", _("Cancel"), function () { return _this.cancelObject(); }, null, null, 'gray');
         }
     };
     ///////////////////////////////////////////////////
     //// Utility methods
     ///////////////////////////////////////////////////
+    AfterUs.prototype.setButtonActivation = function (id, type, min) {
+        var button = document.getElementById(id);
+        button.setAttribute("data-activate-at-".concat(type), '' + min);
+        var currentPlayerCounter = this["".concat(type, "Counters")][this.getPlayerId()];
+        if (currentPlayerCounter && currentPlayerCounter.getValue() < min) {
+            button.classList.add('disabled');
+        }
+    };
     AfterUs.prototype.setTooltip = function (id, html) {
         this.addTooltipHtml(id, html, this.TOOLTIP_DELAY);
     };
@@ -2117,6 +2142,21 @@ var AfterUs = /** @class */ (function () {
             number: number,
         });
     };
+    AfterUs.prototype.cancelObject = function () {
+        if (!this.checkAction('cancelObject')) {
+            return;
+        }
+        this.takeAction('cancelObject');
+    };
+    AfterUs.prototype.useMoped = function (type, level) {
+        if (!this.checkAction('useMoped')) {
+            return;
+        }
+        this.takeAction('useMoped', {
+            type: type,
+            level: level,
+        });
+    };
     AfterUs.prototype.takeAction = function (action, data) {
         data = data || {};
         data.lock = true;
@@ -2163,6 +2203,7 @@ var AfterUs = /** @class */ (function () {
         this.getPlayerTable(notif.args.playerId).switchCards(notif.args.movedCards);
     };
     AfterUs.prototype.notif_activatedEffect = function (notif) {
+        var _this = this;
         var playerId = notif.args.playerId;
         var player = notif.args.player;
         this.flowerCounters[playerId].toValue(player.flowers);
@@ -2171,10 +2212,16 @@ var AfterUs = /** @class */ (function () {
         this.energyCounters[playerId].toValue(player.energy);
         this.rageCounters[playerId].toValue(player.rage);
         this.setScore(playerId, +player.score);
-        this.getPlayerTable(playerId).updateRage(player.rage);
         if (playerId == this.getPlayerId()) {
             this.tableCenter.setCurrentPlayerEnergy(player.energy);
         }
+        ['flower', 'fruit', 'grain', 'energy', 'rage'].forEach(function (type) {
+            return document.querySelectorAll("[data-activate-at-".concat(type, "]")).forEach(function (button) {
+                var min = +button.getAttribute("data-activate-at-".concat(type));
+                var currentPlayerCounter = _this["".concat(type, "Counters")][_this.getPlayerId()];
+                button.classList.toggle('disabled', currentPlayerCounter && currentPlayerCounter.getValue() < min);
+            });
+        });
     };
     AfterUs.prototype.notif_selectedToken = function (notif) {
         var _this = this;

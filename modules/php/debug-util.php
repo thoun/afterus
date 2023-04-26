@@ -23,6 +23,8 @@ trait DebugUtilTrait {
         $this->DbQuery("UPDATE player SET `player_$field` = $amount where `player_id` = $playerId");
     }
 
+    function debugSetFlower($amount) { $this->debugSet('flower', $amount); }
+    function debugSetPlayerFlower($playerId, $amount) { $this->debugSetPlayer($playerId, 'flower', $amount); }
     function debugSetEnergy($amount) { $this->debugSet('energy', $amount); }
     function debugSetPlayerEnergy($playerId, $amount) { $this->debugSetPlayer($playerId, 'energy', $amount); }
     function debugSetRage($amount) { $this->debugSet('rage', $amount); }

@@ -47,6 +47,8 @@ define('ST_PRIVATE_BUY_CARD', 61);
 define('ST_PRIVATE_APPLY_NEIGHBOR_EFFECT', 62);
 
 
+define('ST_PRIVATE_MOPED', 87);
+
 define('ST_MULTIPLAYER_PHASE3', 90);
 
 define('ST_END_ROUND', 95);

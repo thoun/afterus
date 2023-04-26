@@ -311,6 +311,26 @@ trait ActionTrait {
         $this->gamestate->nextPrivateState($playerId, 'next');
     }
 
+    private function takeCard(int $playerId, int $level, int $type, array $cost) {
+        $this->giveResource($playerId, $cost);
+
+        $locationArg = intval($this->getUniqueValueFromDB("SELECT max(`card_location_arg`) FROM `card` WHERE `card_location` = 'deck$playerId'")) + 1;
+        $card = $this->getCardFromDb($this->cards->pickCardForLocation("deck-$type-$level", 'deck'.$playerId, $locationArg));
+
+        self::notifyAllPlayers('buyCard', _('${player_name} buy a level ${level} ${type} card with ${resources}'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'player' => $this->getPlayer($playerId),
+            'type' => $this->getMonkeyType($type), // for logs
+            'level' => $level, // for logs
+            'i18n' => ['type'],
+            'card' => $card, // TODO show only to player ?
+            'deckType' => $type * 10 + $level,
+            'deckCount' => intval($this->cards->countCardInLocation("deck-$type-$level")),
+            'resources' => $this->getResourcesStr([$cost]),
+        ]);
+    }
+
     public function buyCard(int $level, int $type) {
         self::checkAction('buyCard');
 
@@ -321,25 +341,8 @@ trait ActionTrait {
             throw new BgaUserException("You can't pay for that");
         }
 
-        $this->giveResource($playerId, [3 * $level, $type]);
-
         $this->DbQuery("UPDATE `player` SET `phase2_card_bought` = TRUE WHERE `player_id` = $playerId");
-
-        $monkeyType = $args['token'];
-        $locationArg = intval($this->getUniqueValueFromDB("SELECT max(`card_location_arg`) FROM `card` WHERE `card_location` = 'deck$playerId'")) + 1;
-        $card = $this->getCardFromDb($this->cards->pickCardForLocation("deck-$monkeyType-$level", 'deck'.$playerId, $locationArg));
-
-        self::notifyAllPlayers('buyCard', _('${player_name} buy a level ${level} ${type} card'), [
-            'playerId' => $playerId,
-            'player_name' => $this->getPlayerName($playerId),
-            'player' => $this->getPlayer($playerId),
-            'type' => $this->getMonkeyType($type), // for logs
-            'level' => $level, // for logs
-            'i18n' => ['type'],
-            'card' => $card, // TODO show only to player ?
-            'deckType' => $type * 10 + $level,
-            'deckCount' => intval($this->cards->countCardInLocation("deck-$monkeyType-$level")),
-        ]);
+        $this->takeCard($playerId, $level, $args['token'], [3 * $level, $type]);
 
         //if ($args['canUseNeighborToken']) {
             $this->gamestate->nextPrivateState($playerId, 'stay');
@@ -416,6 +419,52 @@ trait ActionTrait {
         }
     }  
 
+    function useObject(int $number) {
+        if ($number < 1 || $number > 7) {
+            throw new BgaUserException("Invalid card number");
+        }
+
+        $playerId = intval($this->getCurrentPlayerId());
+        $stateId = $this->getPlayerPrivateState($playerId);
+        if ($stateId >= 80 && $stateId < 90) {
+            throw new BgaUserException("You're already activating an object");
+        }
+        
+        switch ($number) {
+            case 6:
+                $this->useComputer($playerId);
+                break;
+            case 7:
+                if ($this->getPlayer($playerId)->energy < 6) {
+                    throw new BgaUserException("Not enough energy");
+                }
+
+                $this->savePrivateStateBeforeObject($playerId, $stateId);
+                $this->gamestate->setPrivateState($playerId, 80 + $number);
+                break;
+            default:
+                throw new BgaUserException("Not yet implemented");
+        }
+    }  
+
+    function applyCancelObject(int $playerId) {
+        $stateBefore = $this->getPlayer($playerId)->privateStateBeforeObject;
+
+        if ($stateBefore > 0) {
+            $this->savePrivateStateBeforeObject($playerId, 0);
+            $this->gamestate->setPrivateState($playerId, $stateBefore);
+        } else {
+            $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+        }
+    }
+
+    function cancelObject() {
+        self::checkAction('cancelObject');
+
+        $playerId = intval($this->getCurrentPlayerId());
+        $this->applyCancelObject($playerId);
+    }
+
     function useComputer(int $playerId) {
         if ($this->getPlayer($playerId)->energy < 5) {
             throw new BgaUserException("Not enough energy");
@@ -424,7 +473,7 @@ trait ActionTrait {
         $left = [5, ENERGY];
         $right = [5, POINT];
         $this->giveResource($playerId, $left);
-        $this->gainResource($playerId, $right, []);        
+        $this->gainResource($playerId, $right, []);
         
         self::notifyAllPlayers('activatedEffect', clienttranslate('${player_name} uses object ${object} to convert ${left} to ${right}'), [
             'playerId' => $playerId,
@@ -437,19 +486,18 @@ trait ActionTrait {
         ]);
     }
 
-    function useObject(int $number) {        
-        if ($number < 1 || $number > 7) {
-            throw new BgaUserException("Invalid card number");
-        }
+    function useMoped(int $type, int $level) {
+        self::checkAction('useMoped');
 
         $playerId = intval($this->getCurrentPlayerId());
-        
-        switch ($number) {
-            case 6:
-                $this->useComputer($playerId);
-                break;
-            default:
-                throw new BgaUserException("Not yet implemented");
+
+        $cost = $level == 2 ? 9 : 6;
+        if ($this->getPlayer($playerId)->energy < $cost) {
+            throw new BgaUserException("Not enough energy");
         }
+
+        $this->takeCard($playerId, $level, $type, [$cost, ENERGY]);
+
+        $this->applyCancelObject($playerId);
     }  
 }

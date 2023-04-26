@@ -184,6 +184,24 @@
         self::ajaxResponse();
     }  
 
+    public function cancelObject() {
+        self::setAjaxMode();
+        
+        $this->game->cancelObject();
+
+        self::ajaxResponse();
+    }  
+
+    public function useMoped() {
+        self::setAjaxMode();
+
+        $type = self::getArg("type", AT_posint, true);
+        $level = self::getArg("level", AT_posint, true);
+        $this->game->useMoped($type, $level);
+
+        self::ajaxResponse();
+    }
+
   }
   
 

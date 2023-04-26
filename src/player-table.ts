@@ -101,9 +101,9 @@ class PlayerTable {
             button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
             button.dataset.playerId = ''+this.playerId;
             button.innerHTML = formatTextIcons('[Rage]');
-            button.classList.toggle('disabled', this.game.getPlayerRage(this.playerId) < 4);
             div.appendChild(button);
             button.addEventListener('click', () => this.onDiscardCardClick(card));
+            this.game.setButtonActivation(button.id, 'rage', 4);
             this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
         });
         this.updateVisibleMoveButtons();
@@ -174,10 +174,6 @@ class PlayerTable {
     public endRound() {
         this.setSelectedToken(null);
         this.line.removeAll();
-    }
-    
-    public updateRage(rage: number) {
-        document.getElementById(`player-table-${this.playerId}`).querySelectorAll('.rage-button').forEach(elem => elem.classList.toggle('disabled', rage < 4));
     }
     
     public discardCard(card: Card, line?: Card[]) {

@@ -20,10 +20,10 @@
         .hidden-deck {
             position: absolute;
 
-            &[data-type="1"] { left: 226px; }
-            &[data-type="2"] { left: 633px; }
+            &[data-type="1"] { left: 24px; }
+            &[data-type="2"] { left: 226px; }
             &[data-type="3"] { left: 432px; }
-            &[data-type="4"] { left: 24px; }
+            &[data-type="4"] { left: 633px; }
 
             &[data-level="1"] { top: 333px; }
             &[data-level="2"] { top: 23px; }

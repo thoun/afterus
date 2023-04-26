@@ -403,7 +403,11 @@ trait UtilTrait {
     }
 
     function getPlayerPrivateState(int $playerId) {
-        return intval($this->getUniqueValueFromDB("SELECT `player_state` FROM `player` WHERE `player_id` = $playerId"));
+        return $this->gamestate->isPlayerActive($playerId) ? intval($this->getUniqueValueFromDB("SELECT `player_state` FROM `player` WHERE `player_id` = $playerId")) : 0;
+    }
+
+    function savePrivateStateBeforeObject(int $playerId, int $stateId) {
+        $this->DbQuery("UPDATE `player` SET `private_state_before_object` = $stateId WHERE `player_id` = $playerId");        
     }
 
     function applyAutoGainEffects(int $playerId) {

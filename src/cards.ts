@@ -109,7 +109,7 @@ class CardsManager extends CardManager<Card> {
         }
     }
 
-    private getMonkeyType(type: number) {
+    public getMonkeyType(type: number) {
         switch (type) {
             case 0: return _('tamarin');
             case 1: return _('mandrill');

@@ -15,6 +15,7 @@ class AfterUsPlayer {
     public /*int|null*/ $phase2copiedType;
     public bool $phase2cardBought;
     public bool $autoGain;
+    public int $privateStateBeforeObject;
 
     public function __construct($dbPlayer) {
         $this->id = intval($dbPlayer['player_id']);
@@ -31,6 +32,7 @@ class AfterUsPlayer {
         $this->phase2copiedType = $dbPlayer['phase2_copied_type'] === null ? null : intval($dbPlayer['phase2_copied_type']);
         $this->phase2cardBought = boolval($dbPlayer['phase2_card_bought']);
         $this->autoGain = boolval($dbPlayer['player_auto_gain']);
+        $this->privateStateBeforeObject = intval($dbPlayer['private_state_before_object']);
     }
 }
 ?>
