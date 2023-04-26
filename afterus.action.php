@@ -220,6 +220,15 @@
         self::ajaxResponse();
     }
 
+    public function useGameConsole() {
+        self::setAjaxMode();
+
+        $id = self::getArg("id", AT_posint, true);
+        $this->game->useGameConsole($id);
+
+        self::ajaxResponse();
+    }
+
     public function useMoped() {
         self::setAjaxMode();
 

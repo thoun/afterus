@@ -223,6 +223,10 @@ class PlayerTable {
         this.line.addCard(card);
     }
 
+    public replaceTopDeck(card: Card) {
+        this.line.removeCard(this.line.getCards().find(c => c.locationArg == card.locationArg));
+    }
+
     private updateVisibleMoveButtons() {
         const cards = this.line.getCards();
 

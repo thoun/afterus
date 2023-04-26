@@ -101,6 +101,7 @@ interface EnteringBuyCardArgs {
     buyCardCost: { [level: number]: { [type: number]: boolean }; };
     canBuyCard: boolean;
     type: string;
+    canUseGameConsole: boolean;
 }
 
 interface EnteringApplyNeighborEffectArgs {
@@ -168,5 +169,10 @@ interface NotifAddCardToLineArgs extends NotifActivatedEffectArgs {
 
 // replaceLineCard
 interface NotifReplaceLineCardArgs extends NotifActivatedEffectArgs {
+    card: Card;
+}
+
+// replaceTopDeck
+interface NotifReplaceTopDeckArgs extends NotifActivatedEffectArgs {
     card: Card;
 }

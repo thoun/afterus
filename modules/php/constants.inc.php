@@ -52,8 +52,6 @@ define('ST_PRIVATE_GHETTO_BLASTER', 83);
 define('ST_PRIVATE_GAME_CONSOLE', 84);
 define('ST_PRIVATE_MOPED', 87);
 
-define('ST_MULTIPLAYER_PHASE3', 90);
-
 define('ST_END_ROUND', 95);
 
 define('ST_END_SCORE', 98);

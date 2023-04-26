@@ -603,6 +603,43 @@ trait ActionTrait {
         $this->applyCancelObject($playerId);
     }
 
+    public function useGameConsole(int $id) {
+        self::checkAction('useGameConsole');
+
+        $playerId = intval($this->getCurrentPlayerId());
+    
+        $card = $this->getCardFromDb($this->cards->getCard($id));
+        $level = $card->level;
+        if ($level < 1) {
+            throw new BgaUserException("Invalid card");
+        }
+        $cost = $level * 2 + 1;
+        if ($this->getPlayer($playerId)->energy < $cost) {
+            throw new BgaUserException("Not enough energy");
+        }
+        
+        $this->saveUsedObject($playerId, 4);
+
+        $left = [$cost, ENERGY];
+        $this->giveResource($playerId, $left);
+
+        $locationArg = intval($this->getUniqueValueFromDB("SELECT max(`card_location_arg`) FROM `card` WHERE `card_location` = 'deck$playerId'")) + 1;
+        $this->cards->moveCard($card->id, 'deck'.$playerId, $locationArg);
+
+        self::notifyAllPlayers('replaceTopDeck', clienttranslate('${player_name} uses object ${object} to place a card on top of its draw pile'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'object' => $this->getObjectName(4),
+            'i18n' => ['object'],
+            'player' => $this->getPlayer($playerId),
+            'card' => $card,
+        ]);
+
+        $this->applyCancelObject($playerId);        
+
+        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+    }
+
     function usePinballMachine(int $playerId) {
         if ($this->getPlayer($playerId)->energy < 4) {
             throw new BgaUserException("Not enough energy");

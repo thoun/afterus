@@ -165,7 +165,10 @@ class AfterUs implements AfterUsGame {
                 this.getCurrentPlayerTable().addButtonsOnCards(card => _('Replace this card') + formatTextIcons(` (${card.level + 1} [Energy])`), card => this.useMobilePhone(card.id), 1);
                 break;
             case 'ghettoBlaster':
-                this.getCurrentPlayerTable().addButtonsOnCards(card => _('Replace this card') + formatTextIcons(' (2 [Energy])'), card => this.useGhettoBlaster(card.id));
+                this.getCurrentPlayerTable().addButtonsOnCards(() => _('Replace this card') + formatTextIcons(' (2 [Energy])'), card => this.useGhettoBlaster(card.id));
+                break;
+            case 'gameConsole':
+                this.getCurrentPlayerTable().addButtonsOnCards(card => _('Place this card top of draw pile') + formatTextIcons(` (${card.level * 2 + 1} [Energy])`), card => this.useGameConsole(card.id), 1);
                 break;
         }
     }
@@ -189,6 +192,7 @@ class AfterUs implements AfterUsGame {
 
             case 'mobilePhone':
             case 'ghettoBlaster':
+            case 'gameConsole':
                 this.getCurrentPlayerTable().removeButtonsOnCards();
                 break;
         }
@@ -274,7 +278,13 @@ class AfterUs implements AfterUsGame {
                     });
                 }
 
-                (this as any).addActionButton(`endTurn-button`, _("End turn"), () => this.endTurn(), null, null, 'red');
+                let endTurnLabel = _("End turn");
+                const canUseGameConsole = buyCardArgs.canUseGameConsole;
+                if (canUseGameConsole) {
+                    (this as any).addActionButton(`endTurnGameConsole-button`, endTurnLabel + ' (' + _("use Game Console") + ')', () => this.useObject(4), null, null, 'red');
+                    endTurnLabel += ' (' + _("without using Game Console") + ')';
+                }
+                (this as any).addActionButton(`endTurn-button`, endTurnLabel, () => this.endTurn(), null, null, 'red');
                 break;
             case 'applyNeighborEffect':
                 const applyNeighborEffectArgs = args as EnteringApplyNeighborEffectArgs;
@@ -701,6 +711,16 @@ class AfterUs implements AfterUsGame {
         });
     }
 
+    public useGameConsole(id: number): void {
+        if(!(this as any).checkAction('useGameConsole')) {
+            return;
+        }
+
+        this.takeAction('useGameConsole', {
+            id,
+        });
+    }
+
     public useMoped(type: number, level: number): void {
         if(!(this as any).checkAction('useMoped')) {
             return;
@@ -748,6 +768,7 @@ class AfterUs implements AfterUsGame {
             ['discardedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
             ['replaceLineCard', ANIMATION_MS],
+            ['replaceTopDeck', ANIMATION_MS],
             ['lastTurn', 1],
             ['useObject', 1],
         ];
@@ -827,6 +848,11 @@ class AfterUs implements AfterUsGame {
 
     notif_replaceLineCard(notif: Notif<NotifReplaceLineCardArgs>) {
         this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.card);
+        this.notif_activatedEffect(notif);
+    } 
+
+    notif_replaceTopDeck(notif: Notif<NotifReplaceTopDeckArgs>) {
+        this.getPlayerTable(notif.args.playerId).replaceTopDeck(notif.args.card);
         this.notif_activatedEffect(notif);
     }
 

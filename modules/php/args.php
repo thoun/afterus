@@ -116,12 +116,19 @@ trait ArgsTrait {
             }
         }
 
+        $canUseGameConsole = false;
+        if (in_array(4, $this->getGlobalVariable(OBJECTS, true) ?? [])) {
+            $line = $this->getCardsByLocation('line'.$playerId);
+            $canUseGameConsole = $this->array_some($line, fn($card) => $card->level > 0);
+        }
+
         return [
             'token' => $token,
             'neighborTokens' => $neighborTokens,
             'canUseNeighborToken' => $canUseNeighborToken,
             'buyCardCost' => $buyCardCost,
             'canBuyCard' => $canBuyCard,
+            'canUseGameConsole' => $canUseGameConsole,
             'type' => $this->getMonkeyType($type), // for logs
             'i18n' => ['type'],
         ];
