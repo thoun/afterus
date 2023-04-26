@@ -85,7 +85,6 @@ class AfterUs extends Table {
             if (array_key_exists($player_id, $this->player_preferences) && array_key_exists(201, $this->player_preferences[$player_id])) {
                 $autoGain = intval($this->player_preferences[$player_id][201]);
             }
-            //$autoActivate = array_key_exists(201, $this->player_preferences) && $this->player_preferences[201] == 1;
             $values[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."', $autoGain)";
         }
         $sql .= implode(',', $values);

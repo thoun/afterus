@@ -157,9 +157,27 @@
                             background-position-x: #{($number - 1) * 100% / 6};
                         }
                     }
+
+                    box-shadow: 0px 0px 3px 2px black;
+                    cursor: not-allowed;
                 }
             }
         }  
+
+        &.current-phase {
+            .card-sides .card-side.front {
+                box-shadow: 0px 0px 3px 2px lightgreen;
+            } 
+
+            &:not(.disabled) .card-sides .card-side.front {
+                cursor: pointer;
+            }
+        }
+
+        &:not(.current-phase) {
+            cursor: not-allowed;
+            filter: contrast(0.6);
+        }
     }
 }
 

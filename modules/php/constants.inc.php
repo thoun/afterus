@@ -45,9 +45,12 @@ define('ST_MULTIPLAYER_PHASE2', 60);
 define('ST_PRIVATE_BUY_CARD', 61);
 define('ST_PRIVATE_APPLY_NEIGHBOR_EFFECT', 62);
 
-define('ST_END_ROUND', 80);
 
-define('ST_END_SCORE', 90);
+define('ST_MULTIPLAYER_PHASE3', 90);
+
+define('ST_END_ROUND', 95);
+
+define('ST_END_SCORE', 98);
 
 define('ST_END_GAME', 99);
 define('END_SCORE', 100);

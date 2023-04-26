@@ -122,6 +122,9 @@ class AfterUs implements AfterUsGame {
     //
     public onEnteringState(stateName: string, args: any) {
         log('Entering state: ' + stateName, args.args);
+        if (!(this as any).isSpectator) {
+            this.tableCenter.onEnteringState(+args.id);
+        }
 
         switch (stateName) {
             case 'orderCards':
@@ -329,16 +332,14 @@ class AfterUs implements AfterUsGame {
     }
 
     private createPlayerPanels(gamedatas: AfterUsGamedatas) {
+        document.querySelectorAll('#player_boards .player_score i.fa-star').forEach(elem => {
+            elem.classList.remove('fa', 'fa-star');
+            elem.classList.add('icon', 'point');
+        });
 
         const players = Object.values(gamedatas.players);
         players.forEach((player, index) => {
             const playerId = Number(player.id);
-
-            console.log(document.querySelectorAll('#player_boards .player_score i.fa-star'));
-            document.querySelectorAll('#player_boards .player_score i.fa-star').forEach(elem => {
-                elem.classList.remove('fa', 'fa-star');
-                elem.classList.add('icon', 'point');
-            });
 
             let html = `
             <div class="counters">
@@ -632,6 +633,9 @@ class AfterUs implements AfterUsGame {
         this.rageCounters[playerId].toValue(player.rage);
         this.setScore(playerId, +player.score);
         this.getPlayerTable(playerId).updateRage(player.rage);
+        if (playerId == this.getPlayerId()) {
+            this.tableCenter.setCurrentPlayerEnergy(player.energy);
+        }
     }
 
     notif_selectedToken(notif: Notif<NotifSelectedTokenArgs>) {

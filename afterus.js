@@ -1401,6 +1401,33 @@ var ObjectsManager = /** @class */ (function (_super) {
     };
     return ObjectsManager;
 }(CardManager));
+var STATE_TO_PHASE = {
+    25: 11,
+    26: 12,
+    40: 21,
+    //60: 21, // ST_MULTIPLAYER_PHASE2
+    80: 0,
+    90: 31,
+    95: 0, //ST_END_ROUND
+};
+var OBJECT_ACTIVE_PHASES = {
+    1: [11],
+    2: [11, 12, 21],
+    3: [11],
+    4: [31],
+    5: [11],
+    6: [11, 12, 21, 31],
+    7: [21],
+};
+var OBJECT_MIN_COST = {
+    1: 2,
+    2: 1,
+    3: 2,
+    4: 3,
+    5: 4,
+    6: 5,
+    7: 6,
+};
 var TableCenter = /** @class */ (function () {
     function TableCenter(game, gamedatas) {
         var _this = this;
@@ -1428,10 +1455,31 @@ var TableCenter = /** @class */ (function () {
         this.objects = new LineStock(this.objectsManager, document.getElementById("objects"));
         this.objects.addCards(gamedatas.objects);
         this.objects.onCardClick = function (number) { return _this.game.useObject(number); };
+        var stateId = +gamedatas.gamestate.id;
+        this.onEnteringState(stateId);
+        if (gamedatas.players[this.game.getPlayerId()]) {
+            this.setCurrentPlayerEnergy(gamedatas.players[this.game.getPlayerId()].energy);
+        }
     }
     TableCenter.prototype.setRemaining = function (deckType, deckCount) {
         this.hiddenDecks[deckType].setCardNumber(deckCount);
         this.cardCounters[deckType].setValue(deckCount);
+    };
+    TableCenter.prototype.setObjectPhase = function (object, phase) {
+        this.objects.getCardElement(object).classList.toggle('current-phase', OBJECT_ACTIVE_PHASES[object].includes(phase));
+    };
+    TableCenter.prototype.onEnteringState = function (stateId) {
+        var _this = this;
+        var stateToPhaseIds = Object.keys(STATE_TO_PHASE).map(function (val) { return +val; });
+        stateToPhaseIds.forEach(function (id, index) {
+            if (stateId >= id && (index == stateToPhaseIds.length - 1 || stateId < stateToPhaseIds[index + 1])) {
+                _this.objects.getCards().forEach(function (object) { return _this.setObjectPhase(object, STATE_TO_PHASE[id]); });
+            }
+        });
+    };
+    TableCenter.prototype.setCurrentPlayerEnergy = function (energy) {
+        var _this = this;
+        this.objects.getCards().forEach(function (object) { return _this.objects.getCardElement(object).classList.toggle('disabled', OBJECT_MIN_COST[object] > energy); });
     };
     return TableCenter;
 }());
@@ -1701,6 +1749,9 @@ var AfterUs = /** @class */ (function () {
     //
     AfterUs.prototype.onEnteringState = function (stateName, args) {
         log('Entering state: ' + stateName, args.args);
+        if (!this.isSpectator) {
+            this.tableCenter.onEnteringState(+args.id);
+        }
         switch (stateName) {
             case 'orderCards':
                 var playerTable = this.getCurrentPlayerTable();
@@ -1889,14 +1940,13 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.createPlayerPanels = function (gamedatas) {
         var _this = this;
+        document.querySelectorAll('#player_boards .player_score i.fa-star').forEach(function (elem) {
+            elem.classList.remove('fa', 'fa-star');
+            elem.classList.add('icon', 'point');
+        });
         var players = Object.values(gamedatas.players);
         players.forEach(function (player, index) {
             var playerId = Number(player.id);
-            console.log(document.querySelectorAll('#player_boards .player_score i.fa-star'));
-            document.querySelectorAll('#player_boards .player_score i.fa-star').forEach(function (elem) {
-                elem.classList.remove('fa', 'fa-star');
-                elem.classList.add('icon', 'point');
-            });
             var html = "\n            <div class=\"counters\">\n                <div id=\"flower-counter-wrapper-".concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon flower\"></div> \n                    <span id=\"flower-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"fruit-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon fruit\"></div> \n                    <span id=\"fruit-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"grain-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon grain\"></div> \n                    <span id=\"grain-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"energy-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon energy\"></div> \n                    <span id=\"energy-counter-").concat(player.id, "\"></span>\n                </div>\n            </div>\n            <div class=\"counters\">\n                <div id=\"rage-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon rage\"></div> \n                    <span id=\"rage-counter-").concat(player.id, "\"></span>\n                </div>\n            </div>");
             dojo.place(html, "player_board_".concat(player.id));
             _this.addTooltipHtml("flower-counter-wrapper-".concat(player.id), _("Flowers"));
@@ -2113,6 +2163,9 @@ var AfterUs = /** @class */ (function () {
         this.rageCounters[playerId].toValue(player.rage);
         this.setScore(playerId, +player.score);
         this.getPlayerTable(playerId).updateRage(player.rage);
+        if (playerId == this.getPlayerId()) {
+            this.tableCenter.setCurrentPlayerEnergy(player.energy);
+        }
     };
     AfterUs.prototype.notif_selectedToken = function (notif) {
         var currentPlayer = this.getPlayerId() == notif.args.playerId;

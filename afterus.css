@@ -748,6 +748,8 @@ body > .card {
 .card.object .card-sides .card-side.front {
   background-size: auto 100%;
   background-image: url("img/objects.jpg");
+  box-shadow: 0px 0px 3px 2px black;
+  cursor: not-allowed;
 }
 .card.object .card-sides .card-side.front[data-number="1"] {
   background-position-x: 0%;
@@ -769,6 +771,16 @@ body > .card {
 }
 .card.object .card-sides .card-side.front[data-number="7"] {
   background-position-x: 100%;
+}
+.card.object.current-phase .card-sides .card-side.front {
+  box-shadow: 0px 0px 3px 2px lightgreen;
+}
+.card.object.current-phase:not(.disabled) .card-sides .card-side.front {
+  cursor: pointer;
+}
+.card.object:not(.current-phase) {
+  cursor: not-allowed;
+  filter: contrast(0.6);
 }
 
 /*@keyframes selectable-card-animation {
