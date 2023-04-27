@@ -247,24 +247,6 @@ body > .card {
   width: 142px;
   height: 198px;
   border-radius: 8px;
-  /*&.selectable:not(.disabled) {
-      cursor: pointer;
-      &:not(.selected) {
-          animation: selectable-card-animation 1s alternate infinite ease-in-out;
-      }
-
-      .card-side {
-          box-shadow: unset;
-      }
-  }    
-
-  &.selected:not(.disabled) {
-      box-shadow: 0 0 5px 8px #e273f5;
-
-      .card-side {
-          box-shadow: unset;
-      }
-  } */
 }
 .card.disabled {
   cursor: not-allowed;
@@ -735,6 +717,9 @@ body > .card {
   left: 0 !important;
   border-left-width: 0;
 }
+.card[data-side=back] button {
+  display: none;
+}
 .card.object {
   border-radius: 14px;
 }
@@ -1010,6 +995,33 @@ body > .card {
 .player-table .rage-button .rage.icon {
   width: 24px;
   height: 24px;
+}
+.player-table .hidden-deck {
+  position: absolute;
+  top: -66px;
+}
+.player-table .hidden-deck.deck-stock {
+  left: 0;
+}
+.player-table .hidden-deck.discard-stock {
+  right: 0;
+}
+.player-table .hidden-deck[data-empty=true] {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+}
+.player-table .deck-counter {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 24px;
+  z-index: 1;
+  box-shadow: 0 0 3px 1px black;
+  right: 0;
+  top: -10px;
 }
 
 /* make space between buttons on touch devices */

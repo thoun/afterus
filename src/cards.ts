@@ -2,6 +2,9 @@ const OPENED_LEFT = 1;
 const CLOSED = 2;
 const OPENED_RIGHT = 3;
 
+const CARD_WIDTH = 142;
+const CARD_HEIGHT = 198;
+
 class CardsManager extends CardManager<Card> {
     constructor (public game: AfterUsGame) {
         super(game, {

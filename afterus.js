@@ -1209,6 +1209,8 @@ var CardManager = /** @class */ (function () {
 var OPENED_LEFT = 1;
 var CLOSED = 2;
 var OPENED_RIGHT = 3;
+var CARD_WIDTH = 142;
+var CARD_HEIGHT = 198;
 var CardsManager = /** @class */ (function (_super) {
     __extends(CardsManager, _super);
     function CardsManager(game) {
@@ -1443,8 +1445,9 @@ var TableCenter = /** @class */ (function () {
                 document.getElementById('center-board').insertAdjacentHTML('beforeend', "\n                    <div id=\"hidden-deck-".concat(type, "\" data-type=\"").concat(monkeyType, "\" data-level=\"").concat(level, "\">\n                        <div id=\"hidden-deck-").concat(type, "-card-counter\" class=\"card-counter\" data-level=\"").concat(level, "\"></div>\n                    </div>\n                "));
                 _this.hiddenDecks[type] = new HiddenDeck(_this.game.cardsManager, document.getElementById("hidden-deck-".concat(type)), {
                     cardNumber: count,
-                    width: 142,
-                    height: 198,
+                    width: CARD_WIDTH,
+                    height: CARD_HEIGHT,
+                    autoUpdateCardNumber: false,
                 });
                 _this.cardCounters[type] = new ebg.counter();
                 _this.cardCounters[type].create("hidden-deck-".concat(type, "-card-counter"));
@@ -1463,6 +1466,9 @@ var TableCenter = /** @class */ (function () {
             this.setCurrentPlayerEnergy(gamedatas.players[this.game.getPlayerId()].energy);
         }
     }
+    TableCenter.prototype.addCardToDeck = function (card) {
+        this.hiddenDecks[card.level * 10 + card.type].addCard(card);
+    };
     TableCenter.prototype.setRemaining = function (deckType, deckCount) {
         this.hiddenDecks[deckType].setCardNumber(deckCount);
         this.cardCounters[deckType].setValue(deckCount);
@@ -1563,7 +1569,7 @@ var PlayerTable = /** @class */ (function () {
                 <div id="player-table-${this.playerId}-hand" class="hand cards"></div>
             </div>`;
         }*/
-        html += "\n        <div id=\"player-table-".concat(this.playerId, "-line\"></div>\n        </div>\n        ");
+        html += "\n        \n        <div id=\"player-table-".concat(this.playerId, "-deck\" class=\"deck-stock\">\n            <div id=\"player-table-").concat(this.playerId, "-deck-counter\" class=\"deck-counter\"></div>\n        </div>\n        <div id=\"player-table-").concat(this.playerId, "-line\"></div>        \n        <div id=\"player-table-").concat(this.playerId, "-discard\" class=\"discard-stock\">\n            <div id=\"player-table-").concat(this.playerId, "-discard-counter\" class=\"deck-counter\"></div>\n        </div>\n        </div>\n        ");
         dojo.place(html, document.getElementById('tables'));
         this.line = new CardLine(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-line")), {
             wrap: 'nowrap',
@@ -1571,8 +1577,26 @@ var PlayerTable = /** @class */ (function () {
             slotsIds: Array.from(Array(Math.max.apply(Math, player.line.map(function (card) { return card.locationArg; })) + 1).keys()),
             mapCardToSlot: function (card) { return card.locationArg; }
         }, game, this.currentPlayer);
-        this.newRound(player.line);
+        this.newRound(player.line, false);
         this.setSelectedToken(player.chosenToken);
+        this.deck = new HiddenDeck(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-deck")), {
+            cardNumber: player.deckCount,
+            width: CARD_WIDTH,
+            height: CARD_HEIGHT,
+            autoUpdateCardNumber: false,
+        });
+        this.deckCounter = new ebg.counter();
+        this.deckCounter.create("player-table-".concat(this.playerId, "-deck-counter"));
+        this.deckCounter.setValue(player.deckCount);
+        this.discard = new HiddenDeck(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-discard")), {
+            cardNumber: player.discardCount,
+            width: CARD_WIDTH,
+            height: CARD_HEIGHT,
+            autoUpdateCardNumber: false,
+        });
+        this.discardCounter = new ebg.counter();
+        this.discardCounter.create("player-table-".concat(this.playerId, "-discard-counter"));
+        this.discardCounter.setValue(player.discardCount);
     }
     PlayerTable.prototype.onDiscardCardClick = function (card) {
         var _this = this;
@@ -1598,13 +1622,19 @@ var PlayerTable = /** @class */ (function () {
         this.game.setButtonActivation(button.id, 'rage', 4);
         this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
     };
-    PlayerTable.prototype.newRound = function (cards) {
+    PlayerTable.prototype.newRound = function (cards, fromDeck) {
         var _this = this;
         this.line.removeAll();
         this.line.setSlotsIds(Array.from(Array(Math.max.apply(Math, cards.map(function (card) { return card.locationArg; })) + 1).keys()));
+        if (fromDeck) {
+            this.deck.addCards(cards);
+        }
         this.line.addCards(cards);
         cards.forEach(function (card) { return _this.addRageButton(card); });
         this.updateVisibleMoveButtons();
+        if (fromDeck) {
+            this.setDeckCount(this.deckCounter.getValue() - cards.length);
+        }
     };
     PlayerTable.prototype.setMovable = function (movable) {
         document.getElementById("player-table-".concat(this.playerId)).classList.toggle('move-phase', movable);
@@ -1663,12 +1693,16 @@ var PlayerTable = /** @class */ (function () {
     };
     PlayerTable.prototype.endRound = function () {
         this.setSelectedToken(null);
-        this.line.removeAll();
+        var cards = this.line.getCards();
+        this.discard.addCards(cards);
+        this.setDiscardCount(this.discardCounter.getValue() + cards.length);
     };
     PlayerTable.prototype.discardCard = function (card, line) {
+        this.discard.addCard(card);
+        this.setDiscardCount(this.discardCounter.getValue() + 1);
         if (line) {
             this.line.removeAll();
-            this.newRound(line);
+            this.newRound(line, false);
         }
         else {
             this.line.removeCard(card);
@@ -1676,6 +1710,7 @@ var PlayerTable = /** @class */ (function () {
         this.updateVisibleMoveButtons();
     };
     PlayerTable.prototype.addCardToLine = function (card, line) {
+        this.deck.addCard(card);
         /*if (card.locationArg > this.line.getSlotsIds().length) {
             this.line.setSlotsIds() = new CardLine(this.game.cardsManager, handDiv, {
                 gap: '0',
@@ -1683,14 +1718,16 @@ var PlayerTable = /** @class */ (function () {
                 mapCardToSlot: card => card.locationArg,
             });
         }*/
-        this.newRound(line);
+        this.newRound(line, false);
+        this.setDeckCount(this.deckCounter.getValue() - 1);
     };
     PlayerTable.prototype.replaceLineCard = function (card) {
         this.line.removeCard(this.line.getCards().find(function (c) { return c.locationArg == card.locationArg; }));
         this.line.addCard(card);
     };
     PlayerTable.prototype.replaceTopDeck = function (card) {
-        this.line.removeCard(this.line.getCards().find(function (c) { return c.locationArg == card.locationArg; }));
+        this.deck.addCard(card);
+        this.setDeckCount(this.deckCounter.getValue() + 1);
     };
     PlayerTable.prototype.updateVisibleMoveButtons = function () {
         var cards = this.line.getCards();
@@ -1715,6 +1752,21 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.removeButtonsOnCards = function () {
         var slots = document.getElementById("player-table-".concat(this.playerId)).querySelectorAll(".slot");
         slots.forEach(function (slot) { return slot.querySelectorAll('button.remove').forEach(function (btn) { return btn.remove(); }); });
+    };
+    PlayerTable.prototype.setDeckCount = function (count) {
+        this.deck.setCardNumber(count);
+        this.deckCounter.toValue(count);
+    };
+    PlayerTable.prototype.setDiscardCount = function (count) {
+        this.discard.setCardNumber(count);
+        this.discardCounter.toValue(count);
+    };
+    PlayerTable.prototype.refillDeck = function (deckCount) {
+        this.setDeckCount(deckCount);
+        this.setDiscardCount(0);
+    };
+    PlayerTable.prototype.addCardToDeck = function (card) {
+        this.deck.addCard(card);
     };
     return PlayerTable;
 }());
@@ -2347,6 +2399,7 @@ var AfterUs = /** @class */ (function () {
             ['addCardToLine', ANIMATION_MS],
             ['replaceLineCard', ANIMATION_MS],
             ['replaceTopDeck', ANIMATION_MS],
+            ['refillDeck', ANIMATION_MS],
             ['lastTurn', 1],
             ['useObject', 1],
         ];
@@ -2357,7 +2410,7 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.notif_newRound = function (notif) {
         this.tableCenter.newRound();
-        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards);
+        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards, true);
     };
     AfterUs.prototype.notif_switchedCards = function (notif) {
         this.getPlayerTable(notif.args.playerId).switchCards(notif.args.movedCards);
@@ -2399,6 +2452,8 @@ var AfterUs = /** @class */ (function () {
         Object.entries(notif.args.tokens).forEach(function (val) { return _this.getPlayerTable(+val[0]).setSelectedToken(val[1]); });
     };
     AfterUs.prototype.notif_buyCard = function (notif) {
+        this.tableCenter.addCardToDeck(notif.args.card);
+        this.getPlayerTable(notif.args.playerId).addCardToDeck(notif.args.card);
         this.tableCenter.setRemaining(notif.args.deckType, notif.args.deckCount);
         this.notif_activatedEffect(notif);
     };
@@ -2414,6 +2469,7 @@ var AfterUs = /** @class */ (function () {
         this.notif_activatedEffect(notif);
     };
     AfterUs.prototype.notif_replaceLineCard = function (notif) {
+        // TODO allow to take another type of monkey
         this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.card);
         this.notif_activatedEffect(notif);
     };
@@ -2423,6 +2479,9 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.notif_useObject = function (notif) {
         this.tableCenter.addUsedObject(notif.args.object);
+    };
+    AfterUs.prototype.notif_refillDeck = function (notif) {
+        this.getPlayerTable(notif.args.playerId).refillDeck(notif.args.deckCount);
     };
     /**
      * Show last turn banner.

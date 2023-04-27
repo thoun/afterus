@@ -117,24 +117,11 @@
         }
     }    
 
-    /*&.selectable:not(.disabled) {
-        cursor: pointer;
-        &:not(.selected) {
-            animation: selectable-card-animation 1s alternate infinite ease-in-out;
+    &[data-side="back"] {
+        button {
+            display: none;
         }
-
-        .card-side {
-            box-shadow: unset;
-        }
-    }    
-
-    &.selected:not(.disabled) {
-        box-shadow: 0 0 5px 8px #e273f5;
-
-        .card-side {
-            box-shadow: unset;
-        }
-    } */
+    }
 
     &.object {
         border-radius: 14px;

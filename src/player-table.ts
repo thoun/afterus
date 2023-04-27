@@ -55,7 +55,11 @@ class CardLine extends SlotStock<Card> {
 
 class PlayerTable {
     public playerId: number;
+    private deck: HiddenDeck<Card>;
+    private deckCounter: Counter;
     private line: CardLine;
+    private discard: HiddenDeck<Card>;
+    private discardCounter: Counter;
 
     private currentPlayer: boolean;
 
@@ -79,7 +83,14 @@ class PlayerTable {
             </div>`;
         }*/
         html += `
-        <div id="player-table-${this.playerId}-line"></div>
+        
+        <div id="player-table-${this.playerId}-deck" class="deck-stock">
+            <div id="player-table-${this.playerId}-deck-counter" class="deck-counter"></div>
+        </div>
+        <div id="player-table-${this.playerId}-line"></div>        
+        <div id="player-table-${this.playerId}-discard" class="discard-stock">
+            <div id="player-table-${this.playerId}-discard-counter" class="deck-counter"></div>
+        </div>
         </div>
         `;
         dojo.place(html, document.getElementById('tables'));
@@ -91,8 +102,28 @@ class PlayerTable {
             mapCardToSlot: card => card.locationArg
         }, game, this.currentPlayer);
             
-        this.newRound(player.line);
+        this.newRound(player.line, false);
         this.setSelectedToken(player.chosenToken);
+
+        this.deck = new HiddenDeck<Card>(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-deck`), {
+            cardNumber: player.deckCount,
+            width: CARD_WIDTH,
+            height: CARD_HEIGHT,
+            autoUpdateCardNumber: false,
+        });
+        this.deckCounter = new ebg.counter();
+        this.deckCounter.create(`player-table-${this.playerId}-deck-counter`);
+        this.deckCounter.setValue(player.deckCount);
+
+        this.discard = new HiddenDeck<Card>(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-discard`), {
+            cardNumber: player.discardCount,
+            width: CARD_WIDTH,
+            height: CARD_HEIGHT,
+            autoUpdateCardNumber: false,
+        });
+        this.discardCounter = new ebg.counter();
+        this.discardCounter.create(`player-table-${this.playerId}-discard-counter`);
+        this.discardCounter.setValue(player.discardCount);
     }
 
     private onDiscardCardClick(card: Card) {
@@ -120,12 +151,19 @@ class PlayerTable {
         this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
     }
     
-    public newRound(cards: Card[]) { 
+    public newRound(cards: Card[], fromDeck: boolean) {         
         this.line.removeAll();
         this.line.setSlotsIds(Array.from(Array(Math.max(...cards.map(card => card.locationArg)) + 1).keys()));
+
+        if (fromDeck) {
+            this.deck.addCards(cards);
+        }
         this.line.addCards(cards);
         cards.forEach(card => this.addRageButton(card));
         this.updateVisibleMoveButtons();
+        if (fromDeck) {
+            this.setDeckCount(this.deckCounter.getValue() - cards.length);
+        }
     }
 
     public setMovable(movable: boolean) {
@@ -192,13 +230,18 @@ class PlayerTable {
     
     public endRound() {
         this.setSelectedToken(null);
-        this.line.removeAll();
+        const cards = this.line.getCards();
+        this.discard.addCards(cards);
+        this.setDiscardCount(this.discardCounter.getValue() + cards.length);
     }
     
     public discardCard(card: Card, line?: Card[]) {
+        this.discard.addCard(card);
+        this.setDiscardCount(this.discardCounter.getValue() + 1);
+
         if (line) {
             this.line.removeAll();
-            this.newRound(line);
+            this.newRound(line, false);
         } else {
             this.line.removeCard(card);
         }
@@ -208,6 +251,7 @@ class PlayerTable {
     }
 
     public addCardToLine(card: Card, line: Card[]) {
+        this.deck.addCard(card);
         /*if (card.locationArg > this.line.getSlotsIds().length) {
             this.line.setSlotsIds() = new CardLine(this.game.cardsManager, handDiv, {
                 gap: '0',
@@ -215,7 +259,8 @@ class PlayerTable {
                 mapCardToSlot: card => card.locationArg,
             });
         }*/
-        this.newRound(line);
+        this.newRound(line, false);
+        this.setDeckCount(this.deckCounter.getValue() - 1);
     }
     
     public replaceLineCard(card: Card) {
@@ -224,7 +269,8 @@ class PlayerTable {
     }
 
     public replaceTopDeck(card: Card) {
-        this.line.removeCard(this.line.getCards().find(c => c.locationArg == card.locationArg));
+        this.deck.addCard(card);
+        this.setDeckCount(this.deckCounter.getValue() + 1);
     }
 
     private updateVisibleMoveButtons() {
@@ -254,5 +300,25 @@ class PlayerTable {
     public removeButtonsOnCards() {
         const slots = document.getElementById(`player-table-${this.playerId}`).querySelectorAll(`.slot`);
         slots.forEach(slot => slot.querySelectorAll('button.remove').forEach(btn => btn.remove()));
+    }
+
+    private setDeckCount(count: number) {
+        this.deck.setCardNumber(count);
+        this.deckCounter.toValue(count);
+
+    }
+
+    private setDiscardCount(count: number) {
+        this.discard.setCardNumber(count);
+        this.discardCounter.toValue(count);
+    }
+
+    public refillDeck(deckCount: number) {
+        this.setDeckCount(deckCount);
+        this.setDiscardCount(0);
+    }
+    
+    public addCardToDeck(card: Card) {
+        this.deck.addCard(card);
     }
 }

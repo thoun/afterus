@@ -54,8 +54,9 @@ class TableCenter {
 
                 this.hiddenDecks[type] = new HiddenDeck<Card>(this.game.cardsManager, document.getElementById(`hidden-deck-${type}`), {
                     cardNumber: count,
-                    width: 142,
-                    height: 198,
+                    width: CARD_WIDTH,
+                    height: CARD_HEIGHT,
+                    autoUpdateCardNumber: false,
                 });
                         
                 this.cardCounters[type] = new ebg.counter();
@@ -78,6 +79,10 @@ class TableCenter {
         if (gamedatas.players[this.game.getPlayerId()]) {
             this.setCurrentPlayerEnergy(gamedatas.players[this.game.getPlayerId()].energy);
         }
+    }
+
+    public  addCardToDeck(card: Card) {
+        this.hiddenDecks[card.level * 10 + card.type].addCard(card);
     }
     
     public setRemaining(deckType: number, deckCount: number) {        

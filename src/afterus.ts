@@ -769,6 +769,7 @@ class AfterUs implements AfterUsGame {
             ['addCardToLine', ANIMATION_MS],
             ['replaceLineCard', ANIMATION_MS],
             ['replaceTopDeck', ANIMATION_MS],
+            ['refillDeck', ANIMATION_MS],
             ['lastTurn', 1],
             ['useObject', 1],
         ];
@@ -781,7 +782,7 @@ class AfterUs implements AfterUsGame {
 
     notif_newRound(notif: Notif<NotifNewRoundArgs>) {
         this.tableCenter.newRound();
-        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards);
+        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards, true);
     }
 
     notif_switchedCards(notif: Notif<NotifSwitchedCardsArgs>) {
@@ -827,7 +828,9 @@ class AfterUs implements AfterUsGame {
         Object.entries(notif.args.tokens).forEach(val => this.getPlayerTable(+val[0]).setSelectedToken(val[1]));
     }
 
-    notif_buyCard(notif: Notif<NotifBuyCardArgs>) {
+    notif_buyCard(notif: Notif<NotifBuyCardArgs>) { 
+        this.tableCenter.addCardToDeck(notif.args.card);
+        this.getPlayerTable(notif.args.playerId).addCardToDeck(notif.args.card);
         this.tableCenter.setRemaining(notif.args.deckType, notif.args.deckCount);
         this.notif_activatedEffect(notif);
     }
@@ -846,7 +849,8 @@ class AfterUs implements AfterUsGame {
         this.notif_activatedEffect(notif);
     }   
 
-    notif_replaceLineCard(notif: Notif<NotifReplaceLineCardArgs>) {
+    notif_replaceLineCard(notif: Notif<NotifReplaceLineCardArgs>) { // TODO animate to decks
+        // TODO allow to take another type of monkey
         this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.card);
         this.notif_activatedEffect(notif);
     } 
@@ -859,6 +863,10 @@ class AfterUs implements AfterUsGame {
     notif_useObject(notif: Notif<NotifUseObjectArgs>) {
         this.tableCenter.addUsedObject(notif.args.object);
     }
+
+    notif_refillDeck(notif: Notif<NotifRefillDeckArgs>) {
+        this.getPlayerTable(notif.args.playerId).refillDeck(notif.args.deckCount);
+    }    
     
     /** 
      * Show last turn banner.

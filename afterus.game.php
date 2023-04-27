@@ -157,6 +157,8 @@ class AfterUs extends Table {
                 $player['chosenToken'] = $currentPlayerId == $playerId ? intval($player['chosenToken']) : 0;
             }
             $player['line'] = $this->getCardsByLocation('line'.$playerId);
+            $player['deckCount'] = intval($this->cards->countCardInLocation('deck'.$playerId));
+            $player['discardCount'] = intval($this->cards->countCardInLocation('discard'.$playerId));
 
             if ($currentPlayerId == $playerId) {
                 $result['usedObjects'] =  $this->getUsedObjects($playerId);

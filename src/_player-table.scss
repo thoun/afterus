@@ -123,4 +123,36 @@
       height: 24px;
     }
   }
+
+  .hidden-deck {
+    position: absolute;
+    top: -66px;
+
+    &.deck-stock {
+      left: 0;
+    }
+    &.discard-stock {
+      right: 0;
+    }
+
+    &[data-empty="true"] {
+      background: #FFFFFF66;
+      border-radius: 10px;
+    }
+  }
+  
+  .deck-counter {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    z-index: 1;
+    box-shadow: 0 0 3px 1px black;
+    right: 0;
+    top: -10px;
+  }
+
 }

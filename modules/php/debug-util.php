@@ -12,6 +12,7 @@ trait DebugUtilTrait {
         } 
 
 		$this->debugSetRage(10);
+		$this->debugSetEnergy(10);
         
         //$this->debugLastTurn();
     }

@@ -37,6 +37,8 @@ interface AfterUsPlayer extends Player {
     energy: number;
     rage: number;
     chosenToken: number | null;
+    deckCount: number;
+    discardCount: number;
 }
 
 interface AfterUsGamedatas {
@@ -143,6 +145,7 @@ interface NotifRevealTokensArgs {
 interface NotifBuyCardArgs extends NotifActivatedEffectArgs {
     deckType: number;
     deckCount: number;
+    card?: Card;
 }
 
 // endRound
@@ -175,4 +178,10 @@ interface NotifReplaceLineCardArgs extends NotifActivatedEffectArgs {
 // replaceTopDeck
 interface NotifReplaceTopDeckArgs extends NotifActivatedEffectArgs {
     card: Card;
+}
+
+// refillDeck
+interface NotifRefillDeckArgs {
+    playerId: number;
+    deckCount: number;
 }
