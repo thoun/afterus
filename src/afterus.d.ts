@@ -62,6 +62,7 @@ interface AfterUsGamedatas {
 
 interface AfterUsGame extends Game {
     cardsManager: CardsManager;
+    animationManager: AnimationManager;
 
     getPlayerId(): number;
     getPlayer(playerId: number): AfterUsPlayer;

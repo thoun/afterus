@@ -866,72 +866,83 @@ body > .card {
 }
 
 .player-table {
-  width: 653px;
-  height: 420px;
+  width: 710px;
   position: relative;
   margin: 10px;
 }
-.player-table .background {
-  position: relative;
-  height: 130px;
-  background-size: 100% auto;
+.player-table .decks {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
 }
-.player-table .background[data-color=ffe400] {
-  background-image: url("img/player-board-ffe400.png");
+.player-table .decks .hidden-deck[data-empty=true] {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
 }
-.player-table .background[data-color="044396"] {
-  background-image: url("img/player-board-044396.png");
-}
-.player-table .background[data-color=f29fc4] {
-  background-image: url("img/player-board-f29fc4.png");
-}
-.player-table .background[data-color=e7313a] {
-  background-image: url("img/player-board-e7313a.png");
-}
-.player-table .background[data-color="98d1c6"] {
-  background-image: url("img/player-board-98d1c6.png");
-}
-.player-table .background[data-color="9f79b5"] {
-  background-image: url("img/player-board-9f79b5.png");
-}
-.player-table .name-wrapper {
-  color: var(--player-color);
+.player-table .decks .deck-counter {
   position: absolute;
-  font-size: 18pt;
-  top: 88px;
-  left: 157px;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
   text-align: center;
-  width: 177px;
-  text-shadow: 0 0 1px white, 0 0 2px white;
+  line-height: 24px;
+  z-index: 1;
+  box-shadow: 0 0 3px 1px black;
+  left: calc(50% - 12px);
+  top: -12px;
 }
-.player-table .action-token {
-  position: absolute;
-  top: 40px;
-  left: 75px;
+.player-table .decks .name-and-tokens {
+  flex: 1;
 }
-.player-table .action-token[data-type=null] {
-  display: none;
+.player-table .decks .name-and-tokens .name-wrapper {
+  font-family: "afterus-font";
+  background: var(--player-color);
+  color: white;
+  font-size: 18pt;
+  text-align: center;
+  text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+  padding: 5px;
+  border-radius: 10px;
 }
-.player-table .action-token[data-type="0"][data-color=ffe400] {
+.player-table .decks .name-and-tokens .tokens {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 20px;
+}
+.player-table .decks .name-and-tokens .tokens .tokens-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.player-table .decks .name-and-tokens .tokens .action-token {
+  box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.7333333333);
+}
+.player-table .decks .name-and-tokens .tokens .action-token[data-type="0"][data-color=ffe400] {
   background-position-x: 44.4444444444%;
 }
-.player-table .action-token[data-type="0"][data-color="044396"] {
+.player-table .decks .name-and-tokens .tokens .action-token[data-type="0"][data-color="044396"] {
   background-position-x: 55.5555555556%;
 }
-.player-table .action-token[data-type="0"][data-color=f29fc4] {
+.player-table .decks .name-and-tokens .tokens .action-token[data-type="0"][data-color=f29fc4] {
   background-position-x: 66.6666666667%;
 }
-.player-table .action-token[data-type="0"][data-color=e7313a] {
+.player-table .decks .name-and-tokens .tokens .action-token[data-type="0"][data-color=e7313a] {
   background-position-x: 77.7777777778%;
 }
-.player-table .action-token[data-type="0"][data-color="98d1c6"] {
+.player-table .decks .name-and-tokens .tokens .action-token[data-type="0"][data-color="98d1c6"] {
   background-position-x: 88.8888888889%;
 }
-.player-table .action-token[data-type="0"][data-color="9f79b5"] {
+.player-table .decks .name-and-tokens .tokens .action-token[data-type="0"][data-color="9f79b5"] {
   background-position-x: 100%;
+}
+.player-table .decks .name-and-tokens .tokens .action-token:not(:first-child) {
+  margin-top: -45px;
 }
 .player-table .line-stock {
   min-width: 710px;
+  margin-top: 10px;
 }
 .player-table .slot {
   position: relative;
@@ -996,34 +1007,13 @@ body > .card {
   width: 24px;
   height: 24px;
 }
-.player-table .hidden-deck {
-  position: absolute;
-  top: -66px;
-}
-.player-table .hidden-deck.deck-stock {
-  left: 0;
-}
-.player-table .hidden-deck.discard-stock {
-  right: 0;
-}
-.player-table .hidden-deck[data-empty=true] {
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 10px;
-}
-.player-table .deck-counter {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  background: white;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 24px;
-  z-index: 1;
-  box-shadow: 0 0 3px 1px black;
-  right: 0;
-  top: -10px;
-}
 
+@font-face {
+  font-family: "afterus-font";
+  src: url("img/afterus-font.ttf.woff") format("woff"), url("img/afterus-font.ttf.svg#afterus-font") format("svg"), url("img/afterus-font.ttf.eot"), url("img/afterus-font.eot?#iefix") format("embedded-opentype");
+  font-weight: normal;
+  font-style: normal;
+}
 /* make space between buttons on touch devices */
 @media (hover: none) {
   #page-title .action-button.bgabutton, #page-title .bgabutton {
@@ -1055,7 +1045,7 @@ html, .mode_3d #game_play_area_background {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 10px;
   flex-direction: column;
 }
 #tables-and-center.double-column {

@@ -1,53 +1,81 @@
 .player-table {
-  width: 653px;
-  height: 420px;
+  width: 710px;
   position: relative;
   margin: 10px;
 
-  .background {
-    position: relative; 
-    height: 130px;
-    background-size: 100% auto;
+  .decks {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
 
-    @each $playerColor in $playerColors {
-        &[data-color="#{$playerColor}"] { 
-            background-image: url('img/player-board-#{$playerColor}.png');
-        }
-    }
-
-  }
-
-  .name-wrapper {
-    color: var(--player-color);
-    position: absolute;
-    font-size: 18pt;
-    top: 88px;
-    left: 157px;
-    text-align: center;
-    width: 177px;
-    text-shadow: 0 0 1px white, 0 0 2px white;
-  }
-
-  .action-token {
-    position: absolute;
-    top: 40px;
-    left: 75px;
-
-    &[data-type="null"] {
-      display: none;
+    .hidden-deck {  
+      &[data-empty="true"] {
+        background: #FFFFFF66;
+        border-radius: 10px;
+      }
     }
     
+    .deck-counter {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 24px;
+      z-index: 1;
+      box-shadow: 0 0 3px 1px black;
+      left: calc(50% - 12px);
+      top: -12px;
+    }
 
-    @each $playerColor in $playerColors {
-      $i: index($playerColors, $playerColor) - 1;
-      &[data-type="0"][data-color="#{$playerColor}"] { 
-        background-position-x: #{($i + 4) * 100% / 9};
+    .name-and-tokens {
+      flex: 1;
+
+      .name-wrapper {
+        font-family: 'afterus-font';
+        background: var(--player-color);
+        color: white;
+        font-size: 18pt;
+        text-align: center;
+        text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;
+        padding: 5px;
+        border-radius: 10px;
+      }
+
+      .tokens {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        margin-top: 20px;
+
+        .tokens-column {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .action-token {
+          box-shadow: 0 0 3px 2px #000000BB;
+
+          @each $playerColor in $playerColors {
+            $i: index($playerColors, $playerColor) - 1;
+            &[data-type="0"][data-color="#{$playerColor}"] { 
+              background-position-x: #{($i + 4) * 100% / 9};
+            }
+          }
+
+          &:not(:first-child) {
+            margin-top: -45px;
+          }
+        }
       }
     }
   }
 
   .line-stock {
     min-width: 710px;
+    margin-top: 10px;
   }
 
   .slot {
@@ -123,36 +151,4 @@
       height: 24px;
     }
   }
-
-  .hidden-deck {
-    position: absolute;
-    top: -66px;
-
-    &.deck-stock {
-      left: 0;
-    }
-    &.discard-stock {
-      right: 0;
-    }
-
-    &[data-empty="true"] {
-      background: #FFFFFF66;
-      border-radius: 10px;
-    }
-  }
-  
-  .deck-counter {
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    background: white;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 24px;
-    z-index: 1;
-    box-shadow: 0 0 3px 1px black;
-    right: 0;
-    top: -10px;
-  }
-
 }

@@ -69,9 +69,17 @@ class PlayerTable {
 
         let html = `
         <div id="player-table-${this.playerId}" class="player-table" style="--player-color: #${player.color};">
-            <div class="background" data-color="${player.color}">
-                <div class="name-wrapper">${player.name}</div>
-                <div id="player-table-${this.playerId}-action-token" class="action-token" data-color="${player.color}"></div>
+            <div class="decks">
+                <div id="player-table-${this.playerId}-deck" class="deck-stock">
+                    <div id="player-table-${this.playerId}-deck-counter" class="deck-counter"></div>
+                </div>
+                <div class="name-and-tokens">
+                    <div class="name-wrapper">${player.name}</div>
+                    <div id="player-table-${this.playerId}-tokens" class="tokens"></div>
+                </div>
+                <div id="player-table-${this.playerId}-discard" class="discard-stock">
+                    <div id="player-table-${this.playerId}-discard-counter" class="deck-counter"></div>
+                </div>
             </div>
             
         `;
@@ -84,13 +92,7 @@ class PlayerTable {
         }*/
         html += `
         
-        <div id="player-table-${this.playerId}-deck" class="deck-stock">
-            <div id="player-table-${this.playerId}-deck-counter" class="deck-counter"></div>
-        </div>
         <div id="player-table-${this.playerId}-line"></div>        
-        <div id="player-table-${this.playerId}-discard" class="discard-stock">
-            <div id="player-table-${this.playerId}-discard-counter" class="deck-counter"></div>
-        </div>
         </div>
         `;
         dojo.place(html, document.getElementById('tables'));
@@ -103,6 +105,20 @@ class PlayerTable {
         }, game, this.currentPlayer);
             
         this.newRound(player.line, false);
+
+        html = `
+        <div id="player-table-${this.playerId}-tokens-unplayed" class="tokens-unplayed tokens-column">`;
+        for (let i = 1; i <= 4; i++) {
+            html += `<div class="action-token" ${i == 4 ? `id="player-table-${this.playerId}-action-token"` : ''} data-color="${player.color}" data-type="0"></div>`;
+        }
+        html += `</div>
+        <div id="player-table-${this.playerId}-tokens-played" class="tokens-played tokens-column"></div>
+        `;
+
+        
+        dojo.place(html, document.getElementById(`player-table-${this.playerId}-tokens`));
+    
+
         this.setSelectedToken(player.chosenToken);
 
         this.deck = new HiddenDeck<Card>(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-deck`), {
@@ -225,7 +241,12 @@ class PlayerTable {
     }
     
     public setSelectedToken(type: number | null) {
-        document.getElementById(`player-table-${this.playerId}-action-token`).dataset.type = type === null ? 'null' : ''+type;
+        const token = document.getElementById(`player-table-${this.playerId}-action-token`);
+        const destination = document.getElementById(`player-table-${this.playerId}-tokens-${type === null ? 'un' : ''}played`);
+        if (token.parentElement != destination) {
+            this.game.animationManager.attachWithSlideAnimation(token, destination);
+        }
+        token.dataset.type = type === null ? '0' : ''+type;
     }
     
     public endRound() {

@@ -7,6 +7,16 @@ $playerColors: 'ffe400', '044396', 'f29fc4', 'e7313a', '98d1c6', '9f79b5';
 @import 'playerboards';
 @import 'player-table';
 
+@font-face {
+  font-family: 'afterus-font';
+    src: url('img/afterus-font.ttf.woff') format('woff'),
+    url('img/afterus-font.ttf.svg#afterus-font') format('svg'),
+    url('img/afterus-font.ttf.eot'),
+    url('img/afterus-font.eot?#iefix') format('embedded-opentype'); 
+    font-weight: normal;
+    font-style: normal;
+}
+
 /* make space between buttons on touch devices */
 @media (hover: none) {
   #page-title .action-button.bgabutton, #page-title .bgabutton {
@@ -39,7 +49,7 @@ html, .mode_3d #game_play_area_background {
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 10px;
     flex-direction: column;
   }
 

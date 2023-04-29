@@ -66,9 +66,9 @@ function getResourcesQuantityIcons(resources: number[][]) {
 
 class AfterUs implements AfterUsGame {
     public cardsManager: CardsManager;
+    public animationManager: AnimationManager;
 
     private zoomManager: ZoomManager;
-    private animationManager: AnimationManager;
     private gamedatas: AfterUsGamedatas;
     private tableCenter: TableCenter;
     private playersTables: PlayerTable[] = [];
