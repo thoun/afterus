@@ -119,7 +119,15 @@ class AfterUs implements AfterUsGame {
             localStorageZoomKey: LOCAL_STORAGE_ZOOM_KEY,
             onDimensionsChange: () => {
                 const tablesAndCenter = document.getElementById('tables-and-center');
-                tablesAndCenter.classList.toggle('double-column', tablesAndCenter.clientWidth > 1600);
+                const doubleColumnBefore = tablesAndCenter.classList.contains('double-column');
+                const doubleColumnAfter = tablesAndCenter.clientWidth > 1600;
+                if (doubleColumnBefore != doubleColumnAfter) {
+                    tablesAndCenter.classList.toggle('double-column', doubleColumnAfter);
+                    const currentPlayerTable = document.querySelector('.player-table.current-player');
+                    if (currentPlayerTable) {
+                        document.getElementById(doubleColumnAfter ? 'tables' : 'current-player-table').insertAdjacentElement('afterbegin', currentPlayerTable);
+                    }
+                }
             },
         });
 

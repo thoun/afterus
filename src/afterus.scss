@@ -39,9 +39,19 @@ html, .mode_3d #game_play_area_background {
   position: relative;
   display: flex;
   justify-content: center;
-  align-items: stretch;
   gap: 20px;
   flex-direction: column;
+  align-items: center;
+
+  &.double-column {
+      flex-direction: row-reverse;
+      justify-content: center;
+      align-items: start;
+
+      #current-player-table {
+        display: none;
+      }
+  }
 
   #tables {
     position: relative;
@@ -53,15 +63,6 @@ html, .mode_3d #game_play_area_background {
     flex-direction: column;
   }
 
-  &.double-column {
-      flex-direction: row-reverse;
-      justify-content: center;
-      align-items: start;
-  
-      &>div {
-        flex: 1
-      }
-  }
 }
 
 .icon {

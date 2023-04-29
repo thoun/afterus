@@ -68,7 +68,7 @@ class PlayerTable {
         this.currentPlayer = this.playerId == this.game.getPlayerId();
 
         let html = `
-        <div id="player-table-${this.playerId}" class="player-table" style="--player-color: #${player.color};">
+        <div id="player-table-${this.playerId}" class="player-table ${this.currentPlayer ? 'current-player' : ''}" style="--player-color: #${player.color};">
             <div class="decks">
                 <div id="player-table-${this.playerId}-deck" class="deck-stock">
                     <div id="player-table-${this.playerId}-deck-counter" class="deck-counter"></div>
@@ -81,21 +81,10 @@ class PlayerTable {
                     <div id="player-table-${this.playerId}-discard-counter" class="deck-counter"></div>
                 </div>
             </div>
-            
-        `;
-        /*if (this.currentPlayer) {
-            html += `
-            <div class="block-with-text hand-wrapper">
-                <div class="block-label">${_('Your hand')}</div>
-                <div id="player-table-${this.playerId}-hand" class="hand cards"></div>
-            </div>`;
-        }*/
-        html += `
-        
-        <div id="player-table-${this.playerId}-line"></div>        
+            <div id="player-table-${this.playerId}-line"></div>        
         </div>
         `;
-        dojo.place(html, document.getElementById('tables'));
+        dojo.place(html, document.getElementById(this.currentPlayer ? 'current-player-table' : 'tables'));
 
         this.line = new CardLine(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-line`), {
             wrap: 'nowrap',

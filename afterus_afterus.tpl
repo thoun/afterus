@@ -2,6 +2,7 @@
 
 <div id="table">
     <div id="tables-and-center">
+        <div id="current-player-table"></div>
         <div id="table-center">
             <div id="objects" class="card-line"></div>
             <div id="center-board"></div>

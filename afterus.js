@@ -1561,16 +1561,8 @@ var PlayerTable = /** @class */ (function () {
         this.game = game;
         this.playerId = Number(player.id);
         this.currentPlayer = this.playerId == this.game.getPlayerId();
-        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"decks\">\n                <div id=\"player-table-").concat(this.playerId, "-deck\" class=\"deck-stock\">\n                    <div id=\"player-table-").concat(this.playerId, "-deck-counter\" class=\"deck-counter\"></div>\n                </div>\n                <div class=\"name-and-tokens\">\n                    <div class=\"name-wrapper\">").concat(player.name, "</div>\n                    <div id=\"player-table-").concat(this.playerId, "-tokens\" class=\"tokens\"></div>\n                </div>\n                <div id=\"player-table-").concat(this.playerId, "-discard\" class=\"discard-stock\">\n                    <div id=\"player-table-").concat(this.playerId, "-discard-counter\" class=\"deck-counter\"></div>\n                </div>\n            </div>\n            \n        ");
-        /*if (this.currentPlayer) {
-            html += `
-            <div class="block-with-text hand-wrapper">
-                <div class="block-label">${_('Your hand')}</div>
-                <div id="player-table-${this.playerId}-hand" class="hand cards"></div>
-            </div>`;
-        }*/
-        html += "\n        \n        <div id=\"player-table-".concat(this.playerId, "-line\"></div>        \n        </div>\n        ");
-        dojo.place(html, document.getElementById('tables'));
+        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table ").concat(this.currentPlayer ? 'current-player' : '', "\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"decks\">\n                <div id=\"player-table-").concat(this.playerId, "-deck\" class=\"deck-stock\">\n                    <div id=\"player-table-").concat(this.playerId, "-deck-counter\" class=\"deck-counter\"></div>\n                </div>\n                <div class=\"name-and-tokens\">\n                    <div class=\"name-wrapper\">").concat(player.name, "</div>\n                    <div id=\"player-table-").concat(this.playerId, "-tokens\" class=\"tokens\"></div>\n                </div>\n                <div id=\"player-table-").concat(this.playerId, "-discard\" class=\"discard-stock\">\n                    <div id=\"player-table-").concat(this.playerId, "-discard-counter\" class=\"deck-counter\"></div>\n                </div>\n            </div>\n            <div id=\"player-table-").concat(this.playerId, "-line\"></div>        \n        </div>\n        ");
+        dojo.place(html, document.getElementById(this.currentPlayer ? 'current-player-table' : 'tables'));
         this.line = new CardLine(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-line")), {
             wrap: 'nowrap',
             gap: '0',
@@ -1873,7 +1865,15 @@ var AfterUs = /** @class */ (function () {
             localStorageZoomKey: LOCAL_STORAGE_ZOOM_KEY,
             onDimensionsChange: function () {
                 var tablesAndCenter = document.getElementById('tables-and-center');
-                tablesAndCenter.classList.toggle('double-column', tablesAndCenter.clientWidth > 1600);
+                var doubleColumnBefore = tablesAndCenter.classList.contains('double-column');
+                var doubleColumnAfter = tablesAndCenter.clientWidth > 1600;
+                if (doubleColumnBefore != doubleColumnAfter) {
+                    tablesAndCenter.classList.toggle('double-column', doubleColumnAfter);
+                    var currentPlayerTable = document.querySelector('.player-table.current-player');
+                    if (currentPlayerTable) {
+                        document.getElementById(doubleColumnAfter ? 'tables' : 'current-player-table').insertAdjacentElement('afterbegin', currentPlayerTable);
+                    }
+                }
             },
         });
         if (gamedatas.lastTurn) {

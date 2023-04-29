@@ -1035,9 +1035,17 @@ html, .mode_3d #game_play_area_background {
   position: relative;
   display: flex;
   justify-content: center;
-  align-items: stretch;
   gap: 20px;
   flex-direction: column;
+  align-items: center;
+}
+#tables-and-center.double-column {
+  flex-direction: row-reverse;
+  justify-content: center;
+  align-items: start;
+}
+#tables-and-center.double-column #current-player-table {
+  display: none;
 }
 #tables-and-center #tables {
   position: relative;
@@ -1047,14 +1055,6 @@ html, .mode_3d #game_play_area_background {
   flex-wrap: wrap;
   gap: 10px;
   flex-direction: column;
-}
-#tables-and-center.double-column {
-  flex-direction: row-reverse;
-  justify-content: center;
-  align-items: start;
-}
-#tables-and-center.double-column > div {
-  flex: 1;
 }
 
 .icon {
