@@ -1467,7 +1467,7 @@ var TableCenter = /** @class */ (function () {
         }
     }
     TableCenter.prototype.addCardToDeck = function (card) {
-        this.hiddenDecks[card.level * 10 + card.type].addCard(card);
+        this.hiddenDecks[card.type * 10 + card.level].addCard(card);
     };
     TableCenter.prototype.setRemaining = function (deckType, deckCount) {
         this.hiddenDecks[deckType].setCardNumber(deckCount);
@@ -1572,7 +1572,7 @@ var PlayerTable = /** @class */ (function () {
         this.game = game;
         this.playerId = Number(player.id);
         this.currentPlayer = this.playerId == this.game.getPlayerId();
-        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table ").concat(this.currentPlayer ? 'current-player' : '', "\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"decks\">\n                <div id=\"player-table-").concat(this.playerId, "-deck\" class=\"deck-stock\">\n                    <div id=\"player-table-").concat(this.playerId, "-deck-counter\" class=\"deck-counter\"></div>\n                </div>\n                <div class=\"name-and-tokens\">\n                    <div class=\"name-wrapper\">").concat(player.name, "</div>\n                    <div id=\"player-table-").concat(this.playerId, "-tokens\" class=\"tokens\"></div>\n                </div>\n                <div id=\"player-table-").concat(this.playerId, "-discard\" class=\"discard-stock\">\n                    <div id=\"player-table-").concat(this.playerId, "-discard-counter\" class=\"deck-counter\"></div>\n                </div>\n            </div>\n            <div id=\"player-table-").concat(this.playerId, "-line\"></div>        \n        </div>\n        ");
+        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table ").concat(this.currentPlayer ? 'current-player' : '', "\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"decks\">\n                <div id=\"player-table-").concat(this.playerId, "-deck\" class=\"deck-stock\">\n                    <div id=\"player-table-").concat(this.playerId, "-deck-counter\" class=\"deck-counter\"></div>\n                    ").concat(this.currentPlayer ? "<div id=\"player-table-".concat(this.playerId, "-see-top-card\" class=\"see-top-card\" data-visible=\"false\">").concat(_("See top card"), "</div>") : '', "\n                </div>\n                <div class=\"name-and-tokens\">\n                    <div class=\"name-wrapper\">").concat(player.name, "</div>\n                    <div id=\"player-table-").concat(this.playerId, "-tokens\" class=\"tokens\"></div>\n                </div>\n                <div id=\"player-table-").concat(this.playerId, "-discard\" class=\"discard-stock\">\n                    <div id=\"player-table-").concat(this.playerId, "-discard-counter\" class=\"deck-counter\"></div>\n                </div>\n            </div>\n            <div id=\"player-table-").concat(this.playerId, "-line\"></div>        \n        </div>\n        ");
         dojo.place(html, document.getElementById(this.currentPlayer ? 'current-player-table' : 'tables'));
         this.line = new CardLine(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-line")), {
             wrap: 'nowrap',
@@ -1606,6 +1606,7 @@ var PlayerTable = /** @class */ (function () {
         this.discardCounter = new ebg.counter();
         this.discardCounter.create("player-table-".concat(this.playerId, "-discard-counter"));
         this.discardCounter.setValue(player.discardCount);
+        this.deckTopCard(player.topCard);
     }
     PlayerTable.prototype.onDiscardCardClick = function (card) {
         var _this = this;
@@ -1780,10 +1781,27 @@ var PlayerTable = /** @class */ (function () {
     };
     PlayerTable.prototype.addCardToDeck = function (card) {
         this.deck.addCard(card);
+        this.setDeckCount(this.deckCounter.getValue() + 1);
     };
     PlayerTable.prototype.setLine = function (line) {
         this.line.removeAll();
         this.line.addCards(line);
+    };
+    PlayerTable.prototype.deckTopCard = function (card) {
+        var html = undefined;
+        if (card && this.currentPlayer) {
+            html = "<div>".concat(_("Card on top of your deck:"), "</div>\n            <div id=\"card-deck-top\" data-side=\"front\" class=\"card\">\n                <div class=\"card-sides\">\n                    <div class=\"card-side front\" data-level=\"").concat(card.level, "\" data-type=\"").concat(card.type, "\" data-sub-type=\"").concat(card.subType, "\" data-player-color=\"").concat(this.game.getPlayerColor(this.playerId), "\"></div>\n                </div>\n            </div>");
+        }
+        if (this.currentPlayer) {
+            var seeTopCardId = "player-table-".concat(this.playerId, "-see-top-card");
+            document.getElementById(seeTopCardId).dataset.visible = Boolean(html).toString();
+            if (html) {
+                this.game.setTooltip(seeTopCardId, html);
+            }
+            else {
+                this.game.removeTooltip(seeTopCardId);
+            }
+        }
     };
     return PlayerTable;
 }());
@@ -2454,6 +2472,7 @@ var AfterUs = /** @class */ (function () {
             ['lastTurn', 1],
             ['useObject', 1],
             ['cancelLastMoves', 1],
+            ['deckTopCard', 1],
         ];
         notifs.forEach(function (notif) {
             dojo.subscribe(notif[0], _this, "notif_".concat(notif[0]));
@@ -2542,6 +2561,9 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.notif_cancelLastMoves = function (notif) {
         this.getPlayerTable(notif.args.playerId).setLine(notif.args.line);
         this.notif_activatedEffect(notif);
+    };
+    AfterUs.prototype.notif_deckTopCard = function (notif) {
+        this.getPlayerTable(notif.args.playerId).deckTopCard(notif.args.card);
     };
     /**
      * Show last turn banner.

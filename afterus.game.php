@@ -161,8 +161,10 @@ class AfterUs extends Table {
             $player['deckCount'] = intval($this->cards->countCardInLocation('deck'.$playerId));
             $player['discardCount'] = intval($this->cards->countCardInLocation('discard'.$playerId));
 
+
             if ($currentPlayerId == $playerId) {
-                $result['usedObjects'] =  $this->getUsedObjects($playerId);
+                $result['usedObjects'] = $this->getUsedObjects($playerId);
+                $player['topCard'] = $this->getLastCard($playerId);
             }
         }
 

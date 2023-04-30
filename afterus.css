@@ -879,6 +879,23 @@ body > .card {
   background: rgba(255, 255, 255, 0.4);
   border-radius: 10px;
 }
+.player-table .decks .hidden-deck .see-top-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.7333333333);
+  border-radius: 10px;
+  z-index: 1;
+  margin: 10px;
+  text-align: center;
+  height: 50px;
+  top: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: help;
+}
+.player-table .decks .hidden-deck .see-top-card[data-visible=false] {
+  display: none;
+}
 .player-table .decks .deck-counter {
   position: absolute;
   width: 24px;

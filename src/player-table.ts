@@ -71,6 +71,7 @@ class PlayerTable {
             <div class="decks">
                 <div id="player-table-${this.playerId}-deck" class="deck-stock">
                     <div id="player-table-${this.playerId}-deck-counter" class="deck-counter"></div>
+                    ${this.currentPlayer ? `<div id="player-table-${this.playerId}-see-top-card" class="see-top-card" data-visible="false">${_("See top card")}</div>` : ''}
                 </div>
                 <div class="name-and-tokens">
                     <div class="name-wrapper">${player.name}</div>
@@ -128,6 +129,8 @@ class PlayerTable {
         this.discardCounter = new ebg.counter();
         this.discardCounter.create(`player-table-${this.playerId}-discard-counter`);
         this.discardCounter.setValue(player.discardCount);
+
+        this.deckTopCard(player.topCard);
     }
 
     private onDiscardCardClick(card: Card) {
@@ -328,10 +331,33 @@ class PlayerTable {
     
     public addCardToDeck(card: Card) {
         this.deck.addCard(card);
+        this.setDeckCount(this.deckCounter.getValue() + 1);
     }
 
     public setLine(line: Card[]) {
         this.line.removeAll();
         this.line.addCards(line);
+    }
+    
+    public deckTopCard(card: Card | null) {
+        let html = undefined;
+        if (card && this.currentPlayer) {
+            html = `<div>${_("Card on top of your deck:")}</div>
+            <div id="card-deck-top" data-side="front" class="card">
+                <div class="card-sides">
+                    <div class="card-side front" data-level="${card.level}" data-type="${card.type}" data-sub-type="${card.subType}" data-player-color="${this.game.getPlayerColor(this.playerId)}"></div>
+                </div>
+            </div>`;
+        }
+
+        if (this.currentPlayer) {
+            const seeTopCardId = `player-table-${this.playerId}-see-top-card`;
+            document.getElementById(seeTopCardId).dataset.visible = Boolean(html).toString();
+            if (html) {
+                this.game.setTooltip(seeTopCardId, html);
+            } else {
+                (this.game as any).removeTooltip(seeTopCardId);
+            }
+        }
     }
 }

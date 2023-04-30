@@ -13,6 +13,26 @@
         background: #FFFFFF66;
         border-radius: 10px;
       }
+
+      .see-top-card {
+        position: relative;
+        background: #FFFFFFBB;
+        border-radius: 10px;
+        z-index: 1;
+        margin: 10px;
+        text-align: center;
+        height: 50px;
+        top: 64px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        //box-shadow: 0 0 3px 1px black;
+        cursor: help;
+
+        &[data-visible="false"] {
+          display: none;
+        }
+      }
     }
     
     .deck-counter {

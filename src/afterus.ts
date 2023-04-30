@@ -809,6 +809,7 @@ class AfterUs implements AfterUsGame {
             ['lastTurn', 1],
             ['useObject', 1],
             ['cancelLastMoves', 1],
+            ['deckTopCard', 1],
         ];
     
         notifs.forEach((notif) => {
@@ -911,6 +912,10 @@ class AfterUs implements AfterUsGame {
     notif_cancelLastMoves(notif: Notif<NotifCancelLastMovesArgs>) {
         this.getPlayerTable(notif.args.playerId).setLine(notif.args.line);
         this.notif_activatedEffect(notif);
+    }
+
+    notif_deckTopCard(notif: Notif<NotifDeckTopCardArgs>) {
+        this.getPlayerTable(notif.args.playerId).deckTopCard(notif.args.card);
     }
     
     /** 

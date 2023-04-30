@@ -12,7 +12,7 @@ trait StateTrait {
     */
 
     function stNewRound() {
-        $this->DbQuery("UPDATE `player` SET `applied_effects` = '[]', `used_objects` = '[]', `chosen_token` = NULL, `phase2_copied_type` = NULL, phase2_card_bought = false");
+        $this->DbQuery("UPDATE `player` SET `applied_effects` = '[]', `used_objects` = '[]', `chosen_token` = NULL, `phase2_copied_type` = NULL, phase2_card_bought = FALSE, can_see_top_card = FALSE");
 
         $playersIds = $this->getPlayersIds();
         foreach ($playersIds as $playerId) {

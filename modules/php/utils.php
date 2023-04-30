@@ -494,4 +494,28 @@ trait UtilTrait {
         $jsonObj = json_encode($undo);
         $this->DbQuery("UPDATE `player` SET `undo` = '$jsonObj' WHERE `player_id` = $playerId");
     }
+
+    function getLastCard(int $playerId) {
+        $canSeeTopCard = boolval($this->getUniqueValueFromDB("SELECT can_see_top_card FROM `player` WHERE `player_id` = $playerId"));
+        return $canSeeTopCard ? $this->getCardFromDb($this->cards->getCardOnTop('deck'.$playerId)) : null;
+    }
+
+    function cardPickedFromDeck(int $playerId) {
+        $this->DbQuery("UPDATE `player` SET `can_see_top_card` = FALSE WHERE `player_id` = $playerId");
+
+        self::notifyPlayer($playerId, 'deckTopCard', '', [
+            'playerId' => $playerId,
+            'card' => null,
+        ]);
+    }
+
+    function cardAddedToDeck(int $playerId) {
+        $this->DbQuery("UPDATE `player` SET `can_see_top_card` = TRUE WHERE `player_id` = $playerId");
+
+        self::notifyPlayer($playerId, 'deckTopCard', '', [
+            'playerId' => $playerId,
+            'card' => $this->getCardFromDb($this->cards->getCardOnTop('deck'.$playerId)),
+        ]);
+    }
+    
 }

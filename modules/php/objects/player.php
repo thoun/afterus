@@ -16,6 +16,7 @@ class AfterUsPlayer {
     public bool $phase2cardBought;
     public bool $autoGain;
     public int $privateStateBeforeObject;
+    public bool $canSeeTopCard;
 
     public function __construct($dbPlayer) {
         $this->id = intval($dbPlayer['player_id']);
@@ -33,6 +34,7 @@ class AfterUsPlayer {
         $this->phase2cardBought = boolval($dbPlayer['phase2_card_bought']);
         $this->autoGain = boolval($dbPlayer['player_auto_gain']);
         $this->privateStateBeforeObject = intval($dbPlayer['private_state_before_object']);
+        $this->canSeeTopCard = boolval($dbPlayer['can_see_top_card']);
     }
 }
 ?>

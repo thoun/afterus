@@ -40,5 +40,4 @@ Can we use Game Console on a tamarin ?
 No, you can't
 
 ## TODO
-show last picked card
 special case not enough cards

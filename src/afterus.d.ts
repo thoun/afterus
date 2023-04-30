@@ -39,6 +39,7 @@ interface AfterUsPlayer extends Player {
     chosenToken: number | null;
     deckCount: number;
     discardCount: number;
+    topCard?: Card;
 }
 
 interface AfterUsGamedatas {
@@ -192,4 +193,10 @@ interface NotifRefillDeckArgs {
 // cancelLastMoves
 interface NotifCancelLastMovesArgs extends NotifActivatedEffectArgs {
     line: Card[];
+}
+
+// deckTopCard
+interface NotifDeckTopCardArgs {
+    playerId: number;
+    card: Card;
 }

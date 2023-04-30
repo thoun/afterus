@@ -82,7 +82,7 @@ class TableCenter {
     }
 
     public addCardToDeck(card: Card) {
-        this.hiddenDecks[card.level * 10 + card.type].addCard(card);
+        this.hiddenDecks[card.type * 10 + card.level].addCard(card);
     }
     
     public setRemaining(deckType: number, deckCount: number) {        

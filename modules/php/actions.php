@@ -329,6 +329,8 @@ trait ActionTrait {
             'deckCount' => intval($this->cards->countCardInLocation("deck-$type-$level")),
             'resources' => $this->getResourcesStr([$cost]),
         ]);
+
+        $this->cardAddedToDeck($playerId);
     }
 
     public function buyCard(int $level, int $type) {
@@ -534,6 +536,8 @@ trait ActionTrait {
             'table' => $table,
         ]);
 
+        $this->cardAddedToDeck($playerId);
+
         $this->saveForUndo($playerId, true);
 
         $this->applyCancelObject($playerId);
@@ -609,6 +613,7 @@ trait ActionTrait {
         $this->cards->moveCard($currentCard->id, 'discard'.$playerId);
         $this->refillPlayerDeckIfEmpty($playerId);
         $card = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, $currentCard->locationArg));
+        $this->cardPickedFromDeck($playerId);
 
         self::notifyAllPlayers('replaceLineCard', clienttranslate('${player_name} uses object ${object} to replace a card with a new card from the deck'), [
             'playerId' => $playerId,
@@ -618,6 +623,8 @@ trait ActionTrait {
             'player' => $this->getPlayer($playerId),
             'card' => $card,
         ]);
+
+        $this->cardAddedToDeck($playerId);
 
         $this->saveForUndo($playerId, true);
 
@@ -673,6 +680,7 @@ trait ActionTrait {
 
         $this->refillPlayerDeckIfEmpty($playerId);
         $card = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, intval($this->cards->countCardInLocation('deck'.$playerId))));
+        $this->cardPickedFromDeck($playerId);
 
         self::notifyAllPlayers('addCardToLine', clienttranslate('${player_name} uses object ${object} to add a 5th card'), [
             'playerId' => $playerId,
