@@ -104,7 +104,7 @@ trait UtilTrait {
     function getCardById(int $id) {
         $sql = "SELECT * FROM `card` WHERE `card_id` = $id";
         $dbResults = $this->getCollectionFromDb($sql);
-        $cards = array_map(fn($dbCard) => new Card($dbCard, $this->CARDS), array_values($dbResults));
+        $cards = array_map(fn($dbCard) => $this->getCardFromDb($dbCard), array_values($dbResults));
         return count($cards) > 0 ? $cards[0] : null;
     }
 
@@ -112,7 +112,15 @@ trait UtilTrait {
         if ($dbCard == null) {
             return null;
         }
-        return new Card($dbCard, $this->CARDS);
+        $card = new Card($dbCard, $this->CARDS);
+
+        if ($card->type == 0) {
+            $gameinfos = self::getGameinfos();
+            $colorToIndex = array_flip($gameinfos['player_colors']);
+            $card->number += 8 * $colorToIndex[$this->getPlayerColorById($card->playerId)];
+        }
+
+        return $card;
     }
 
     function getCardsByLocation(string $location, /*int|null*/ $location_arg = null, /*int|null*/ $type = null, /*int|null*/ $number = null) {
@@ -128,7 +136,7 @@ trait UtilTrait {
         }
         $sql .= " ORDER BY `card_location_arg`";
         $dbResults = $this->getCollectionFromDb($sql);
-        return array_map(fn($dbCard) => new Card($dbCard, $this->CARDS), array_values($dbResults));
+        return array_map(fn($dbCard) => $this->getCardFromDb($dbCard), array_values($dbResults));
     }
 
     function getCardByLocation(string $location, int $location_arg, /*int|null*/ $type = null, /*int|null*/ $number = null) {

@@ -40,6 +40,5 @@ Can we use Game Console on a tamarin ?
 No, you can't
 
 ## TODO
-fix swap animations
-powers
-remove player boards ?
+cancel
+special case not enough cards

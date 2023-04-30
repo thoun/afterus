@@ -1334,7 +1334,7 @@ var CardsManager = /** @class */ (function (_super) {
         if (!card.number) {
             return undefined;
         }
-        return "".concat(_('${type} level ${level}').replace('${type}', "<strong>".concat(this.getMonkeyType(card.type), "</strong>")).replace('${level}', "<strong>".concat(card.level, "</strong>")), "<br>\n        ").concat(_('Card number:'), " ").concat(card.number, "\n        <br>TODO card index = ").concat(card.subType);
+        return "".concat(_('${type} level ${level}').replace('${type}', "<strong>".concat(this.getMonkeyType(card.type), "</strong>")).replace('${level}', "<strong>".concat(card.level, "</strong>")), "<br>\n        ").concat(_('Rage gain:'), " ").concat(card.rageGain[0], " ").concat(formatTextIcons(getResourceCode(card.rageGain[1])), "<br>\n        ").concat(_('Card number:'), " ").concat(card.number);
     };
     return CardsManager;
 }(CardManager));

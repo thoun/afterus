@@ -128,7 +128,7 @@ class CardsManager extends CardManager<Card> {
         }
 
         return `${_('${type} level ${level}').replace('${type}', `<strong>${this.getMonkeyType(card.type)}</strong>`).replace('${level}', `<strong>${card.level}</strong>`)}<br>
-        ${_('Card number:')} ${card.number}
-        <br>TODO card index = ${card.subType}`;
+        ${_('Rage gain:')} ${card.rageGain[0]} ${formatTextIcons(getResourceCode(card.rageGain[1]))}<br>
+        ${_('Card number:')} ${card.number}`;
     }
 }
