@@ -219,6 +219,10 @@ class AfterUs implements AfterUsGame {
         }
     }
 
+    private addCancelLastMoves() {
+        (this as any).addActionButton(`cancelLastMoves-button`, _("Cancel last moves"), () => this.cancelLastMoves(), null, null, 'gray');
+    }
+
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
     //                        action status bar (ie: the HTML links in the status bar).
     //
@@ -262,9 +266,11 @@ class AfterUs implements AfterUsGame {
                     (this as any).addActionButton(`activateEffect-button`, label, () => this.activateEffect());
                 }
                 (this as any).addActionButton(`skipEffect-button`, _("Skip"), () => this.skipEffect());
+                this.addCancelLastMoves();
                 break;
             case 'confirmActivations':
                 (this as any).addActionButton(`confirmActivations-button`, _("Confirm"), () => this.confirmActivations());
+                this.addCancelLastMoves();
                 break;
             case 'privateChooseToken':
                 [1, 2, 3, 4].forEach(type => 
@@ -610,6 +616,14 @@ class AfterUs implements AfterUsGame {
         this.takeAction('confirmActivations');
     }
   	
+    public cancelLastMoves() {
+        if(!(this as any).checkAction('cancelLastMoves')) {
+            return;
+        }
+
+        this.takeAction('cancelLastMoves');
+    }
+  	
     public chooseToken(type: number) {
         /*if(!(this as any).checkAction('chooseToken')) {
             return;
@@ -789,11 +803,12 @@ class AfterUs implements AfterUsGame {
             ['endRound', ANIMATION_MS],
             ['discardedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
-            ['replaceLineCard', ANIMATION_MS],
+            ['replaceLineCard', ANIMATION_MS * 2],
             ['replaceTopDeck', ANIMATION_MS],
             ['refillDeck', ANIMATION_MS],
             ['lastTurn', 1],
             ['useObject', 1],
+            ['cancelLastMoves', 1],
         ];
     
         notifs.forEach((notif) => {
@@ -871,11 +886,13 @@ class AfterUs implements AfterUsGame {
         this.notif_activatedEffect(notif);
     }   
 
-    notif_replaceLineCard(notif: Notif<NotifReplaceLineCardArgs>) { // TODO animate to decks
-        // TODO allow to take another type of monkey
-        this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.card);
-        this.tableCenter.replaceLineCard(notif.args.table);
-        this.notif_activatedEffect(notif);
+    notif_replaceLineCard(notif: Notif<NotifReplaceLineCardArgs>) {
+        this.tableCenter.addCardForReplaceLine(notif.args.oldCard).then(() => {
+            this.tableCenter.addCardForReplaceLine(notif.args.newCard);
+            this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.newCard);
+            this.tableCenter.replaceLineCardUpdateCounters(notif.args.table);
+            this.notif_activatedEffect(notif);
+        });
     } 
 
     notif_replaceTopDeck(notif: Notif<NotifReplaceTopDeckArgs>) {
@@ -889,7 +906,12 @@ class AfterUs implements AfterUsGame {
 
     notif_refillDeck(notif: Notif<NotifRefillDeckArgs>) {
         this.getPlayerTable(notif.args.playerId).refillDeck(notif.args.deckCount);
-    }    
+    }  
+
+    notif_cancelLastMoves(notif: Notif<NotifCancelLastMovesArgs>) {
+        this.getPlayerTable(notif.args.playerId).setLine(notif.args.line);
+        this.notif_activatedEffect(notif);
+    }
     
     /** 
      * Show last turn banner.

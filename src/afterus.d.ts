@@ -173,7 +173,8 @@ interface NotifAddCardToLineArgs extends NotifActivatedEffectArgs {
 
 // replaceLineCard
 interface NotifReplaceLineCardArgs extends NotifActivatedEffectArgs {
-    card: Card;
+    oldCard: Card;
+    newCard: Card;
     table: { [type: number]: number };
 }
 
@@ -186,4 +187,9 @@ interface NotifReplaceTopDeckArgs extends NotifActivatedEffectArgs {
 interface NotifRefillDeckArgs {
     playerId: number;
     deckCount: number;
+}
+
+// cancelLastMoves
+interface NotifCancelLastMovesArgs extends NotifActivatedEffectArgs {
+    line: Card[];
 }

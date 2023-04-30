@@ -496,8 +496,8 @@ trait ActionTrait {
 
         $playerId = intval($this->getCurrentPlayerId());
 
-        $currentCard = $this->getCardFromDb($this->cards->getCard($id));       
-        $level = $currentCard->level;
+        $oldCard = $this->getCardFromDb($this->cards->getCard($id));       
+        $level = $oldCard->level;
         if ($level < 1) {
             throw new BgaUserException("Invalid card");
         }
@@ -508,15 +508,15 @@ trait ActionTrait {
         
         $this->saveUsedObject($playerId, 1);
 
-        $oldType = $currentCard->type; 
+        $oldType = $oldCard->type; 
         $left = [$cost, ENERGY];
         $this->giveResource($playerId, $left);
 
         $oldDeck = "deck-$oldType-$level";
         $this->DbQuery("UPDATE `card` SET `card_location_arg` = `card_location_arg` + 1 WHERE `card_location` = '$oldDeck'");
-        $this->cards->moveCard($currentCard->id, $oldDeck, 0);
+        $this->cards->moveCard($oldCard->id, $oldDeck, 0);
         $newDeck = "deck-$newType-$level";
-        $card = $this->getCardFromDb($this->cards->pickCardForLocation($newDeck, 'line'.$playerId, $currentCard->locationArg));
+        $newCard = $this->getCardFromDb($this->cards->pickCardForLocation($newDeck, 'line'.$playerId, $oldCard->locationArg));
         
         $table = [];
         foreach ([$oldType, $newType] as $monkeyType) {
@@ -529,7 +529,8 @@ trait ActionTrait {
             'object' => $this->getObjectName(1),
             'i18n' => ['object'],
             'player' => $this->getPlayer($playerId),
-            'card' => $card,
+            'oldCard' => $oldCard,
+            'newCard' => $newCard,
             'table' => $table,
         ]);
 
@@ -726,5 +727,30 @@ trait ActionTrait {
         $this->takeCard($playerId, $level, $type, [$cost, ENERGY]);
 
         $this->applyCancelObject($playerId);
+    }
+
+    public function cancelLastMoves() {
+        self::checkAction('cancelLastMoves');
+
+        $playerId = intval($this->getCurrentPlayerId());
+        $undo = json_decode($this->getUniqueValueFromDB("SELECT `undo` FROM `player` WHERE `player_id` = $playerId"));
+
+        $line = [];
+        foreach((array)$undo->lineIds as $index => $id) {
+            $this->cards->moveCard($id, 'line'.$playerId, $index);
+            $line[] = $this->getCardFromDb($this->cards->getCard($id));
+        }
+        
+        $player = $undo->player;
+        $this->DbQuery("UPDATE `player` SET `player_flower` = $player->flowers, `player_fruit` = $player->fruits, `player_grain` = $player->grains, `player_energy` = $player->energy, `player_score` = $player->score, `player_rage` = $player->rage WHERE `player_id` = $playerId");
+
+        self::notifyAllPlayers('cancelLastMoves', clienttranslate('${player_name} cancels their last moves'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'line' => $line,
+            'player' => $this->getPlayer($playerId),
+        ]);
+
+        $this->gamestate->setPrivateState($playerId, $undo->privateStateId);
     }  
 }

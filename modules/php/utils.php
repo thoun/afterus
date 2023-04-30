@@ -464,4 +464,26 @@ trait UtilTrait {
             'object' => $object,
         ]);
     }
+
+    function saveForUndo(int $playerId, bool $logUndoPoint) {
+        $line = $this->getCardsByLocation('line'.$playerId);
+        $player = $this->getPlayer($playerId);
+
+        if ($logUndoPoint) {
+            self::notifyPlayer($playerId, 'log', clienttranslate('As you revealed a hidden element, Cancel last moves will only allow to come back to this point'), []);
+        }
+
+        $lineIds = [];
+        foreach ($line as $card) {
+            $lineIds[$card->locationArg] = $card->id;
+        }
+
+        $undo = new Undo(
+            $this->getPlayerPrivateState($playerId),
+            $lineIds,
+            $player,
+        );
+        $jsonObj = json_encode($undo);
+        $this->DbQuery("UPDATE `player` SET `undo` = '$jsonObj' WHERE `player_id` = $playerId");
+    }
 }

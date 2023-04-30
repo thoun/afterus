@@ -273,7 +273,6 @@ class PlayerTable {
     }
     
     public replaceLineCard(card: Card) {
-        this.line.removeCard(this.line.getCards().find(c => c.locationArg == card.locationArg));
         this.line.addCard(card);
     }
 
@@ -329,5 +328,10 @@ class PlayerTable {
     
     public addCardToDeck(card: Card) {
         this.deck.addCard(card);
+    }
+
+    public setLine(line: Card[]) {
+        this.line.removeAll();
+        this.line.addCards(line);
     }
 }

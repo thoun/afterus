@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS `card` (
 ALTER TABLE `player` ADD `player_auto_gain` SMALLINT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `applied_effects` json;
 ALTER TABLE `player` ADD `used_objects` json;
+ALTER TABLE `player` ADD `undo` json;
 ALTER TABLE `player` ADD `player_flower` SMALLINT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `player_fruit` SMALLINT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player` ADD `player_grain` SMALLINT UNSIGNED NOT NULL DEFAULT 0;

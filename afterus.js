@@ -1501,13 +1501,17 @@ var TableCenter = /** @class */ (function () {
         var _this = this;
         this.objects.getCards().forEach(function (object) { return _this.objects.getCardElement(object).classList.toggle('used', _this.usedObjects.includes(object)); });
     };
-    TableCenter.prototype.replaceLineCard = function (table) {
+    TableCenter.prototype.replaceLineCardUpdateCounters = function (table) {
         var _this = this;
         Object.entries(table).forEach(function (entry) {
             var type = Number(entry[0]);
             var count = entry[1];
             _this.cardCounters[type].toValue(count);
         });
+    };
+    TableCenter.prototype.addCardForReplaceLine = function (oldCard) {
+        var type = oldCard.type * 10 + oldCard.level;
+        return this.hiddenDecks[type].addCard(oldCard);
     };
     return TableCenter;
 }());
@@ -1732,7 +1736,6 @@ var PlayerTable = /** @class */ (function () {
         this.setDeckCount(this.deckCounter.getValue() - 1);
     };
     PlayerTable.prototype.replaceLineCard = function (card) {
-        this.line.removeCard(this.line.getCards().find(function (c) { return c.locationArg == card.locationArg; }));
         this.line.addCard(card);
     };
     PlayerTable.prototype.replaceTopDeck = function (card) {
@@ -1777,6 +1780,10 @@ var PlayerTable = /** @class */ (function () {
     };
     PlayerTable.prototype.addCardToDeck = function (card) {
         this.deck.addCard(card);
+    };
+    PlayerTable.prototype.setLine = function (line) {
+        this.line.removeAll();
+        this.line.addCards(line);
     };
     return PlayerTable;
 }());
@@ -1962,6 +1969,10 @@ var AfterUs = /** @class */ (function () {
                 break;
         }
     };
+    AfterUs.prototype.addCancelLastMoves = function () {
+        var _this = this;
+        this.addActionButton("cancelLastMoves-button", _("Cancel last moves"), function () { return _this.cancelLastMoves(); }, null, null, 'gray');
+    };
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
     //                        action status bar (ie: the HTML links in the status bar).
     //
@@ -2008,9 +2019,11 @@ var AfterUs = /** @class */ (function () {
                     this.addActionButton("activateEffect-button", label, function () { return _this.activateEffect(); });
                 }
                 this.addActionButton("skipEffect-button", _("Skip"), function () { return _this.skipEffect(); });
+                this.addCancelLastMoves();
                 break;
             case 'confirmActivations':
                 this.addActionButton("confirmActivations-button", _("Confirm"), function () { return _this.confirmActivations(); });
+                this.addCancelLastMoves();
                 break;
             case 'privateChooseToken':
                 [1, 2, 3, 4].forEach(function (type) {
@@ -2281,6 +2294,12 @@ var AfterUs = /** @class */ (function () {
         }
         this.takeAction('confirmActivations');
     };
+    AfterUs.prototype.cancelLastMoves = function () {
+        if (!this.checkAction('cancelLastMoves')) {
+            return;
+        }
+        this.takeAction('cancelLastMoves');
+    };
     AfterUs.prototype.chooseToken = function (type) {
         /*if(!(this as any).checkAction('chooseToken')) {
             return;
@@ -2429,11 +2448,12 @@ var AfterUs = /** @class */ (function () {
             ['endRound', ANIMATION_MS],
             ['discardedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
-            ['replaceLineCard', ANIMATION_MS],
+            ['replaceLineCard', ANIMATION_MS * 2],
             ['replaceTopDeck', ANIMATION_MS],
             ['refillDeck', ANIMATION_MS],
             ['lastTurn', 1],
             ['useObject', 1],
+            ['cancelLastMoves', 1],
         ];
         notifs.forEach(function (notif) {
             dojo.subscribe(notif[0], _this, "notif_".concat(notif[0]));
@@ -2501,10 +2521,13 @@ var AfterUs = /** @class */ (function () {
         this.notif_activatedEffect(notif);
     };
     AfterUs.prototype.notif_replaceLineCard = function (notif) {
-        // TODO allow to take another type of monkey
-        this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.card);
-        this.tableCenter.replaceLineCard(notif.args.table);
-        this.notif_activatedEffect(notif);
+        var _this = this;
+        this.tableCenter.addCardForReplaceLine(notif.args.oldCard).then(function () {
+            _this.tableCenter.addCardForReplaceLine(notif.args.newCard);
+            _this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.newCard);
+            _this.tableCenter.replaceLineCardUpdateCounters(notif.args.table);
+            _this.notif_activatedEffect(notif);
+        });
     };
     AfterUs.prototype.notif_replaceTopDeck = function (notif) {
         this.getPlayerTable(notif.args.playerId).replaceTopDeck(notif.args.card);
@@ -2515,6 +2538,10 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.notif_refillDeck = function (notif) {
         this.getPlayerTable(notif.args.playerId).refillDeck(notif.args.deckCount);
+    };
+    AfterUs.prototype.notif_cancelLastMoves = function (notif) {
+        this.getPlayerTable(notif.args.playerId).setLine(notif.args.line);
+        this.notif_activatedEffect(notif);
     };
     /**
      * Show last turn banner.

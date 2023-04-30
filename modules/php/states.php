@@ -34,6 +34,11 @@ trait StateTrait {
     function stPhase1() {
         $this->gamestate->setAllPlayersMultiactive();
         $this->gamestate->initializePrivateStateForAllActivePlayers(); 
+
+        $playersIds = $this->getPlayersIds();
+        foreach ($playersIds as $playerId) {
+            $this->saveForUndo($playerId, false);
+        }
     }
 
     function stEndPhase1() {
