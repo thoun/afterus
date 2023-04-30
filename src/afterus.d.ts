@@ -174,6 +174,7 @@ interface NotifAddCardToLineArgs extends NotifActivatedEffectArgs {
 // replaceLineCard
 interface NotifReplaceLineCardArgs extends NotifActivatedEffectArgs {
     card: Card;
+    table: { [type: number]: number };
 }
 
 // replaceTopDeck

@@ -170,7 +170,20 @@ class AfterUs implements AfterUsGame {
                 break;
 
             case 'mobilePhone':
-                this.getCurrentPlayerTable().addButtonsOnCards(card => _('Replace this card') + formatTextIcons(` (${card.level + 1} [Energy])`), card => this.useMobilePhone(card.id), 1);
+                this.getCurrentPlayerTable().addButtonsOnCards(card => _('Replace this card') + formatTextIcons(` (${card.level + 1} [Energy])`), card => {
+                    const keys = [1, 2, 3, 4].map(type => this.cardsManager.getMonkeyType(type));
+                    keys.push(_('Cancel'));
+                    (this as any).multipleChoiceDialog(_("How many bugs to fix?"), keys, (choice: string) => {
+                      if (Number(choice) != 4) { // != cancel
+                        this.useMobilePhone(card.id, Number(choice) + 1);
+                        }
+                    });
+                    const cancelBtn = document.getElementById('choice_btn_4');
+                    if (cancelBtn) {
+                        cancelBtn.classList.add('bgabutton_gray');
+                        cancelBtn.classList.remove('bgabutton_blue');
+                    }
+                }, 1);
                 break;
             case 'ghettoBlaster':
                 this.getCurrentPlayerTable().addButtonsOnCards(() => _('Replace this card') + formatTextIcons(' (2 [Energy])'), card => this.useGhettoBlaster(card.id));
@@ -688,13 +701,14 @@ class AfterUs implements AfterUsGame {
         this.takeAction('cancelObject');
     }
 
-    public useMobilePhone(id: number): void {
+    public useMobilePhone(id: number, type: number): void {
         if(!(this as any).checkAction('useMobilePhone')) {
             return;
         }
 
         this.takeAction('useMobilePhone', {
             id,
+            type,
         });
     }
 
@@ -860,6 +874,7 @@ class AfterUs implements AfterUsGame {
     notif_replaceLineCard(notif: Notif<NotifReplaceLineCardArgs>) { // TODO animate to decks
         // TODO allow to take another type of monkey
         this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.card);
+        this.tableCenter.replaceLineCard(notif.args.table);
         this.notif_activatedEffect(notif);
     } 
 

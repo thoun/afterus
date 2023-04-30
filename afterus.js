@@ -1501,6 +1501,14 @@ var TableCenter = /** @class */ (function () {
         var _this = this;
         this.objects.getCards().forEach(function (object) { return _this.objects.getCardElement(object).classList.toggle('used', _this.usedObjects.includes(object)); });
     };
+    TableCenter.prototype.replaceLineCard = function (table) {
+        var _this = this;
+        Object.entries(table).forEach(function (entry) {
+            var type = Number(entry[0]);
+            var count = entry[1];
+            _this.cardCounters[type].toValue(count);
+        });
+    };
     return TableCenter;
 }());
 var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
@@ -1540,7 +1548,6 @@ var CardLine = /** @class */ (function (_super) {
     CardLine.prototype.createSlotButtons = function () {
         var _this = this;
         this.element.querySelectorAll('[data-slot-id]').forEach(function (slot, index) {
-            console.log("slot.querySelectorAll('button.move')", slot.querySelectorAll('button.move'));
             if (slot.querySelectorAll('button.move').length == 0) {
                 slot.insertAdjacentHTML('afterbegin', "\n                    <button id=\"move-left-".concat(index, "\" class=\"move left\"></button>\n                    <button id=\"move-right-").concat(index, "\" class=\"move right\"></button>\n                "));
                 document.getElementById("move-left-".concat(index)).addEventListener('click', function () { return _this.game.moveCard(index, -1); });
@@ -1910,7 +1917,20 @@ var AfterUs = /** @class */ (function () {
                 this.getCurrentPlayerTable().setActivableEffectToken(activateEffectTokenArgs.possibleEffects);
                 break;
             case 'mobilePhone':
-                this.getCurrentPlayerTable().addButtonsOnCards(function (card) { return _('Replace this card') + formatTextIcons(" (".concat(card.level + 1, " [Energy])")); }, function (card) { return _this.useMobilePhone(card.id); }, 1);
+                this.getCurrentPlayerTable().addButtonsOnCards(function (card) { return _('Replace this card') + formatTextIcons(" (".concat(card.level + 1, " [Energy])")); }, function (card) {
+                    var keys = [1, 2, 3, 4].map(function (type) { return _this.cardsManager.getMonkeyType(type); });
+                    keys.push(_('Cancel'));
+                    _this.multipleChoiceDialog(_("How many bugs to fix?"), keys, function (choice) {
+                        if (Number(choice) != 4) { // != cancel
+                            _this.useMobilePhone(card.id, Number(choice) + 1);
+                        }
+                    });
+                    var cancelBtn = document.getElementById('choice_btn_4');
+                    if (cancelBtn) {
+                        cancelBtn.classList.add('bgabutton_gray');
+                        cancelBtn.classList.remove('bgabutton_blue');
+                    }
+                }, 1);
                 break;
             case 'ghettoBlaster':
                 this.getCurrentPlayerTable().addButtonsOnCards(function () { return _('Replace this card') + formatTextIcons(' (2 [Energy])'); }, function (card) { return _this.useGhettoBlaster(card.id); });
@@ -2333,12 +2353,13 @@ var AfterUs = /** @class */ (function () {
         }
         this.takeAction('cancelObject');
     };
-    AfterUs.prototype.useMobilePhone = function (id) {
+    AfterUs.prototype.useMobilePhone = function (id, type) {
         if (!this.checkAction('useMobilePhone')) {
             return;
         }
         this.takeAction('useMobilePhone', {
             id: id,
+            type: type,
         });
     };
     AfterUs.prototype.useMinibar = function (left, right) {
@@ -2482,6 +2503,7 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.notif_replaceLineCard = function (notif) {
         // TODO allow to take another type of monkey
         this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.card);
+        this.tableCenter.replaceLineCard(notif.args.table);
         this.notif_activatedEffect(notif);
     };
     AfterUs.prototype.notif_replaceTopDeck = function (notif) {

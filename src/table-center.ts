@@ -120,4 +120,12 @@ class TableCenter {
     private setUsedClass() {
         this.objects.getCards().forEach(object => this.objects.getCardElement(object).classList.toggle('used', this.usedObjects.includes(object)));
     }
+    
+    public replaceLineCard(table: { [type: number]: number; }) {
+        Object.entries(table).forEach(entry => {
+            const type = Number(entry[0]);
+            const count = entry[1];
+            this.cardCounters[type].toValue(count);
+        });
+    }
 }

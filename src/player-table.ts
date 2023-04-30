@@ -31,7 +31,6 @@ class CardLine extends SlotStock<Card> {
 
     private createSlotButtons() {
         this.element.querySelectorAll('[data-slot-id]').forEach((slot, index) => {
-            console.log("slot.querySelectorAll('button.move')", slot.querySelectorAll('button.move'));
             if (slot.querySelectorAll('button.move').length == 0) {
                 slot.insertAdjacentHTML('afterbegin', `
                     <button id="move-left-${index}" class="move left"></button>

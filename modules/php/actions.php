@@ -491,7 +491,7 @@ trait ActionTrait {
         $this->applyCancelObject($playerId);
     }
 
-    public function useMobilePhone(int $id) {
+    public function useMobilePhone(int $id, int $newType) {
         self::checkAction('useMobilePhone');
 
         $playerId = intval($this->getCurrentPlayerId());
@@ -508,14 +508,20 @@ trait ActionTrait {
         
         $this->saveUsedObject($playerId, 1);
 
-        $type = $currentCard->type; 
+        $oldType = $currentCard->type; 
         $left = [$cost, ENERGY];
         $this->giveResource($playerId, $left);
 
-        $deck = "deck-$type-$level";
-        $this->DbQuery("UPDATE `card` SET `card_location_arg` = `card_location_arg` + 1 WHERE `card_location` = '$deck'");
-        $this->cards->moveCard($currentCard->id, $deck, 0);
-        $card = $this->getCardFromDb($this->cards->pickCardForLocation($deck, 'line'.$playerId, $currentCard->locationArg));
+        $oldDeck = "deck-$oldType-$level";
+        $this->DbQuery("UPDATE `card` SET `card_location_arg` = `card_location_arg` + 1 WHERE `card_location` = '$oldDeck'");
+        $this->cards->moveCard($currentCard->id, $oldDeck, 0);
+        $newDeck = "deck-$newType-$level";
+        $card = $this->getCardFromDb($this->cards->pickCardForLocation($newDeck, 'line'.$playerId, $currentCard->locationArg));
+        
+        $table = [];
+        foreach ([$oldType, $newType] as $monkeyType) {
+            $table[$monkeyType * 10 + $level] = intval($this->cards->countCardInLocation("deck-$monkeyType-$level"));
+        }
 
         self::notifyAllPlayers('replaceLineCard', clienttranslate('${player_name} uses object ${object} to permanently replace a card with a new card of same type and level from the main board'), [
             'playerId' => $playerId,
@@ -524,6 +530,7 @@ trait ActionTrait {
             'i18n' => ['object'],
             'player' => $this->getPlayer($playerId),
             'card' => $card,
+            'table' => $table,
         ]);
 
         $this->applyCancelObject($playerId);

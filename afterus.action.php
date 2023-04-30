@@ -196,7 +196,8 @@
         self::setAjaxMode();
 
         $id = self::getArg("id", AT_posint, true);
-        $this->game->useMobilePhone($id);
+        $type = self::getArg("type", AT_posint, true);
+        $this->game->useMobilePhone($id, $type);
 
         self::ajaxResponse();
     }
