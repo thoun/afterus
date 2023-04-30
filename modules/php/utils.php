@@ -263,8 +263,12 @@ trait UtilTrait {
         return $possibleEffects;
     }
 
+    public function getAppliedEffects(int $playerId) {
+        return json_decode($this->getUniqueValueFromDB("SELECT `applied_effects` FROM `player` WHERE `player_id` = $playerId") ?? '[]', true);
+    }
+
     public function getRemainingEffects(int $playerId, array $allEffects) {
-        $appliedEffects = json_decode($this->getUniqueValueFromDB("SELECT `applied_effects` FROM `player` WHERE `player_id` = $playerId") ?? '[]', true);
+        $appliedEffects = $this->getAppliedEffects($playerId);
 
         $remainingEffects = $allEffects;
         foreach($appliedEffects as $effect) {
@@ -277,7 +281,7 @@ trait UtilTrait {
     }
 
     private function markedPlayedEffect(int $playerId, $effect) {
-        $appliedEffects = json_decode($this->getUniqueValueFromDB("SELECT `applied_effects` FROM `player` WHERE `player_id` = $playerId") ?? '[]', true);
+        $appliedEffects = $this->getAppliedEffects($playerId);
         
         $appliedEffect = [$effect->row, $effect->cardIndex, $effect->closedFrameIndex];
         $appliedEffects[] = $appliedEffect;
@@ -468,6 +472,8 @@ trait UtilTrait {
     function saveForUndo(int $playerId, bool $logUndoPoint) {
         $line = $this->getCardsByLocation('line'.$playerId);
         $player = $this->getPlayer($playerId);
+        $appliedEffects = $this->getAppliedEffects($playerId);
+        $usedObjects = $this->getUsedObjects($playerId);
 
         if ($logUndoPoint) {
             self::notifyPlayer($playerId, 'log', clienttranslate('As you revealed a hidden element, Cancel last moves will only allow to come back to this point'), []);
@@ -482,6 +488,8 @@ trait UtilTrait {
             $this->getPlayerPrivateState($playerId),
             $lineIds,
             $player,
+            $appliedEffects,
+            $usedObjects,
         );
         $jsonObj = json_encode($undo);
         $this->DbQuery("UPDATE `player` SET `undo` = '$jsonObj' WHERE `player_id` = $playerId");
