@@ -319,8 +319,8 @@ trait ActionTrait {
     private function takeCard(int $playerId, int $level, int $type, array $cost) {
         $this->giveResource($playerId, $cost);
 
-        $locationArg = intval($this->getUniqueValueFromDB("SELECT max(`card_location_arg`) FROM `card` WHERE `card_location` = 'deck$playerId'")) + 1;
-        $card = $this->getCardFromDb($this->cards->pickCardForLocation("deck-$type-$level", 'deck'.$playerId, $locationArg));
+        $locationArg = intval($this->getUniqueValueFromDB("SELECT max(`card_location_arg`) FROM `card` WHERE `card_location` = 'pdeck$playerId'")) + 1;
+        $card = $this->getCardFromDb($this->cards->pickCardForLocation("deck-$type-$level", 'pdeck'.$playerId, $locationArg));
 
         self::notifyAllPlayers('buyCard', _('${player_name} buy a level ${level} ${type} card with ${resources}'), [
             'playerId' => $playerId,
@@ -329,9 +329,10 @@ trait ActionTrait {
             'type' => $this->getMonkeyType($type), // for logs
             'level' => $level, // for logs
             'i18n' => ['type'],
-            'card' => $card, // TODO show only to player ?
+            'card' => Card::onlyId($card),
             'deckType' => $type * 10 + $level,
             'deckCount' => intval($this->cards->countCardInLocation("deck-$type-$level")),
+            'deckTopCard' => Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop("deck-$type-$level"))),
             'resources' => $this->getResourcesStr([$cost]),
         ]);
 
@@ -388,7 +389,7 @@ trait ActionTrait {
             throw new BgaUserException("Not enough rage");
         }
 
-        $totalPlayerCards = intval($this->cards->countCardInLocation('deck'.$playerId)) +
+        $totalPlayerCards = intval($this->cards->countCardInLocation('pdeck'.$playerId)) +
             intval($this->cards->countCardInLocation('line'.$playerId)) +
             intval($this->cards->countCardInLocation('discard'.$playerId));
         if ($totalPlayerCards <= 4) {
@@ -617,7 +618,7 @@ trait ActionTrait {
         $currentCard = $this->getCardFromDb($this->cards->getCard($id));
         $this->cards->moveCard($currentCard->id, 'discard'.$playerId);
         $this->refillPlayerDeckIfEmpty($playerId);
-        $card = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, $currentCard->locationArg));
+        $card = $this->getCardFromDb($this->cards->pickCardForLocation('pdeck'.$playerId, 'line'.$playerId, $currentCard->locationArg));
         $this->cardPickedFromDeck($playerId);
 
         self::notifyAllPlayers('replaceLineCard', clienttranslate('${player_name} uses object ${object} to replace a card with a new card from the deck'), [
@@ -656,8 +657,8 @@ trait ActionTrait {
         $left = [$cost, ENERGY];
         $this->giveResource($playerId, $left);
 
-        $locationArg = intval($this->getUniqueValueFromDB("SELECT max(`card_location_arg`) FROM `card` WHERE `card_location` = 'deck$playerId'")) + 1;
-        $this->cards->moveCard($card->id, 'deck'.$playerId, $locationArg);
+        $locationArg = intval($this->getUniqueValueFromDB("SELECT max(`card_location_arg`) FROM `card` WHERE `card_location` = 'pdeck$playerId'")) + 1;
+        $this->cards->moveCard($card->id, 'pdeck'.$playerId, $locationArg);
 
         self::notifyAllPlayers('replaceTopDeck', clienttranslate('${player_name} uses object ${object} to place a card on top of its draw pile'), [
             'playerId' => $playerId,
@@ -684,7 +685,7 @@ trait ActionTrait {
         $this->giveResource($playerId, $left);
 
         $this->refillPlayerDeckIfEmpty($playerId);
-        $card = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, intval($this->cards->countCardInLocation('deck'.$playerId))));
+        $card = $this->getCardFromDb($this->cards->pickCardForLocation('pdeck'.$playerId, 'line'.$playerId, intval($this->cards->countCardInLocation('pdeck'.$playerId))));
         $this->cardPickedFromDeck($playerId);
 
         self::notifyAllPlayers('addCardToLine', clienttranslate('${player_name} uses object ${object} to add a 5th card'), [
@@ -694,7 +695,9 @@ trait ActionTrait {
             'i18n' => ['object'],
             'player' => $this->getPlayer($playerId),
             'card' => $card,
-            'line' => $this->getCardsByLocation('line'.$playerId),
+            'line' => $this->getCardsByLocation('line'.$playerId),              
+            'deckCount' => intval($this->cards->countCardInLocation('pdeck'.$playerId)),
+            'deckTopCard' => Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId))),
         ]);
 
         /*$this->notifyAllPlayers('logTODO', 'card order ${order}', [

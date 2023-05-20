@@ -8,7 +8,7 @@
     justify-content: space-between;
     gap: 10px;
 
-    .hidden-deck {  
+    .deck {  
       &[data-empty="true"] {
         background: #FFFFFF66;
         border-radius: 10px;
@@ -33,20 +33,6 @@
           display: none;
         }
       }
-    }
-    
-    .deck-counter {
-      position: absolute;
-      width: 24px;
-      height: 24px;
-      background: white;
-      border-radius: 50%;
-      text-align: center;
-      line-height: 24px;
-      z-index: 1;
-      box-shadow: 0 0 3px 1px black;
-      left: calc(50% - 12px);
-      top: -12px;
     }
 
     .name-and-tokens {

@@ -420,20 +420,12 @@ var CardStock = /** @class */ (function () {
         var _this = this;
         return this.cards.some(function (c) { return _this.manager.getId(c) == _this.manager.getId(card); });
     };
-    // TODO keep only one ?
-    CardStock.prototype.cardInStock = function (card) {
-        var element = document.getElementById(this.manager.getId(card));
-        return element ? this.cardElementInStock(element) : false;
-    };
-    CardStock.prototype.cardElementInStock = function (element) {
-        return (element === null || element === void 0 ? void 0 : element.parentElement) == this.element;
-    };
     /**
      * @param card a card in the stock
      * @returns the HTML element generated for the card
      */
     CardStock.prototype.getCardElement = function (card) {
-        return document.getElementById(this.manager.getId(card));
+        return this.manager.getCardElement(card);
     };
     /**
      * Checks if the card can be added. By default, only if it isn't already present in the stock.
@@ -443,7 +435,7 @@ var CardStock = /** @class */ (function () {
      * @returns if the card can be added
      */
     CardStock.prototype.canAddCard = function (card, settings) {
-        return !this.cardInStock(card);
+        return !this.contains(card);
     };
     /**
      * Add a card to the stock.
@@ -459,21 +451,21 @@ var CardStock = /** @class */ (function () {
             return Promise.resolve(false);
         }
         var promise;
-        // we check if card is in stock then we ignore animation
-        var currentStock = this.manager.getCardStock(card);
+        // we check if card is in a stock
+        var originStock = this.manager.getCardStock(card);
         var index = this.getNewCardIndex(card);
         var settingsWithIndex = __assign({ index: index }, (settings !== null && settings !== void 0 ? settings : {}));
-        if (currentStock === null || currentStock === void 0 ? void 0 : currentStock.cardInStock(card)) {
-            var element = document.getElementById(this.manager.getId(card));
-            promise = this.moveFromOtherStock(card, element, __assign(__assign({}, animation), { fromStock: currentStock }), settingsWithIndex);
-            element.dataset.side = ((_a = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _a !== void 0 ? _a : true) ? 'front' : 'back';
+        if (originStock === null || originStock === void 0 ? void 0 : originStock.contains(card)) {
+            var element = this.getCardElement(card);
+            promise = this.moveFromOtherStock(card, element, __assign(__assign({}, animation), { fromStock: originStock }), settingsWithIndex);
+            element.dataset.side = ((_a = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _a !== void 0 ? _a : this.manager.isCardVisible(card)) ? 'front' : 'back';
         }
-        else if ((animation === null || animation === void 0 ? void 0 : animation.fromStock) && animation.fromStock.cardInStock(card)) {
-            var element = document.getElementById(this.manager.getId(card));
+        else if ((animation === null || animation === void 0 ? void 0 : animation.fromStock) && animation.fromStock.contains(card)) {
+            var element = this.getCardElement(card);
             promise = this.moveFromOtherStock(card, element, animation, settingsWithIndex);
         }
         else {
-            var element = this.manager.createCardElement(card, ((_b = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _b !== void 0 ? _b : true));
+            var element = this.manager.createCardElement(card, ((_b = settingsWithIndex === null || settingsWithIndex === void 0 ? void 0 : settingsWithIndex.visible) !== null && _b !== void 0 ? _b : this.manager.isCardVisible(card)));
             promise = this.moveFromElement(card, element, animation, settingsWithIndex);
         }
         this.setSelectableCard(card, this.selectionMode != 'none');
@@ -516,15 +508,17 @@ var CardStock = /** @class */ (function () {
     };
     CardStock.prototype.moveFromOtherStock = function (card, cardElement, animation, settings) {
         var promise;
+        var element = animation.fromStock.contains(card) ? this.manager.getCardElement(card) : animation.fromStock.element;
+        var fromRect = element.getBoundingClientRect();
         this.addCardElementToParent(cardElement, settings);
         cardElement.classList.remove('selectable', 'selected', 'disabled');
-        promise = this.animationFromElement(cardElement, animation.fromStock.element, {
+        promise = this.animationFromElement(cardElement, fromRect, {
             originalSide: animation.originalSide,
             rotationDelta: animation.rotationDelta,
             animation: animation.animation,
         });
         // in the case the card was move inside the same stock we don't remove it
-        if (animation.fromStock != this) {
+        if (animation.fromStock && animation.fromStock != this) {
             animation.fromStock.removeCard(card);
         }
         if (!promise) {
@@ -538,7 +532,7 @@ var CardStock = /** @class */ (function () {
         this.addCardElementToParent(cardElement, settings);
         if (animation) {
             if (animation.fromStock) {
-                promise = this.animationFromElement(cardElement, animation.fromStock.element, {
+                promise = this.animationFromElement(cardElement, animation.fromStock.element.getBoundingClientRect(), {
                     originalSide: animation.originalSide,
                     rotationDelta: animation.rotationDelta,
                     animation: animation.animation,
@@ -546,7 +540,7 @@ var CardStock = /** @class */ (function () {
                 animation.fromStock.removeCard(card);
             }
             else if (animation.fromElement) {
-                promise = this.animationFromElement(cardElement, animation.fromElement, {
+                promise = this.animationFromElement(cardElement, animation.fromElement.getBoundingClientRect(), {
                     originalSide: animation.originalSide,
                     rotationDelta: animation.rotationDelta,
                     animation: animation.animation,
@@ -597,7 +591,7 @@ var CardStock = /** @class */ (function () {
      * @param card the card to remove
      */
     CardStock.prototype.removeCard = function (card) {
-        if (this.cardInStock(card)) {
+        if (this.contains(card) && this.element.contains(this.getCardElement(card))) {
             this.manager.removeCard(card);
         }
         this.cardRemoved(card);
@@ -647,6 +641,28 @@ var CardStock = /** @class */ (function () {
         this.cards.forEach(function (card) { return _this.setSelectableCard(card, selectionMode != 'none'); });
         this.element.classList.toggle('selectable', selectionMode != 'none');
         this.selectionMode = selectionMode;
+    };
+    /**
+     * Set the selectable class for each card.
+     *
+     * @param selectableCards the selectable cards. If unset, all cards are marked selectable. Default unset.
+     * @param unselectableCardsClass the class to add to unselectable cards (for example to mark them as disabled). Default 'disabled'.
+     */
+    CardStock.prototype.setSelectableCards = function (selectableCards, unselectableCardsClass) {
+        var _this = this;
+        if (unselectableCardsClass === void 0) { unselectableCardsClass = 'disabled'; }
+        if (this.selectionMode === 'none') {
+            return;
+        }
+        var selectableCardsIds = (selectableCards !== null && selectableCards !== void 0 ? selectableCards : this.getCards()).map(function (card) { return _this.manager.getId(card); });
+        this.cards.forEach(function (card) {
+            var element = _this.getCardElement(card);
+            var selectable = selectableCardsIds.includes(_this.manager.getId(card));
+            element.classList.toggle('selectable', selectable);
+            if (unselectableCardsClass) {
+                element.classList.toggle(unselectableCardsClass, !selectable);
+            }
+        });
     };
     /**
      * Set selected state to a card.
@@ -750,7 +766,7 @@ var CardStock = /** @class */ (function () {
      * @param element The element to animate. The element is added to the destination stock before the animation starts.
      * @param fromElement The HTMLElement to animate from.
      */
-    CardStock.prototype.animationFromElement = function (element, fromElement, settings) {
+    CardStock.prototype.animationFromElement = function (element, fromRect, settings) {
         var _a, _b, _c, _d, _e, _f;
         var side = element.dataset.side;
         if (settings.originalSide && settings.originalSide != side) {
@@ -763,7 +779,7 @@ var CardStock = /** @class */ (function () {
             });
         }
         var animation = (_a = settings.animation) !== null && _a !== void 0 ? _a : slideAnimation;
-        return (_f = animation(element, __assign(__assign({ duration: (_c = (_b = this.manager.animationManager.getSettings()) === null || _b === void 0 ? void 0 : _b.duration) !== null && _c !== void 0 ? _c : 500, scale: (_e = (_d = this.manager.animationManager.getZoomManager()) === null || _d === void 0 ? void 0 : _d.zoom) !== null && _e !== void 0 ? _e : undefined }, settings !== null && settings !== void 0 ? settings : {}), { game: this.manager.game, fromElement: fromElement }))) !== null && _f !== void 0 ? _f : Promise.resolve(false);
+        return (_f = animation(element, __assign(__assign({ duration: (_c = (_b = this.manager.animationManager.getSettings()) === null || _b === void 0 ? void 0 : _b.duration) !== null && _c !== void 0 ? _c : 500, scale: (_e = (_d = this.manager.animationManager.getZoomManager()) === null || _d === void 0 ? void 0 : _d.zoom) !== null && _e !== void 0 ? _e : undefined }, settings !== null && settings !== void 0 ? settings : {}), { game: this.manager.game, fromRect: fromRect }))) !== null && _f !== void 0 ? _f : Promise.resolve(false);
     };
     /**
      * Set the card to its front (visible) or back (not visible) side.
@@ -799,19 +815,27 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 /**
- * Abstract stock to represent a deck. (pile of cards, with a fake 3d effect of thickness).
+ * Abstract stock to represent a deck. (pile of cards, with a fake 3d effect of thickness). *
+ * Needs cardWidth and cardHeight to be set in the card manager.
  */
 var Deck = /** @class */ (function (_super) {
     __extends(Deck, _super);
     function Deck(manager, element, settings) {
         var _this = this;
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         _this = _super.call(this, manager, element) || this;
         _this.manager = manager;
         _this.element = element;
         element.classList.add('deck');
-        _this.element.style.setProperty('--width', settings.width + 'px');
-        _this.element.style.setProperty('--height', settings.height + 'px');
+        var cardWidth = _this.manager.getCardWidth();
+        var cardHeight = _this.manager.getCardHeight();
+        if (cardWidth && cardHeight) {
+            _this.element.style.setProperty('--width', "".concat(cardWidth, "px"));
+            _this.element.style.setProperty('--height', "".concat(cardHeight, "px"));
+        }
+        else {
+            throw new Error("You need to set cardWidth and cardHeight in the card manager to use Deck.");
+        }
         _this.thicknesses = (_a = settings.thicknesses) !== null && _a !== void 0 ? _a : [0, 2, 5, 10, 20, 30];
         _this.setCardNumber((_b = settings.cardNumber) !== null && _b !== void 0 ? _b : 52);
         _this.autoUpdateCardNumber = (_c = settings.autoUpdateCardNumber) !== null && _c !== void 0 ? _c : true;
@@ -821,8 +845,46 @@ var Deck = /** @class */ (function (_super) {
         var yShadowShift = shadowDirectionSplit.includes('bottom') ? 1 : (shadowDirectionSplit.includes('top') ? -1 : 0);
         _this.element.style.setProperty('--xShadowShift', '' + xShadowShift);
         _this.element.style.setProperty('--yShadowShift', '' + yShadowShift);
+        if (settings.topCard) {
+            _this.addCard(settings.topCard, undefined);
+        }
+        else if (settings.cardNumber > 0) {
+            console.warn("Deck is defined with ".concat(settings.cardNumber, " cards but no top card !"));
+        }
+        if (settings.counter && ((_e = settings.counter.show) !== null && _e !== void 0 ? _e : true)) {
+            if (settings.cardNumber === null || settings.cardNumber === undefined) {
+                throw new Error("You need to set cardNumber if you want to show the counter");
+            }
+            else {
+                _this.createCounter((_f = settings.counter.position) !== null && _f !== void 0 ? _f : 'bottom', (_g = settings.counter.extraClasses) !== null && _g !== void 0 ? _g : 'round');
+                if ((_h = settings.counter) === null || _h === void 0 ? void 0 : _h.hideWhenEmpty) {
+                    _this.element.querySelector('.bga-cards-deck-counter').classList.add('hide-when-empty');
+                }
+            }
+        }
+        _this.setCardNumber((_j = settings.cardNumber) !== null && _j !== void 0 ? _j : 52);
         return _this;
     }
+    Deck.prototype.createCounter = function (counterPosition, extraClasses) {
+        var left = counterPosition.includes('right') ? 100 : (counterPosition.includes('left') ? 0 : 50);
+        var top = counterPosition.includes('bottom') ? 100 : (counterPosition.includes('top') ? 0 : 50);
+        this.element.style.setProperty('--bga-cards-deck-left', "".concat(left, "%"));
+        this.element.style.setProperty('--bga-cards-deck-top', "".concat(top, "%"));
+        this.element.insertAdjacentHTML('beforeend', "\n            <div class=\"bga-cards-deck-counter ".concat(extraClasses, "\"></div>\n        "));
+    };
+    /**
+     * Get the the cards number.
+     *
+     * @returns the cards number
+     */
+    Deck.prototype.getCardNumber = function () {
+        return this.cardNumber;
+    };
+    /**
+     * Set the the cards number.
+     *
+     * @param cardNumber the cards number
+     */
     Deck.prototype.setCardNumber = function (cardNumber) {
         var _this = this;
         this.cardNumber = cardNumber;
@@ -833,9 +895,17 @@ var Deck = /** @class */ (function (_super) {
                 thickness = index;
             }
         });
-        this.element.style.setProperty('--thickness', thickness + 'px');
+        this.element.style.setProperty('--thickness', "".concat(thickness, "px"));
+        var counterDiv = this.element.querySelector('.bga-cards-deck-counter');
+        if (counterDiv) {
+            counterDiv.innerHTML = "".concat(cardNumber);
+        }
     };
     Deck.prototype.addCard = function (card, animation, settings) {
+        var _a;
+        if (this.autoUpdateCardNumber && ((_a = settings === null || settings === void 0 ? void 0 : settings.autoUpdateCardNumber) !== null && _a !== void 0 ? _a : true)) {
+            this.setCardNumber(this.cardNumber + 1);
+        }
         return _super.prototype.addCard.call(this, card, animation, settings);
     };
     Deck.prototype.cardRemoved = function (card) {
@@ -952,12 +1022,9 @@ var SlotStock = /** @class */ (function (_super) {
             _this.createSlot(slotId);
         });
     };
-    SlotStock.prototype.cardElementInStock = function (element) {
-        return (element === null || element === void 0 ? void 0 : element.parentElement.parentElement) == this.element;
-    };
     SlotStock.prototype.canAddCard = function (card, settings) {
         var _a, _b;
-        if (!this.cardInStock(card)) {
+        if (!this.contains(card)) {
             return true;
         }
         else {
@@ -965,6 +1032,39 @@ var SlotStock = /** @class */ (function (_super) {
             var slotId = (_a = settings === null || settings === void 0 ? void 0 : settings.slot) !== null && _a !== void 0 ? _a : (_b = this.mapCardToSlot) === null || _b === void 0 ? void 0 : _b.call(this, card);
             return currentCardSlot != slotId;
         }
+    };
+    /**
+     * Swap cards inside the slot stock.
+     *
+     * @param cards the cards to swap
+     */
+    SlotStock.prototype.swapCards = function (cards) {
+        var _this = this;
+        if (!this.mapCardToSlot) {
+            throw new Error('You need to define SlotStock.mapCardToSlot to use SlotStock.swapCards');
+        }
+        var promises = [];
+        var elements = cards.map(function (card) { return _this.manager.getCardElement(card); });
+        var elementsRects = elements.map(function (element) { return element.getBoundingClientRect(); });
+        var cssPositions = elements.map(function (element) { return element.style.position; });
+        // we set to absolute so it doesn't mess with slide coordinates when 2 div arer at the same place
+        elements.forEach(function (element) { return element.style.position = 'absolute'; });
+        cards.forEach(function (card, index) {
+            var _a;
+            var cardElement = elements[index];
+            var promise;
+            var slotId = (_a = _this.mapCardToSlot) === null || _a === void 0 ? void 0 : _a.call(_this, card);
+            _this.slots[slotId].appendChild(cardElement);
+            cardElement.style.position = cssPositions[index];
+            cardElement.classList.remove('selectable', 'selected', 'disabled');
+            promise = _this.animationFromElement(cardElement, elementsRects[index], {});
+            if (!promise) {
+                console.warn("CardStock.moveFromOtherStock didn't return a Promise");
+                promise = Promise.resolve(false);
+            }
+            promises.push(promise);
+        });
+        return Promise.all(promises);
     };
     return SlotStock;
 }(LineStock));
@@ -1010,93 +1110,6 @@ var VoidStock = /** @class */ (function (_super) {
     };
     return VoidStock;
 }(CardStock));
-var HiddenDeck = /** @class */ (function (_super) {
-    __extends(HiddenDeck, _super);
-    function HiddenDeck(manager, element, settings) {
-        var _this = _super.call(this, manager, element, settings) || this;
-        _this.manager = manager;
-        _this.element = element;
-        element.classList.add('hidden-deck');
-        _this.element.appendChild(_this.manager.createCardElement({ id: "".concat(element.id, "-hidden-deck-back") }, false));
-        return _this;
-    }
-    HiddenDeck.prototype.addCard = function (card, animation, settings) {
-        var _a;
-        var newSettings = __assign(__assign({}, settings), { visible: (_a = settings === null || settings === void 0 ? void 0 : settings.visible) !== null && _a !== void 0 ? _a : false });
-        return _super.prototype.addCard.call(this, card, animation, newSettings);
-    };
-    return HiddenDeck;
-}(Deck));
-var VisibleDeck = /** @class */ (function (_super) {
-    __extends(VisibleDeck, _super);
-    function VisibleDeck(manager, element, settings) {
-        var _this = _super.call(this, manager, element, settings) || this;
-        _this.manager = manager;
-        _this.element = element;
-        element.classList.add('visible-deck');
-        return _this;
-    }
-    VisibleDeck.prototype.addCard = function (card, animation, settings) {
-        var _this = this;
-        var currentCard = this.cards[this.cards.length - 1];
-        if (currentCard) {
-            // we remove the card under, only when the animation is done. TODO use promise result
-            setTimeout(function () {
-                _this.removeCard(currentCard);
-                // counter the autoUpdateCardNumber as the card isn't really removed, we just remove it from the dom so player cannot see it's content.
-                if (_this.autoUpdateCardNumber) {
-                    _this.setCardNumber(_this.cardNumber + 1);
-                }
-            }, 600);
-        }
-        return _super.prototype.addCard.call(this, card, animation, settings);
-    };
-    return VisibleDeck;
-}(Deck));
-var AllVisibleDeck = /** @class */ (function (_super) {
-    __extends(AllVisibleDeck, _super);
-    function AllVisibleDeck(manager, element, settings) {
-        var _this = this;
-        var _a;
-        _this = _super.call(this, manager, element, settings) || this;
-        _this.manager = manager;
-        _this.element = element;
-        element.classList.add('all-visible-deck');
-        element.style.setProperty('--width', settings.width);
-        element.style.setProperty('--height', settings.height);
-        element.style.setProperty('--shift', (_a = settings.shift) !== null && _a !== void 0 ? _a : '3px');
-        return _this;
-    }
-    AllVisibleDeck.prototype.addCard = function (card, animation, settings) {
-        var promise;
-        var order = this.cards.length;
-        promise = _super.prototype.addCard.call(this, card, animation, settings);
-        var cardId = this.manager.getId(card);
-        var cardDiv = document.getElementById(cardId);
-        cardDiv.style.setProperty('--order', '' + order);
-        this.element.style.setProperty('--tile-count', '' + this.cards.length);
-        return promise;
-    };
-    /**
-     * Set opened state. If true, all cards will be entirely visible.
-     *
-     * @param opened indicate if deck must be always opened. If false, will open only on hover/touch
-     */
-    AllVisibleDeck.prototype.setOpened = function (opened) {
-        this.element.classList.toggle('opened', opened);
-    };
-    AllVisibleDeck.prototype.cardRemoved = function (card) {
-        var _this = this;
-        _super.prototype.cardRemoved.call(this, card);
-        this.cards.forEach(function (c, index) {
-            var cardId = _this.manager.getId(c);
-            var cardDiv = document.getElementById(cardId);
-            cardDiv.style.setProperty('--order', '' + index);
-        });
-        this.element.style.setProperty('--tile-count', '' + this.cards.length);
-    };
-    return AllVisibleDeck;
-}(CardStock));
 var CardManager = /** @class */ (function () {
     /**
      * @param game the BGA game class, usually it will be `this`
@@ -1125,7 +1138,9 @@ var CardManager = /** @class */ (function () {
         if (visible === void 0) { visible = true; }
         var id = this.getId(card);
         var side = visible ? 'front' : 'back';
-        // TODO check if exists
+        if (this.getCardElement(card)) {
+            throw new Error('This card already exists ' + JSON.stringify(card));
+        }
         var element = document.createElement("div");
         element.id = id;
         element.dataset.side = '' + side;
@@ -1155,10 +1170,11 @@ var CardManager = /** @class */ (function () {
         // if the card is in a stock, notify the stock about removal
         (_a = this.getCardStock(card)) === null || _a === void 0 ? void 0 : _a.cardRemoved(card);
         div.id = "deleted".concat(id);
-        // TODO this.removeVisibleInformations(div);
         div.remove();
     };
     /**
+     * Returns the stock containing the card.
+     *
      * @param card the card informations
      * @return the stock containing the card
      */
@@ -1166,9 +1182,22 @@ var CardManager = /** @class */ (function () {
         return this.stocks.find(function (stock) { return stock.contains(card); });
     };
     /**
+     * Return if the card passed as parameter is suppose to be visible or not.
+     * Use `isCardVisible` from settings if set, else will check if `card.type` is defined
+     *
+     * @param card the card informations
+     * @return the visiblility of the card (true means front side should be displayed)
+     */
+    CardManager.prototype.isCardVisible = function (card) {
+        var _a, _b, _c, _d;
+        return (_c = (_b = (_a = this.settings).isCardVisible) === null || _b === void 0 ? void 0 : _b.call(_a, card)) !== null && _c !== void 0 ? _c : ((_d = card.type) !== null && _d !== void 0 ? _d : false);
+    };
+    /**
      * Set the card to its front (visible) or back (not visible) side.
      *
      * @param card the card informations
+     * @param visible if the card is set to visible face. If unset, will use isCardVisible(card)
+     * @param settings the flip params (to update the card in current stock)
      */
     CardManager.prototype.setCardVisible = function (card, visible, settings) {
         var _this = this;
@@ -1177,7 +1206,8 @@ var CardManager = /** @class */ (function () {
         if (!element) {
             return;
         }
-        element.dataset.side = visible ? 'front' : 'back';
+        var isVisible = visible !== null && visible !== void 0 ? visible : this.isCardVisible(card);
+        element.dataset.side = isVisible ? 'front' : 'back';
         if ((_a = settings === null || settings === void 0 ? void 0 : settings.updateFront) !== null && _a !== void 0 ? _a : true) {
             (_c = (_b = this.settings).setupFrontDiv) === null || _c === void 0 ? void 0 : _c.call(_b, card, element.getElementsByClassName('front')[0]);
         }
@@ -1198,11 +1228,35 @@ var CardManager = /** @class */ (function () {
      * Flips the card.
      *
      * @param card the card informations
+     * @param settings the flip params (to update the card in current stock)
      */
     CardManager.prototype.flipCard = function (card, settings) {
         var element = this.getCardElement(card);
         var currentlyVisible = element.dataset.side === 'front';
         this.setCardVisible(card, !currentlyVisible, settings);
+    };
+    /**
+     * Update the card informations. Used when a card with just an id (back shown) should be revealed, with all data needed to populate the front.
+     *
+     * @param card the card informations
+     */
+    CardManager.prototype.updateCardInformations = function (card, settings) {
+        var newSettings = settings ? __assign(__assign({}, settings), { updateData: true }) : { updateData: true, };
+        this.setCardVisible(card, undefined, newSettings);
+    };
+    /**
+     * @returns the card with set in the settings (undefined if unset)
+     */
+    CardManager.prototype.getCardWidth = function () {
+        var _a;
+        return (_a = this.settings) === null || _a === void 0 ? void 0 : _a.cardWidth;
+    };
+    /**
+     * @returns the card height set in the settings (undefined if unset)
+     */
+    CardManager.prototype.getCardHeight = function () {
+        var _a;
+        return (_a = this.settings) === null || _a === void 0 ? void 0 : _a.cardHeight;
     };
     return CardManager;
 }());
@@ -1218,12 +1272,9 @@ var CardsManager = /** @class */ (function (_super) {
             getId: function (card) { return "card-".concat(card.id); },
             setupDiv: function (card, div) {
                 div.dataset.cardId = '' + card.id;
-                var tooltip = _this.getTooltip(card);
-                if (tooltip) {
-                    _this.game.setTooltip(div.id, tooltip);
-                }
             },
             setupFrontDiv: function (card, div) {
+                div.id = "".concat(_this.getId(card), "-front");
                 div.dataset.level = '' + card.level;
                 div.dataset.type = '' + card.type;
                 div.dataset.subType = '' + card.subType;
@@ -1233,7 +1284,14 @@ var CardsManager = /** @class */ (function (_super) {
                 if (card.frames) {
                     _this.createFrames(div, card.frames);
                 }
+                var tooltip = _this.getTooltip(card);
+                if (tooltip) {
+                    _this.game.setTooltip(div.id, tooltip);
+                }
             },
+            isCardVisible: function (card) { return card.type !== null && card.type !== undefined; },
+            cardWidth: 142,
+            cardHeight: 198,
         }) || this;
         _this.game = game;
         return _this;
@@ -1350,6 +1408,9 @@ var ObjectsManager = /** @class */ (function (_super) {
             setupFrontDiv: function (card, div) {
                 div.dataset.number = '' + card;
             },
+            isCardVisible: function () { return true; },
+            cardWidth: 142,
+            cardHeight: 198,
         }) || this;
         _this.game = game;
         return _this;
@@ -1435,23 +1496,22 @@ var TableCenter = /** @class */ (function () {
         var _this = this;
         this.game = game;
         this.hiddenDecks = [];
-        this.cardCounters = [];
         [1, 2, 3, 4].forEach(function (monkeyType) {
             return [1, 2].forEach(function (level) {
                 var type = monkeyType * 10 + level;
                 var count = gamedatas.table[type];
                 var block = document.createElement('div');
                 block.classList.add('player-block');
-                document.getElementById('center-board').insertAdjacentHTML('beforeend', "\n                    <div id=\"hidden-deck-".concat(type, "\" data-type=\"").concat(monkeyType, "\" data-level=\"").concat(level, "\">\n                        <div id=\"hidden-deck-").concat(type, "-card-counter\" class=\"card-counter\" data-level=\"").concat(level, "\"></div>\n                    </div>\n                "));
-                _this.hiddenDecks[type] = new HiddenDeck(_this.game.cardsManager, document.getElementById("hidden-deck-".concat(type)), {
+                document.getElementById('center-board').insertAdjacentHTML('beforeend', "\n                    <div id=\"hidden-deck-".concat(type, "\" data-type=\"").concat(monkeyType, "\" data-level=\"").concat(level, "\"></div>\n                "));
+                _this.hiddenDecks[type] = new Deck(_this.game.cardsManager, document.getElementById("hidden-deck-".concat(type)), {
                     cardNumber: count,
-                    width: CARD_WIDTH,
-                    height: CARD_HEIGHT,
                     autoUpdateCardNumber: false,
+                    topCard: gamedatas.tableTopCard[type],
+                    counter: {
+                        extraClasses: 'round',
+                        position: level == 1 ? 'top' : 'bottom',
+                    },
                 });
-                _this.cardCounters[type] = new ebg.counter();
-                _this.cardCounters[type].create("hidden-deck-".concat(type, "-card-counter"));
-                _this.cardCounters[type].setValue(count);
             });
         });
         this.objectsManager = new ObjectsManager(this.game);
@@ -1466,12 +1526,11 @@ var TableCenter = /** @class */ (function () {
             this.setCurrentPlayerEnergy(gamedatas.players[this.game.getPlayerId()].energy);
         }
     }
-    TableCenter.prototype.addCardToDeck = function (card) {
-        this.hiddenDecks[card.type * 10 + card.level].addCard(card);
-    };
-    TableCenter.prototype.setRemaining = function (deckType, deckCount) {
+    TableCenter.prototype.setRemaining = function (deckType, deckCount, deckTopCard) {
+        if (deckTopCard) {
+            this.hiddenDecks[deckType].addCard(deckTopCard);
+        }
         this.hiddenDecks[deckType].setCardNumber(deckCount);
-        this.cardCounters[deckType].setValue(deckCount);
     };
     TableCenter.prototype.setObjectPhase = function (object, phase) {
         this.objects.getCardElement(object).classList.toggle('current-phase', OBJECT_ACTIVE_PHASES[object].includes(phase));
@@ -1506,7 +1565,7 @@ var TableCenter = /** @class */ (function () {
         Object.entries(table).forEach(function (entry) {
             var type = Number(entry[0]);
             var count = entry[1];
-            _this.cardCounters[type].toValue(count);
+            _this.hiddenDecks[type].setCardNumber(count);
         });
     };
     TableCenter.prototype.addCardForReplaceLine = function (oldCard) {
@@ -1534,21 +1593,6 @@ var CardLine = /** @class */ (function (_super) {
     CardLine.prototype.getSlotsIds = function () {
         return this.slotsIds;
     };
-    CardLine.prototype.switchCards = function (switchedCards) {
-        var _this = this;
-        var removedCards = this.getCards().filter(function (card) { return switchedCards.some(function (c) { return c.id == card.id; }); });
-        var origins = removedCards.map(function (card) { return _this.getCardElement(card).parentElement; });
-        if (origins.length == switchedCards.length) {
-            removedCards.forEach(function (card) { return _this.removeCard(card); });
-            switchedCards.forEach(function (card, index) {
-                _this.addCard(card, {
-                    fromElement: origins[index],
-                });
-                _this.cards.find(function (c) { return c.id == card.id; }).locationArg = card.locationArg;
-                _this.getCardElement(card).querySelector('.front').dataset.index = '' + card.locationArg;
-            });
-        }
-    };
     CardLine.prototype.createSlotButtons = function () {
         var _this = this;
         this.element.querySelectorAll('[data-slot-id]').forEach(function (slot, index) {
@@ -1572,7 +1616,7 @@ var PlayerTable = /** @class */ (function () {
         this.game = game;
         this.playerId = Number(player.id);
         this.currentPlayer = this.playerId == this.game.getPlayerId();
-        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table ").concat(this.currentPlayer ? 'current-player' : '', "\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"decks\">\n                <div id=\"player-table-").concat(this.playerId, "-deck\" class=\"deck-stock\">\n                    <div id=\"player-table-").concat(this.playerId, "-deck-counter\" class=\"deck-counter\"></div>\n                    ").concat(this.currentPlayer ? "<div id=\"player-table-".concat(this.playerId, "-see-top-card\" class=\"see-top-card\" data-visible=\"false\">").concat(_("See top card"), "</div>") : '', "\n                </div>\n                <div class=\"name-and-tokens\">\n                    <div class=\"name-wrapper\">").concat(player.name, "</div>\n                    <div id=\"player-table-").concat(this.playerId, "-tokens\" class=\"tokens\"></div>\n                </div>\n                <div id=\"player-table-").concat(this.playerId, "-discard\" class=\"discard-stock\">\n                    <div id=\"player-table-").concat(this.playerId, "-discard-counter\" class=\"deck-counter\"></div>\n                </div>\n            </div>\n            <div id=\"player-table-").concat(this.playerId, "-line\"></div>        \n        </div>\n        ");
+        var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table ").concat(this.currentPlayer ? 'current-player' : '', "\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"decks\">\n                <div id=\"player-table-").concat(this.playerId, "-deck\" class=\"deck-stock\">\n                    ").concat(this.currentPlayer ? "<div id=\"player-table-".concat(this.playerId, "-see-top-card\" class=\"see-top-card\" data-visible=\"false\">").concat(_("See top card"), "</div>") : '', "\n                </div>\n                <div class=\"name-and-tokens\">\n                    <div class=\"name-wrapper\">").concat(player.name, "</div>\n                    <div id=\"player-table-").concat(this.playerId, "-tokens\" class=\"tokens\"></div>\n                </div>\n                <div id=\"player-table-").concat(this.playerId, "-discard\" class=\"discard-stock\"></div>\n            </div>\n            <div id=\"player-table-").concat(this.playerId, "-line\"></div>        \n        </div>\n        ");
         dojo.place(html, document.getElementById(this.currentPlayer ? 'current-player-table' : 'tables'));
         this.line = new CardLine(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-line")), {
             wrap: 'nowrap',
@@ -1580,7 +1624,7 @@ var PlayerTable = /** @class */ (function () {
             slotsIds: Array.from(Array(Math.max.apply(Math, player.line.map(function (card) { return card.locationArg; })) + 1).keys()),
             mapCardToSlot: function (card) { return card.locationArg; }
         }, game, this.currentPlayer);
-        this.newRound(player.line, false);
+        this.resetLine(player.line, false);
         html = "\n        <div id=\"player-table-".concat(this.playerId, "-tokens-unplayed\" class=\"tokens-unplayed tokens-column\">");
         for (var i = 1; i <= 4; i++) {
             html += "<div class=\"action-token\" ".concat(i == 4 ? "id=\"player-table-".concat(this.playerId, "-action-token\"") : '', " data-color=\"").concat(player.color, "\" data-type=\"0\"></div>");
@@ -1588,25 +1632,25 @@ var PlayerTable = /** @class */ (function () {
         html += "</div>\n        <div id=\"player-table-".concat(this.playerId, "-tokens-played\" class=\"tokens-played tokens-column\"></div>\n        ");
         dojo.place(html, document.getElementById("player-table-".concat(this.playerId, "-tokens")));
         this.setSelectedToken(player.chosenToken);
-        this.deck = new HiddenDeck(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-deck")), {
+        this.deck = new Deck(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-deck")), {
             cardNumber: player.deckCount,
-            width: CARD_WIDTH,
-            height: CARD_HEIGHT,
-            autoUpdateCardNumber: false,
+            autoUpdateCardNumber: true,
+            topCard: player.deckTopCard,
+            counter: {
+                extraClasses: 'round',
+                position: 'top',
+            },
         });
-        this.deckCounter = new ebg.counter();
-        this.deckCounter.create("player-table-".concat(this.playerId, "-deck-counter"));
-        this.deckCounter.setValue(player.deckCount);
-        this.discard = new HiddenDeck(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-discard")), {
+        this.discard = new Deck(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-discard")), {
             cardNumber: player.discardCount,
-            width: CARD_WIDTH,
-            height: CARD_HEIGHT,
-            autoUpdateCardNumber: false,
+            autoUpdateCardNumber: true,
+            topCard: player.discardTopCard,
+            counter: {
+                extraClasses: 'round',
+                position: 'top',
+            },
         });
-        this.discardCounter = new ebg.counter();
-        this.discardCounter.create("player-table-".concat(this.playerId, "-discard-counter"));
-        this.discardCounter.setValue(player.discardCount);
-        this.deckTopCard(player.topCard);
+        this.deckTopCard(player.visibleTopCard);
     }
     PlayerTable.prototype.onDiscardCardClick = function (card) {
         var _this = this;
@@ -1635,26 +1679,31 @@ var PlayerTable = /** @class */ (function () {
         this.game.setButtonActivation(button.id, 'rage', 4);
         this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
     };
-    PlayerTable.prototype.newRound = function (cards, fromDeck) {
+    PlayerTable.prototype.newRound = function (cards, deckCount, deckTopCard) {
+        this.resetLine(cards, true);
+        if (deckTopCard) {
+            this.deck.addCard(deckTopCard, undefined, { autoUpdateCardNumber: false, });
+        }
+        this.deck.setCardNumber(deckCount);
+    };
+    PlayerTable.prototype.resetLine = function (cards, fromDeck) {
         var _this = this;
         this.line.removeAll();
         this.line.setSlotsIds(Array.from(Array(Math.max.apply(Math, cards.map(function (card) { return card.locationArg; })) + 1).keys()));
         if (fromDeck) {
+            cards.forEach(function (card) { return _this.game.cardsManager.updateCardInformations(card); });
             this.deck.addCards(cards);
         }
         this.line.addCards(cards);
         cards.forEach(function (card) { return _this.addRageButton(card); });
         this.updateVisibleMoveButtons();
-        if (fromDeck) {
-            this.setDeckCount(this.deckCounter.getValue() - cards.length);
-        }
     };
     PlayerTable.prototype.setMovable = function (movable) {
         document.getElementById("player-table-".concat(this.playerId)).classList.toggle('move-phase', movable);
     };
     PlayerTable.prototype.switchCards = function (switchedCards) {
         var _this = this;
-        this.line.switchCards(switchedCards);
+        this.line.swapCards(switchedCards);
         switchedCards.forEach(function (card) { return _this.addRageButton(card); });
     };
     PlayerTable.prototype.getFrames = function (effect) {
@@ -1714,22 +1763,20 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.endRound = function () {
         this.setSelectedToken(null);
         var cards = this.line.getCards();
-        this.discard.addCards(cards);
-        this.setDiscardCount(this.discardCounter.getValue() + cards.length);
+        this.discard.addCards(cards.map(function (card) { return ({ id: card.id }); }));
     };
     PlayerTable.prototype.discardCard = function (card, line) {
-        this.discard.addCard(card);
-        this.setDiscardCount(this.discardCounter.getValue() + 1);
+        this.discard.addCard(card, null, { autoUpdateCardNumber: true, });
         if (line) {
             this.line.removeAll();
-            this.newRound(line, false);
+            this.resetLine(line, false);
         }
         else {
             this.line.removeCard(card);
         }
         this.updateVisibleMoveButtons();
     };
-    PlayerTable.prototype.addCardToLine = function (card, line) {
+    PlayerTable.prototype.addCardToLine = function (card, line, deckCount, deckTopCard) {
         this.deck.addCard(card);
         /*if (card.locationArg > this.line.getSlotsIds().length) {
             this.line.setSlotsIds() = new CardLine(this.game.cardsManager, handDiv, {
@@ -1738,15 +1785,17 @@ var PlayerTable = /** @class */ (function () {
                 mapCardToSlot: card => card.locationArg,
             });
         }*/
-        this.newRound(line, false);
-        this.setDeckCount(this.deckCounter.getValue() - 1);
+        this.resetLine(line, false);
+        if (deckTopCard) {
+            this.deck.addCard(deckTopCard);
+        }
+        this.deck.setCardNumber(deckCount);
     };
     PlayerTable.prototype.replaceLineCard = function (card) {
         this.line.addCard(card);
     };
     PlayerTable.prototype.replaceTopDeck = function (card) {
-        this.deck.addCard(card);
-        this.setDeckCount(this.deckCounter.getValue() + 1);
+        this.deck.addCard(card, undefined, { autoUpdateCardNumber: true });
     };
     PlayerTable.prototype.updateVisibleMoveButtons = function () {
         var cards = this.line.getCards();
@@ -1774,19 +1823,17 @@ var PlayerTable = /** @class */ (function () {
     };
     PlayerTable.prototype.setDeckCount = function (count) {
         this.deck.setCardNumber(count);
-        this.deckCounter.toValue(count);
     };
-    PlayerTable.prototype.setDiscardCount = function (count) {
-        this.discard.setCardNumber(count);
-        this.discardCounter.toValue(count);
-    };
-    PlayerTable.prototype.refillDeck = function (deckCount) {
-        this.setDeckCount(deckCount);
-        this.setDiscardCount(0);
+    PlayerTable.prototype.refillDeck = function (deckCount, deckTopCard) {
+        if (deckTopCard) {
+            this.deck.addCard(deckTopCard, { fromStock: this.discard, });
+        }
+        this.deck.setCardNumber(deckCount);
+        this.discard.removeAll();
+        this.discard.setCardNumber(0);
     };
     PlayerTable.prototype.addCardToDeck = function (card) {
-        this.deck.addCard(card);
-        this.setDeckCount(this.deckCounter.getValue() + 1);
+        this.deck.addCard(card, undefined, { autoUpdateCardNumber: true });
     };
     PlayerTable.prototype.setLine = function (line) {
         this.line.removeAll();
@@ -1996,6 +2043,11 @@ var AfterUs = /** @class */ (function () {
         var _this = this;
         this.addActionButton("cancelLastMoves-button", _("Cancel last moves"), function () { return _this.cancelLastMoves(); }, null, null, 'gray');
     };
+    AfterUs.prototype.createChooseTokenButton = function (type, gray) {
+        var _this = this;
+        if (gray === void 0) { gray = false; }
+        this.addActionButton("chooseToken".concat(type, "-button"), "\n        ".concat(this.cardsManager.getMonkeyType(type), " (3/6 ").concat(type == 4 ? [1, 2, 3].map(function (r) { return formatTextIcons(getResourceCode(r)); }).join('/') : formatTextIcons(getResourceCode(type)), ")<br>\n        <div class=\"action-token\" data-type=\"").concat(type, "\"></div>\n        "), function () { return _this.chooseToken(type); }, null, null, gray ? 'gray' : undefined);
+    };
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
     //                        action status bar (ie: the HTML links in the status bar).
     //
@@ -2004,9 +2056,7 @@ var AfterUs = /** @class */ (function () {
         var _a, _b;
         if (stateName === 'chooseToken') {
             if (!this.isCurrentPlayerActive() && Object.keys(this.gamedatas.players).includes('' + this.getPlayerId())) { // ignore spectators
-                [1, 2, 3, 4].forEach(function (type) {
-                    return _this.addActionButton("chooseToken".concat(type, "-button"), "<div class=\"action-token\" data-type=\"".concat(type, "\"></div>"), function () { return _this.chooseToken(type); }, null, null, 'gray');
-                });
+                [1, 2, 3, 4].forEach(function (type) { return _this.createChooseTokenButton(type, true); });
                 (_b = document.getElementById("chooseToken".concat(this.lastSelectedToken !== undefined ? this.lastSelectedToken : (_a = args._private) === null || _a === void 0 ? void 0 : _a.token, "-button"))) === null || _b === void 0 ? void 0 : _b.classList.add('selected-token-button');
                 this.addActionButton("cancelChooseToken-button", _("I changed my mind"), function () { return _this.cancelChooseToken(); }, null, null, 'gray');
             }
@@ -2049,9 +2099,7 @@ var AfterUs = /** @class */ (function () {
                 this.addCancelLastMoves();
                 break;
             case 'privateChooseToken':
-                [1, 2, 3, 4].forEach(function (type) {
-                    return _this.addActionButton("chooseToken".concat(type, "-button"), "<div class=\"action-token\" data-type=\"".concat(type, "\"></div>"), function () { return _this.chooseToken(type); });
-                });
+                [1, 2, 3, 4].forEach(function (type) { return _this.createChooseTokenButton(type); });
                 break;
             case 'buyCard':
                 var buyCardArgs_1 = args;
@@ -2486,7 +2534,7 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.notif_newRound = function (notif) {
         this.tableCenter.newRound();
-        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards, true);
+        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards, notif.args.deckCount, notif.args.deckTopCard);
     };
     AfterUs.prototype.notif_switchedCards = function (notif) {
         this.getPlayerTable(notif.args.playerId).switchCards(notif.args.movedCards);
@@ -2528,9 +2576,8 @@ var AfterUs = /** @class */ (function () {
         Object.entries(notif.args.tokens).forEach(function (val) { return _this.getPlayerTable(+val[0]).setSelectedToken(val[1]); });
     };
     AfterUs.prototype.notif_buyCard = function (notif) {
-        this.tableCenter.addCardToDeck(notif.args.card);
         this.getPlayerTable(notif.args.playerId).addCardToDeck(notif.args.card);
-        this.tableCenter.setRemaining(notif.args.deckType, notif.args.deckCount);
+        this.tableCenter.setRemaining(notif.args.deckType, notif.args.deckCount, notif.args.deckTopCard);
         this.notif_activatedEffect(notif);
     };
     AfterUs.prototype.notif_endRound = function (notif) {
@@ -2541,7 +2588,7 @@ var AfterUs = /** @class */ (function () {
         this.notif_activatedEffect(notif);
     };
     AfterUs.prototype.notif_addCardToLine = function (notif) {
-        this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line);
+        this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line, notif.args.deckCount, notif.args.deckTopCard);
         this.notif_activatedEffect(notif);
     };
     AfterUs.prototype.notif_replaceLineCard = function (notif) {

@@ -108,13 +108,13 @@ trait UtilTrait {
         return count($cards) > 0 ? $cards[0] : null;
     }
 
-    function getCardFromDb(array $dbCard) {
+    function getCardFromDb(?array $dbCard) {
         if ($dbCard == null) {
             return null;
         }
         $card = new Card($dbCard, $this->CARDS);
 
-        if ($card->type == 0) {
+        if ($card->type === 0) {
             $gameinfos = self::getGameinfos();
             $colorToIndex = array_flip($gameinfos['player_colors']);
             $card->number += 8 * $colorToIndex[$this->getPlayerColorById($card->playerId)];
@@ -150,8 +150,8 @@ trait UtilTrait {
             foreach ($this->TAMARINS as $index => $card) {
                 $cards[] = [ 'type' => 0, 'type_arg' => $index + 1, 'nbr' => 1 ];
             }
-            $this->cards->createCards($cards, 'deck'.$playerId);
-            $this->cards->shuffle('deck'.$playerId);
+            $this->cards->createCards($cards, 'pdeck'.$playerId);
+            $this->cards->shuffle('pdeck'.$playerId);
         }
 
         foreach ([ORANGUTANS, CHIMPANZEES, GORILLAS, MANDRILLS] as $monkeyType) {
@@ -440,14 +440,15 @@ trait UtilTrait {
     }
 
     function refillPlayerDeckIfEmpty(int $playerId) {
-        if (intval($this->cards->countCardInLocation('deck'.$playerId)) == 0) {
-            $this->cards->moveAllCardsInLocation('discard'.$playerId, 'deck'.$playerId);
-            $this->cards->shuffle('deck'.$playerId);
+        if (intval($this->cards->countCardInLocation('pdeck'.$playerId)) == 0) {
+            $this->cards->moveAllCardsInLocation('discard'.$playerId, 'pdeck'.$playerId);
+            $this->cards->shuffle('pdeck'.$playerId);
 
             self::notifyAllPlayers('refillDeck', _('${player_name} shuffles discarded cards back to form a new deck (deck was empty)'), [
                 'playerId' => $playerId,
                 'player_name' => $this->getPlayerName($playerId),
-                'deckCount' => intval($this->cards->countCardInLocation('deck'.$playerId)),
+                'deckCount' => intval($this->cards->countCardInLocation('pdeck'.$playerId)),
+                'deckTopCard' => Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId))),
             ]);
         }
     }
@@ -497,7 +498,7 @@ trait UtilTrait {
 
     function getLastCard(int $playerId) {
         $canSeeTopCard = boolval($this->getUniqueValueFromDB("SELECT can_see_top_card FROM `player` WHERE `player_id` = $playerId"));
-        return $canSeeTopCard ? $this->getCardFromDb($this->cards->getCardOnTop('deck'.$playerId)) : null;
+        return $canSeeTopCard ? $this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId)) : null;
     }
 
     function cardPickedFromDeck(int $playerId) {
@@ -514,7 +515,7 @@ trait UtilTrait {
 
         self::notifyPlayer($playerId, 'deckTopCard', '', [
             'playerId' => $playerId,
-            'card' => $this->getCardFromDb($this->cards->getCardOnTop('deck'.$playerId)),
+            'card' => $this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId)),
         ]);
     }
     

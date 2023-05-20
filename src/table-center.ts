@@ -29,8 +29,7 @@ const OBJECT_MIN_COST = {
 };
 
 class TableCenter {
-    private hiddenDecks: HiddenDeck<Card>[] = [];    
-    private cardCounters: Counter[] = [];    
+    private hiddenDecks: Deck<Card>[] = [];   
 
     private objectsManager: ObjectsManager;
     private objects: LineStock<number>;
@@ -47,21 +46,18 @@ class TableCenter {
                 block.classList.add('player-block');
         
                 document.getElementById('center-board').insertAdjacentHTML('beforeend', `
-                    <div id="hidden-deck-${type}" data-type="${monkeyType}" data-level="${level}">
-                        <div id="hidden-deck-${type}-card-counter" class="card-counter" data-level="${level}"></div>
-                    </div>
+                    <div id="hidden-deck-${type}" data-type="${monkeyType}" data-level="${level}"></div>
                 `);
 
-                this.hiddenDecks[type] = new HiddenDeck<Card>(this.game.cardsManager, document.getElementById(`hidden-deck-${type}`), {
+                this.hiddenDecks[type] = new Deck<Card>(this.game.cardsManager, document.getElementById(`hidden-deck-${type}`), {
                     cardNumber: count,
-                    width: CARD_WIDTH,
-                    height: CARD_HEIGHT,
                     autoUpdateCardNumber: false,
+                    topCard: gamedatas.tableTopCard[type],
+                    counter: {
+                        extraClasses: 'round',
+                        position: level == 1 ? 'top' : 'bottom',
+                    },
                 });
-                        
-                this.cardCounters[type] = new ebg.counter();
-                this.cardCounters[type].create(`hidden-deck-${type}-card-counter`);
-                this.cardCounters[type].setValue(count);
             })
         );
         
@@ -80,14 +76,12 @@ class TableCenter {
             this.setCurrentPlayerEnergy(gamedatas.players[this.game.getPlayerId()].energy);
         }
     }
-
-    public addCardToDeck(card: Card) {
-        this.hiddenDecks[card.type * 10 + card.level].addCard(card);
-    }
     
-    public setRemaining(deckType: number, deckCount: number) {        
+    public setRemaining(deckType: number, deckCount: number, deckTopCard?: Card) {   
+        if (deckTopCard) {
+            this.hiddenDecks[deckType].addCard(deckTopCard);     
+        }
         this.hiddenDecks[deckType].setCardNumber(deckCount);
-        this.cardCounters[deckType].setValue(deckCount);
     }
 
     private setObjectPhase(object: number, phase: number) {
@@ -125,7 +119,7 @@ class TableCenter {
         Object.entries(table).forEach(entry => {
             const type = Number(entry[0]);
             const count = entry[1];
-            this.cardCounters[type].toValue(count);
+            this.hiddenDecks[type].setCardNumber(count);
         });
     }
     

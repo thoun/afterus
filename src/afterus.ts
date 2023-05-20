@@ -223,15 +223,20 @@ class AfterUs implements AfterUsGame {
         (this as any).addActionButton(`cancelLastMoves-button`, _("Cancel last moves"), () => this.cancelLastMoves(), null, null, 'gray');
     }
 
+    private createChooseTokenButton(type: number, gray: boolean = false) {
+        (this as any).addActionButton(`chooseToken${type}-button`, `
+        ${this.cardsManager.getMonkeyType(type)} (3/6 ${type == 4 ? [1,2,3].map(r => formatTextIcons(getResourceCode(r))).join('/') : formatTextIcons(getResourceCode(type))})<br>
+        <div class="action-token" data-type="${type}"></div>
+        `, () => this.chooseToken(type), null, null, gray ? 'gray' : undefined);
+    }
+
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
     //                        action status bar (ie: the HTML links in the status bar).
     //
     public onUpdateActionButtons(stateName: string, args: any) {
         if (stateName === 'chooseToken') {
             if (!(this as any).isCurrentPlayerActive() && Object.keys(this.gamedatas.players).includes(''+this.getPlayerId())) { // ignore spectators
-                [1, 2, 3, 4].forEach(type => 
-                    (this as any).addActionButton(`chooseToken${type}-button`, `<div class="action-token" data-type="${type}"></div>`, () => this.chooseToken(type), null, null, 'gray')
-                );
+                [1, 2, 3, 4].forEach(type => this.createChooseTokenButton(type, true));
                 document.getElementById(`chooseToken${this.lastSelectedToken !== undefined ? this.lastSelectedToken : args._private?.token}-button`)?.classList.add('selected-token-button');
                 (this as any).addActionButton(`cancelChooseToken-button`, _("I changed my mind"), () => this.cancelChooseToken(), null, null, 'gray');
             }
@@ -273,9 +278,7 @@ class AfterUs implements AfterUsGame {
                 this.addCancelLastMoves();
                 break;
             case 'privateChooseToken':
-                [1, 2, 3, 4].forEach(type => 
-                    (this as any).addActionButton(`chooseToken${type}-button`, `<div class="action-token" data-type="${type}"></div>`, () => this.chooseToken(type))
-                );
+                [1, 2, 3, 4].forEach(type => this.createChooseTokenButton(type));
                 break;
             case 'buyCard':
                 const buyCardArgs = args as EnteringBuyCardArgs;
@@ -820,7 +823,7 @@ class AfterUs implements AfterUsGame {
 
     notif_newRound(notif: Notif<NotifNewRoundArgs>) {
         this.tableCenter.newRound();
-        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards, true);
+        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards, notif.args.deckCount, notif.args.deckTopCard);
     }
 
     notif_switchedCards(notif: Notif<NotifSwitchedCardsArgs>) {
@@ -866,10 +869,9 @@ class AfterUs implements AfterUsGame {
         Object.entries(notif.args.tokens).forEach(val => this.getPlayerTable(+val[0]).setSelectedToken(val[1]));
     }
 
-    notif_buyCard(notif: Notif<NotifBuyCardArgs>) { 
-        this.tableCenter.addCardToDeck(notif.args.card);
+    notif_buyCard(notif: Notif<NotifBuyCardArgs>) {
         this.getPlayerTable(notif.args.playerId).addCardToDeck(notif.args.card);
-        this.tableCenter.setRemaining(notif.args.deckType, notif.args.deckCount);
+        this.tableCenter.setRemaining(notif.args.deckType, notif.args.deckCount, notif.args.deckTopCard);
         this.notif_activatedEffect(notif);
     }
 
@@ -883,7 +885,7 @@ class AfterUs implements AfterUsGame {
     }  
 
     notif_addCardToLine(notif: Notif<NotifAddCardToLineArgs>) {
-        this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line);
+        this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line, notif.args.deckCount, notif.args.deckTopCard);
         this.notif_activatedEffect(notif);
     }   
 

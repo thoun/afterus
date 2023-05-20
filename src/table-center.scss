@@ -17,7 +17,7 @@
         height: 550px;
         position: relative;
 
-        .hidden-deck {
+        .deck {
             position: absolute;
 
             &[data-type="1"] { left: 24px; }
@@ -28,23 +28,6 @@
             &[data-level="1"] { top: 333px; }
             &[data-level="2"] { top: 23px; }
         }
-    }
-    
-
-    .card-counter {
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        background: white;
-        border-radius: 50%;
-        text-align: center;
-        line-height: 24px;
-        z-index: 1;
-        box-shadow: 0 0 3px 1px black;
-        left: calc(50% - 12px);
-
-        &[data-level="1"] { top: -22px; }
-        &[data-level="2"] { bottom: -14px; }
     }
   
 }

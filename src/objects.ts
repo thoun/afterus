@@ -10,6 +10,9 @@ class ObjectsManager extends CardManager<number> {
                 div.dataset.number = ''+card;
 
             },
+            isCardVisible: () => true,
+            cardWidth: 142,
+            cardHeight: 198,
         });
     }
 

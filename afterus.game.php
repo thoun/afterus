@@ -158,13 +158,14 @@ class AfterUs extends Table {
                 $player['chosenToken'] = $currentPlayerId == $playerId ? intval($player['chosenToken']) : 0;
             }
             $player['line'] = $this->getCardsByLocation('line'.$playerId);
-            $player['deckCount'] = intval($this->cards->countCardInLocation('deck'.$playerId));
+            $player['deckCount'] = intval($this->cards->countCardInLocation('pdeck'.$playerId));
             $player['discardCount'] = intval($this->cards->countCardInLocation('discard'.$playerId));
-
+            $player['deckTopCard'] = Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId)));
+            $player['discardTopCard'] = Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop('discard'.$playerId)));
 
             if ($currentPlayerId == $playerId) {
                 $result['usedObjects'] = $this->getUsedObjects($playerId);
-                $player['topCard'] = $this->getLastCard($playerId);
+                $player['visibleTopCard'] = $this->getLastCard($playerId);
             }
         }
 
@@ -173,12 +174,15 @@ class AfterUs extends Table {
         $selected = $this->getCardsByLocation('selected');
         $result['selected'] = array_map(fn($card) => $currentPlayerId == $card->locationArg ? $card : Card::onlyId($card), $selected);*/
         $table = [];
+        $tableTopCard = [];
         foreach ([ORANGUTANS, CHIMPANZEES, GORILLAS, MANDRILLS] as $monkeyType) {
             foreach ([1, 2] as $level) {
                 $table[$monkeyType * 10 + $level] = intval($this->cards->countCardInLocation("deck-$monkeyType-$level"));
+                $tableTopCard[$monkeyType * 10 + $level] = Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop("deck-$monkeyType-$level")));
             }
         }
         $result['table'] = $table;
+        $result['tableTopCard'] = $tableTopCard;
         $result['objects'] = $this->getGlobalVariable(OBJECTS, true) ?? [];
         $result['lastTurn'] = !$isEndScore && boolval($this->getGameStateValue(LAST_TURN));
   

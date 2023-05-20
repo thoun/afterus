@@ -39,7 +39,9 @@ interface AfterUsPlayer extends Player {
     chosenToken: number | null;
     deckCount: number;
     discardCount: number;
-    topCard?: Card;
+    deckTopCard?: Card;
+    discardTopCard?: Card;
+    visibleTopCard?: Card;
 }
 
 interface AfterUsGamedatas {
@@ -56,6 +58,7 @@ interface AfterUsGamedatas {
 
     // Add here variables you set up in getAllDatas
     table: { [type: number]: number };
+    tableTopCard: { [type: number]: Card };
     objects: number[];
     usedObjects?: number[];
     lastTurn: boolean;
@@ -117,6 +120,8 @@ interface EnteringApplyNeighborEffectArgs {
 interface NotifNewRoundArgs {
     playerId: number;
     cards: Card[];
+    deckCount: number;
+    deckTopCard?: Card;
 }
 
 // switchedCards
@@ -147,6 +152,7 @@ interface NotifRevealTokensArgs {
 interface NotifBuyCardArgs extends NotifActivatedEffectArgs {
     deckType: number;
     deckCount: number;
+    deckTopCard?: Card;
     card?: Card;
 }
 
@@ -170,6 +176,8 @@ interface NotifDiscardedCardArgs extends NotifActivatedEffectArgs {
 interface NotifAddCardToLineArgs extends NotifActivatedEffectArgs {
     card: Card;
     line: Card[];
+    deckCount: number;
+    deckTopCard?: Card;
 }
 
 // replaceLineCard

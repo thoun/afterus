@@ -19,12 +19,14 @@ trait StateTrait {
             $line = [];
             for ($i = 0; $i < 4; $i++) {
                 $this->refillPlayerDeckIfEmpty($playerId);
-                $line[] = $this->getCardFromDb($this->cards->pickCardForLocation('deck'.$playerId, 'line'.$playerId, $i));
+                $line[] = $this->getCardFromDb($this->cards->pickCardForLocation('pdeck'.$playerId, 'line'.$playerId, $i));
             }
 
             self::notifyAllPlayers('newRound', '', [
                 'playerId' => $playerId,
-                'cards' => $line,
+                'cards' => $line,                
+                'deckCount' => intval($this->cards->countCardInLocation('pdeck'.$playerId)),
+                'deckTopCard' => Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId))),
             ]);
         }
 

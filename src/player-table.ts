@@ -13,22 +13,6 @@ class CardLine extends SlotStock<Card> {
         return this.slotsIds;
     }
 
-    public switchCards(switchedCards: Card[]) {
-        const removedCards = this.getCards().filter(card => switchedCards.some(c => c.id == card.id));
-        const origins = removedCards.map(card => this.getCardElement(card).parentElement);
-
-        if (origins.length == switchedCards.length) {
-            removedCards.forEach(card => this.removeCard(card));
-            switchedCards.forEach((card, index) => {
-                this.addCard(card, {
-                    fromElement: origins[index],
-                });
-                this.cards.find(c => c.id == card.id).locationArg = card.locationArg;
-                (this.getCardElement(card).querySelector('.front') as HTMLElement).dataset.index = ''+card.locationArg;
-            });
-        }
-    }
-
     private createSlotButtons() {
         this.element.querySelectorAll('[data-slot-id]').forEach((slot, index) => {
             if (slot.querySelectorAll('button.move').length == 0) {
@@ -54,11 +38,9 @@ class CardLine extends SlotStock<Card> {
 
 class PlayerTable {
     public playerId: number;
-    private deck: HiddenDeck<Card>;
-    private deckCounter: Counter;
+    private deck: Deck<Card>;
     private line: CardLine;
-    private discard: HiddenDeck<Card>;
-    private discardCounter: Counter;
+    private discard: Deck<Card>;
 
     private currentPlayer: boolean;
 
@@ -70,16 +52,13 @@ class PlayerTable {
         <div id="player-table-${this.playerId}" class="player-table ${this.currentPlayer ? 'current-player' : ''}" style="--player-color: #${player.color};">
             <div class="decks">
                 <div id="player-table-${this.playerId}-deck" class="deck-stock">
-                    <div id="player-table-${this.playerId}-deck-counter" class="deck-counter"></div>
                     ${this.currentPlayer ? `<div id="player-table-${this.playerId}-see-top-card" class="see-top-card" data-visible="false">${_("See top card")}</div>` : ''}
                 </div>
                 <div class="name-and-tokens">
                     <div class="name-wrapper">${player.name}</div>
                     <div id="player-table-${this.playerId}-tokens" class="tokens"></div>
                 </div>
-                <div id="player-table-${this.playerId}-discard" class="discard-stock">
-                    <div id="player-table-${this.playerId}-discard-counter" class="deck-counter"></div>
-                </div>
+                <div id="player-table-${this.playerId}-discard" class="discard-stock"></div>
             </div>
             <div id="player-table-${this.playerId}-line"></div>        
         </div>
@@ -93,7 +72,7 @@ class PlayerTable {
             mapCardToSlot: card => card.locationArg
         }, game, this.currentPlayer);
             
-        this.newRound(player.line, false);
+        this.resetLine(player.line, false);
 
         html = `
         <div id="player-table-${this.playerId}-tokens-unplayed" class="tokens-unplayed tokens-column">`;
@@ -110,27 +89,27 @@ class PlayerTable {
 
         this.setSelectedToken(player.chosenToken);
 
-        this.deck = new HiddenDeck<Card>(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-deck`), {
+        this.deck = new Deck<Card>(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-deck`), {
             cardNumber: player.deckCount,
-            width: CARD_WIDTH,
-            height: CARD_HEIGHT,
-            autoUpdateCardNumber: false,
+            autoUpdateCardNumber: true,
+            topCard: player.deckTopCard,
+            counter: {
+                extraClasses: 'round',
+                position: 'top',
+            },
         });
-        this.deckCounter = new ebg.counter();
-        this.deckCounter.create(`player-table-${this.playerId}-deck-counter`);
-        this.deckCounter.setValue(player.deckCount);
 
-        this.discard = new HiddenDeck<Card>(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-discard`), {
+        this.discard = new Deck<Card>(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-discard`), {
             cardNumber: player.discardCount,
-            width: CARD_WIDTH,
-            height: CARD_HEIGHT,
-            autoUpdateCardNumber: false,
+            autoUpdateCardNumber: true,
+            topCard: player.discardTopCard,
+            counter: {
+                extraClasses: 'round',
+                position: 'top',
+            },
         });
-        this.discardCounter = new ebg.counter();
-        this.discardCounter.create(`player-table-${this.playerId}-discard-counter`);
-        this.discardCounter.setValue(player.discardCount);
 
-        this.deckTopCard(player.topCard);
+        this.deckTopCard(player.visibleTopCard);
     }
 
     private onDiscardCardClick(card: Card) {
@@ -162,19 +141,26 @@ class PlayerTable {
         this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
     }
     
-    public newRound(cards: Card[], fromDeck: boolean) {         
+    public newRound(cards: Card[], deckCount: number, deckTopCard?: Card) {         
+        this.resetLine(cards, true);
+
+        if (deckTopCard) {
+            this.deck.addCard(deckTopCard, undefined, { autoUpdateCardNumber: false, });
+        }
+        this.deck.setCardNumber(deckCount);
+    }
+    
+    public resetLine(cards: Card[], fromDeck: boolean) {         
         this.line.removeAll();
         this.line.setSlotsIds(Array.from(Array(Math.max(...cards.map(card => card.locationArg)) + 1).keys()));
 
         if (fromDeck) {
+            cards.forEach(card => this.game.cardsManager.updateCardInformations(card));
             this.deck.addCards(cards);
         }
         this.line.addCards(cards);
         cards.forEach(card => this.addRageButton(card));
         this.updateVisibleMoveButtons();
-        if (fromDeck) {
-            this.setDeckCount(this.deckCounter.getValue() - cards.length);
-        }
     }
 
     public setMovable(movable: boolean) {
@@ -182,7 +168,7 @@ class PlayerTable {
     }
     
     public switchCards(switchedCards: Card[]) {
-        this.line.switchCards(switchedCards);
+        this.line.swapCards(switchedCards);
         switchedCards.forEach(card => this.addRageButton(card));
     }
 
@@ -248,17 +234,15 @@ class PlayerTable {
     public endRound() {
         this.setSelectedToken(null);
         const cards = this.line.getCards();
-        this.discard.addCards(cards);
-        this.setDiscardCount(this.discardCounter.getValue() + cards.length);
+        this.discard.addCards(cards.map(card => ({ id: card.id } as Card)));
     }
     
     public discardCard(card: Card, line?: Card[]) {
-        this.discard.addCard(card);
-        this.setDiscardCount(this.discardCounter.getValue() + 1);
+        this.discard.addCard(card, null, { autoUpdateCardNumber: true, });
 
         if (line) {
             this.line.removeAll();
-            this.newRound(line, false);
+            this.resetLine(line, false);
         } else {
             this.line.removeCard(card);
         }
@@ -267,7 +251,7 @@ class PlayerTable {
         
     }
 
-    public addCardToLine(card: Card, line: Card[]) {
+    public addCardToLine(card: Card, line: Card[], deckCount: number, deckTopCard?: Card) {
         this.deck.addCard(card);
         /*if (card.locationArg > this.line.getSlotsIds().length) {
             this.line.setSlotsIds() = new CardLine(this.game.cardsManager, handDiv, {
@@ -276,8 +260,11 @@ class PlayerTable {
                 mapCardToSlot: card => card.locationArg,
             });
         }*/
-        this.newRound(line, false);
-        this.setDeckCount(this.deckCounter.getValue() - 1);
+        this.resetLine(line, false);
+        if (deckTopCard) {
+            this.deck.addCard(deckTopCard);
+        }
+        this.deck.setCardNumber(deckCount);
     }
     
     public replaceLineCard(card: Card) {
@@ -285,8 +272,7 @@ class PlayerTable {
     }
 
     public replaceTopDeck(card: Card) {
-        this.deck.addCard(card);
-        this.setDeckCount(this.deckCounter.getValue() + 1);
+        this.deck.addCard(card, undefined, { autoUpdateCardNumber: true });
     }
 
     private updateVisibleMoveButtons() {
@@ -320,23 +306,20 @@ class PlayerTable {
 
     private setDeckCount(count: number) {
         this.deck.setCardNumber(count);
-        this.deckCounter.toValue(count);
-
     }
 
-    private setDiscardCount(count: number) {
-        this.discard.setCardNumber(count);
-        this.discardCounter.toValue(count);
-    }
+    public refillDeck(deckCount: number, deckTopCard?: Card) {
+        if (deckTopCard) {
+            this.deck.addCard(deckTopCard, { fromStock: this.discard, });
+        }
+        this.deck.setCardNumber(deckCount);
 
-    public refillDeck(deckCount: number) {
-        this.setDeckCount(deckCount);
-        this.setDiscardCount(0);
+        this.discard.removeAll();
+        this.discard.setCardNumber(0);
     }
     
     public addCardToDeck(card: Card) {
-        this.deck.addCard(card);
-        this.setDeckCount(this.deckCounter.getValue() + 1);
+        this.deck.addCard(card, undefined, { autoUpdateCardNumber: true });
     }
 
     public setLine(line: Card[]) {

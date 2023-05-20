@@ -11,12 +11,10 @@ class CardsManager extends CardManager<Card> {
             getId: (card) => `card-${card.id}`,
             setupDiv: (card: Card, div: HTMLElement) => {
                 div.dataset.cardId = ''+card.id;
-                const tooltip = this.getTooltip(card);
-                if (tooltip) {
-                    this.game.setTooltip(div.id, tooltip);
-                }
             },
             setupFrontDiv: (card: Card, div: HTMLElement) => { 
+                div.id = `${this.getId(card)}-front`;
+
                 div.dataset.level = ''+card.level;
                 div.dataset.type = ''+card.type;
                 div.dataset.subType = ''+card.subType;
@@ -27,7 +25,15 @@ class CardsManager extends CardManager<Card> {
                 if (card.frames) {
                     this.createFrames(div, card.frames);
                 }
+
+                const tooltip = this.getTooltip(card);
+                if (tooltip) {
+                    this.game.setTooltip(div.id, tooltip);
+                }
             },
+            isCardVisible: card => card.type !== null && card.type !== undefined,
+            cardWidth: 142,
+            cardHeight: 198,
         });
     }
 
@@ -112,7 +118,7 @@ class CardsManager extends CardManager<Card> {
         }
     }
 
-    public getMonkeyType(type: number) {
+    public getMonkeyType(type: number): string {
         switch (type) {
             case 0: return _('tamarin');
             case 1: return _('mandrill');
