@@ -147,6 +147,10 @@ class PlayerTable {
 
     private addRageButton(card: Card) {
         const div = this.line.getCardElement(card);
+        if (div.querySelector('.rage-button')) {
+            return;
+        }
+        
         const button = document.createElement('button');
         button.id = `rage-button-${card.id}`;
         button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
@@ -179,6 +183,7 @@ class PlayerTable {
     
     public switchCards(switchedCards: Card[]) {
         this.line.switchCards(switchedCards);
+        switchedCards.forEach(card => this.addRageButton(card));
     }
 
     private getFrames(effect: Effect) {

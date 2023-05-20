@@ -1622,6 +1622,9 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.addRageButton = function (card) {
         var _this = this;
         var div = this.line.getCardElement(card);
+        if (div.querySelector('.rage-button')) {
+            return;
+        }
         var button = document.createElement('button');
         button.id = "rage-button-".concat(card.id);
         button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
@@ -1650,7 +1653,9 @@ var PlayerTable = /** @class */ (function () {
         document.getElementById("player-table-".concat(this.playerId)).classList.toggle('move-phase', movable);
     };
     PlayerTable.prototype.switchCards = function (switchedCards) {
+        var _this = this;
         this.line.switchCards(switchedCards);
+        switchedCards.forEach(function (card) { return _this.addRageButton(card); });
     };
     PlayerTable.prototype.getFrames = function (effect) {
         var fromClosedFrame = effect.closedFrameIndex !== null && effect.closedFrameIndex !== undefined;

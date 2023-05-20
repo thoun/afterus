@@ -65,6 +65,11 @@ trait ActionTrait {
             'movedCards' => $movedCards,
         ]);
 
+        /*$this->notifyAllPlayers('logTODO', 'card order ${order} movedCardsOrder ${movedCardsOrder}', [
+            'order' => json_encode(array_map(fn($card) => $card->locationArg, $this->getCardsByLocation('line'.$playerId))),
+            'movedCardsOrder' => json_encode(array_map(fn($card) => $card->locationArg, $movedCards)),
+        ]);*/
+
         $this->gamestate->nextPrivateState($playerId, 'stay');
     }
 
@@ -691,6 +696,10 @@ trait ActionTrait {
             'card' => $card,
             'line' => $this->getCardsByLocation('line'.$playerId),
         ]);
+
+        /*$this->notifyAllPlayers('logTODO', 'card order ${order}', [
+            'order' => json_encode(array_map(fn($card) => $card->locationArg, $this->getCardsByLocation('line'.$playerId))),
+        ]);*/
 
         $this->saveForUndo($playerId, true);
 
