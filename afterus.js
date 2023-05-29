@@ -2041,6 +2041,7 @@ var TableCenter = /** @class */ (function () {
         var _this = this;
         this.game = game;
         this.hiddenDecks = [];
+        this.usedObjects = null;
         [1, 2, 3, 4].forEach(function (monkeyType) {
             return [1, 2].forEach(function (level) {
                 var type = monkeyType * 10 + level;
@@ -2063,12 +2064,17 @@ var TableCenter = /** @class */ (function () {
         this.objects = new LineStock(this.objectsManager, document.getElementById("objects"));
         this.objects.addCards(gamedatas.objects);
         this.objects.onCardClick = function (number) { return _this.game.useObject(number); };
-        this.usedObjects = gamedatas.usedObjects;
-        this.setUsedClass();
         var stateId = +gamedatas.gamestate.id;
-        this.onEnteringState(stateId);
-        if (gamedatas.players[this.game.getPlayerId()]) {
-            this.setCurrentPlayerEnergy(gamedatas.players[this.game.getPlayerId()].energy);
+        if (!this.game.isSpectator) {
+            this.onEnteringState(stateId);
+            this.usedObjects = gamedatas.usedObjects;
+            this.setUsedClass();
+            if (gamedatas.players[this.game.getPlayerId()]) {
+                this.setCurrentPlayerEnergy(gamedatas.players[this.game.getPlayerId()].energy);
+            }
+        }
+        else {
+            document.getElementById("objects").classList.add('spectator-mode');
         }
     }
     TableCenter.prototype.setRemaining = function (deckType, deckCount, deckTopCard) {
@@ -2098,11 +2104,17 @@ var TableCenter = /** @class */ (function () {
         this.setUsedClass();
     };
     TableCenter.prototype.newRound = function () {
+        if (!this.usedObjects) {
+            return;
+        }
         this.usedObjects = [];
         this.setUsedClass();
     };
     TableCenter.prototype.setUsedClass = function () {
         var _this = this;
+        if (!this.usedObjects) {
+            return;
+        }
         this.objects.getCards().forEach(function (object) { return _this.objects.getCardElement(object).classList.toggle('used', _this.usedObjects.includes(object)); });
     };
     TableCenter.prototype.replaceLineCardUpdateCounters = function (table) {
@@ -2822,9 +2834,14 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.onPreferenceChange = function (prefId, prefValue) {
         switch (prefId) {
             case 201:
-                this.setAutoGain(prefValue == 1);
+                if (!this.isReadOnly()) {
+                    this.setAutoGain(prefValue == 1);
+                }
                 break;
         }
+    };
+    AfterUs.prototype.isReadOnly = function () {
+        return this.isSpectator || typeof g_replayFrom != 'undefined' || g_archive_mode;
     };
     AfterUs.prototype.getOrderedPlayers = function (gamedatas) {
         var _this = this;

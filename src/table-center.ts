@@ -33,7 +33,7 @@ class TableCenter {
 
     private objectsManager: ObjectsManager;
     private objects: LineStock<number>;
-    private usedObjects: number[];
+    private usedObjects: number[] | null = null;
 
     constructor(private game: AfterUsGame, gamedatas: AfterUsGamedatas) {
 
@@ -66,14 +66,18 @@ class TableCenter {
         this.objects.addCards(gamedatas.objects);
         this.objects.onCardClick = number => this.game.useObject(number);
 
-        this.usedObjects = gamedatas.usedObjects;
-        this.setUsedClass();
-
         const stateId = +gamedatas.gamestate.id;
-        this.onEnteringState(stateId);
 
-        if (gamedatas.players[this.game.getPlayerId()]) {
-            this.setCurrentPlayerEnergy(gamedatas.players[this.game.getPlayerId()].energy);
+        if (!(this.game as any).isSpectator) {
+            this.onEnteringState(stateId);
+            this.usedObjects = gamedatas.usedObjects;
+            this.setUsedClass();
+
+            if (gamedatas.players[this.game.getPlayerId()]) {
+                this.setCurrentPlayerEnergy(gamedatas.players[this.game.getPlayerId()].energy);
+            }
+        } else {
+            document.getElementById(`objects`).classList.add('spectator-mode');
         }
     }
     
@@ -107,11 +111,19 @@ class TableCenter {
     }
     
     public newRound() {
+        if (!this.usedObjects) {
+            return;
+        }
+        
         this.usedObjects = [];
         this.setUsedClass();
     }
 
     private setUsedClass() {
+        if (!this.usedObjects) {
+            return;
+        }
+
         this.objects.getCards().forEach(object => this.objects.getCardElement(object).classList.toggle('used', this.usedObjects.includes(object)));
     }
     

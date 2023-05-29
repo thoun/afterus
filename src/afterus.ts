@@ -4,6 +4,8 @@ declare const $;
 declare const dojo: Dojo;
 declare const _;
 declare const g_gamethemeurl;
+declare const g_replayFrom;
+declare const g_archive_mode;
 
 const ANIMATION_MS = 500;
 const ACTION_TIMER_DURATION = 5;
@@ -471,9 +473,15 @@ class AfterUs implements AfterUsGame {
     private onPreferenceChange(prefId: number, prefValue: number) {
         switch (prefId) {
             case 201: 
-                this.setAutoGain(prefValue == 1);
+                if (!this.isReadOnly()) {
+                    this.setAutoGain(prefValue == 1);
+                }
                 break;
         }
+    }
+
+    private isReadOnly() {
+        return (this as any).isSpectator || typeof g_replayFrom != 'undefined' || g_archive_mode;
     }
 
     private getOrderedPlayers(gamedatas: AfterUsGamedatas) {

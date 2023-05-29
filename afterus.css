@@ -941,6 +941,14 @@ body > .card {
   cursor: not-allowed !important;
 }
 
+.spectator-mode .card.object {
+  cursor: unset !important;
+  filter: unset !important;
+}
+.spectator-mode .card.object .card-sides .card-side.front {
+  cursor: unset !important;
+}
+
 #table-center {
   margin: 5px;
 }

@@ -180,3 +180,13 @@
         }
     }
 }
+
+.spectator-mode {
+    .card.object {
+        cursor: unset !important;
+        filter: unset !important;
+        .card-sides .card-side.front {
+            cursor: unset !important;
+        }
+    }
+}
