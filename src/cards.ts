@@ -18,11 +18,9 @@ class CardsManager extends CardManager<Card> {
                 div.dataset.level = ''+card.level;
                 div.dataset.type = ''+card.type;
                 div.dataset.subType = ''+card.subType;
-                if (card.playerId) {
-                    div.dataset.playerColor = ''+game.getPlayerColor(card.playerId);
-                }
+                div.dataset.playerColor = card.playerId ? ''+game.getPlayerColor(card.playerId) : '';
 
-                if (card.frames) {
+                if (card.frames && !div.querySelector('.frame')) {
                     this.createFrames(div, card.frames);
                 }
 

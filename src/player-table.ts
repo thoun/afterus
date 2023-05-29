@@ -176,7 +176,7 @@ class PlayerTable {
         const fromClosedFrame = effect.closedFrameIndex !== null && effect.closedFrameIndex !== undefined;
         const lineCards = this.line.getCards();
         const card = lineCards.find(card => card.locationArg == effect.cardIndex);
-
+        
         const frames = [this.line.getCardElement(card).querySelector(`.frame[data-row="${effect.row}"][data-index="${fromClosedFrame ? effect.closedFrameIndex : card.frames[effect.row].length - 1}"]`)];
         if (!fromClosedFrame) {
             const rightCard = lineCards.find(card => card.locationArg == effect.cardIndex + 1);
@@ -186,8 +186,8 @@ class PlayerTable {
         return frames;
     }
 
-    private setEffectClass(effect: Effect, frameClass: string) {
-        this.getFrames(effect).forEach(frame => frame.classList.add(frameClass));
+    private setEffectClass(effect: Effect, frameClasses: string[]) {
+        this.getFrames(effect).forEach(frame => frame.classList.add(...frameClasses));
     }
 
     private markRemainingFramesDisabled() {
@@ -201,19 +201,23 @@ class PlayerTable {
     
     public setActivableEffect(currentEffect: Effect, appliedEffects: Effect[], remainingEffects: Effect[], reactivate: boolean, possibleEffects: Effect[]) {
         if (currentEffect) {
-            this.setEffectClass(currentEffect, 'current');
+            const currentClasses = ['current'];
+            if (currentEffect.convertSign) {
+                currentClasses.push('convert');
+            }
+            this.setEffectClass(currentEffect, currentClasses);
         }
         if (reactivate) {
             this.setActivableEffectToken(possibleEffects);
         } else {
-            appliedEffects.forEach(effect => this.setEffectClass(effect, 'applied'));
-            remainingEffects.forEach(effect => this.setEffectClass(effect, 'remaining'));
+            appliedEffects.forEach(effect => this.setEffectClass(effect, ['applied']));
+            remainingEffects.forEach(effect => this.setEffectClass(effect, ['remaining']));
             this.markRemainingFramesDisabled();
         }
     }
 
     public setActivableEffectToken(possibleEffects: Effect[], className = 'selectable') {
-        possibleEffects.forEach(effect => this.setEffectClass(effect, className));
+        possibleEffects.forEach(effect => this.setEffectClass(effect, [className]));
         this.markRemainingFramesDisabled();
     }
     
@@ -226,7 +230,7 @@ class PlayerTable {
         const token = document.getElementById(`player-table-${this.playerId}-action-token`);
         const destination = document.getElementById(`player-table-${this.playerId}-tokens-${type === null ? 'un' : ''}played`);
         if (token.parentElement != destination) {
-            this.game.animationManager.attachWithSlideAnimation(token, destination);
+            this.game.animationManager.attachWithAnimation(new BgaSlideAnimation({ element: token }), destination);
         }
         token.dataset.type = type === null ? '0' : ''+type;
     }

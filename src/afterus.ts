@@ -9,6 +9,7 @@ const ANIMATION_MS = 500;
 const ACTION_TIMER_DURATION = 5;
 
 const LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
+const LOCAL_STORAGE_JUMP_TO_FOLDED_KEY = 'AfterUs-jump-to-folded';
 
 const FLOWER = 4;
 const FRUIT = 4;
@@ -117,6 +118,7 @@ class AfterUs implements AfterUsGame {
                 color: 'white',
             },
             localStorageZoomKey: LOCAL_STORAGE_ZOOM_KEY,
+            zoomLevels: [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1, 1.25, 1.5],
             onDimensionsChange: () => {
                 const tablesAndCenter = document.getElementById('tables-and-center');
                 const doubleColumnBefore = tablesAndCenter.classList.contains('double-column');
@@ -129,6 +131,13 @@ class AfterUs implements AfterUsGame {
                     }
                 }
             },
+        });
+        new JumpToManager(this, {
+            localStorageFoldedKey: LOCAL_STORAGE_JUMP_TO_FOLDED_KEY,
+            topEntries: [
+                new JumpToEntry(_('Main board'), 'table-center', { 'color': '#a19b7b' })
+            ],
+            defaultFolded: true,
         });
 
         if (gamedatas.lastTurn) {
@@ -147,6 +156,14 @@ class AfterUs implements AfterUsGame {
     // onEnteringState: this method is called each time we are entering into a new game state.
     //                  You can use this method to perform some user interface changes at this moment.
     //
+    private setGamestatePrivateDescription(stateId: number, property: string = '') {
+        const originalState = this.gamedatas.gamestates[stateId];
+        if (this.gamedatas.gamestate.descriptionmyturn != originalState['descriptionmyturn' + property]) {
+            this.gamedatas.gamestate.descriptionmyturn = originalState['descriptionmyturn' + property]; 
+            (this as any).updatePageTitle();
+        }
+    }
+
     public onEnteringState(stateName: string, args: any) {
         log('Entering state: ' + stateName, args.args);
         if (!(this as any).isSpectator) {
@@ -282,11 +299,9 @@ class AfterUs implements AfterUsGame {
                 break;
             case 'buyCard':
                 const buyCardArgs = args as EnteringBuyCardArgs;
-                if (buyCardArgs.canUseNeighborToken) {
-                    buyCardArgs.neighborTokens.forEach(type => {
-                        const label = _("Use effect of ${type}").replace('${type}', `<div class="action-token" data-type="${type}"></div>`);
-                        (this as any).addActionButton(`neighborEffect${type}-button`, label, () => this.neighborEffect(type), null, null, 'gray');
-                    });
+                
+                if (!buyCardArgs.canBuyCard) {
+                    this.setGamestatePrivateDescription(61, buyCardArgs.canUseNeighborToken ? 'OnlyEffect' : 'OnlyEnd');
                 }
 
                 if (buyCardArgs.canBuyCard) {
@@ -305,6 +320,13 @@ class AfterUs implements AfterUsGame {
                                 document.getElementById(`buyCard${level}-${type}-button`).classList.add('disabled');
                             }
                         });
+                    });
+                }
+
+                if (buyCardArgs.canUseNeighborToken) {
+                    buyCardArgs.neighborTokens.forEach(type => {
+                        const label = _("Use effect of ${type}").replace('${type}', `<div class="action-token" data-type="${type}"></div>`);
+                        (this as any).addActionButton(`neighborEffect${type}-button`, label, () => this.neighborEffect(type), null, null, 'gray');
                     });
                 }
 
