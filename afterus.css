@@ -1249,6 +1249,14 @@ html, .mode_3d #game_play_area_background {
   margin: -2px 0px;
 }
 
+.button-gain {
+  border: 2px solid lightgreen;
+}
+
+.button-convert {
+  border: 2px solid #e7b300;
+}
+
 .action-token {
   display: inline-block;
   position: relative;

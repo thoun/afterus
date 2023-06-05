@@ -288,6 +288,7 @@ class AfterUs implements AfterUsGame {
                         label = _("Spend ${left} to gain ${right}").replace('${left}', getResourcesQuantityIcons(currentEffect.left)).replace('${right}', getResourcesQuantityIcons(currentEffect.right));
                     }
                     (this as any).addActionButton(`activateEffect-button`, label, () => this.activateEffect());
+                    document.getElementById(`activateEffect-button`).classList.add(currentEffect.convertSign ? 'button-convert' : 'button-gain');
                 }
                 (this as any).addActionButton(`skipEffect-button`, _("Skip"), () => this.skipEffect());
                 this.addCancelLastMoves();
