@@ -2579,7 +2579,7 @@ var AfterUs = /** @class */ (function () {
                 this.getCurrentPlayerTable().addButtonsOnCards(function (card) { return _('Replace this card') + formatTextIcons(" (".concat(card.level + 1, " [Energy])")); }, function (card) {
                     var keys = [1, 2, 3, 4].map(function (type) { return _this.cardsManager.getMonkeyType(type); });
                     keys.push(_('Cancel'));
-                    _this.multipleChoiceDialog(_("How many bugs to fix?"), keys, function (choice) {
+                    _this.multipleChoiceDialog(_("Select a deck to draw the level ${level} top card").replace('${level}', card.level), keys, function (choice) {
                         if (Number(choice) != 4) { // != cancel
                             _this.useMobilePhone(card.id, Number(choice) + 1);
                         }

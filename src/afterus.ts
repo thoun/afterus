@@ -193,9 +193,9 @@ class AfterUs implements AfterUsGame {
                 this.getCurrentPlayerTable().addButtonsOnCards(card => _('Replace this card') + formatTextIcons(` (${card.level + 1} [Energy])`), card => {
                     const keys = [1, 2, 3, 4].map(type => this.cardsManager.getMonkeyType(type));
                     keys.push(_('Cancel'));
-                    (this as any).multipleChoiceDialog(_("How many bugs to fix?"), keys, (choice: string) => {
-                      if (Number(choice) != 4) { // != cancel
-                        this.useMobilePhone(card.id, Number(choice) + 1);
+                    (this as any).multipleChoiceDialog(_("Select a deck to draw the level ${level} top card").replace('${level}', card.level), keys, (choice: string) => {
+                        if (Number(choice) != 4) { // != cancel
+                            this.useMobilePhone(card.id, Number(choice) + 1);
                         }
                     });
                     const cancelBtn = document.getElementById('choice_btn_4');
