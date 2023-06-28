@@ -97,6 +97,10 @@ trait StateTrait {
             $this->gamestate->setPlayersMultiactive($playersIdsWithReactivate, 'next', true);
         }
         $this->gamestate->nextState(count($playersIdsWithReactivate) > 0 ? 'reactivate' : 'next');
+
+        foreach ($playersIdsWithReactivate as $playerId) {
+            $this->saveForUndo($playerId, false);
+        }
     }
 
     function stTokenSelectReactivate() {

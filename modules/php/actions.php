@@ -184,11 +184,7 @@ trait ActionTrait {
 
         $this->notifAppliedEffect($playerId, $appliedEffect);
 
-        if (intval($this->gamestate->state_id()) == ST_MULTIPLAYER_PHASE2) {
-            $this->gamestate->nextPrivateState($playerId, 'next');
-        } else {
-            $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
-        }
+        $this->gamestate->nextPrivateState($playerId, 'next');
     }
 
     public function skipEffect() {
@@ -276,6 +272,10 @@ trait ActionTrait {
         }
         
         $reactivate = $args['copiedType'] == 4;
+        if ($reactivate) {            
+            $this->saveForUndo($playerId, false);
+        }
+
         $give = [2, $type];
         $this->giveResource($playerId, $give);
         if (!$reactivate) {

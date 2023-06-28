@@ -415,6 +415,7 @@ trait UtilTrait {
     }
 
     function getPlayerPrivateState(int $playerId) {
+        //$this->gamestate->getPrivateState($playerId);
         return $this->gamestate->isPlayerActive($playerId) ? intval($this->getUniqueValueFromDB("SELECT `player_state` FROM `player` WHERE `player_id` = $playerId")) : 0;
     }
 

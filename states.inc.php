@@ -170,8 +170,20 @@ $playerActionsGameStates = [
         "possibleactions" => [ "activateEffectToken", "skipEffectToken" ],
         "transitions" => [
             'stay' => ST_PRIVATE_ACTIVATE_EFFECT_TOKEN,
-            'next' => ST_PRIVATE_BUY_CARD,
+            'next' => ST_PRIVATE_CONFIRM_ACTIVATIONS_PHASE2,
             'cancel' => ST_PRIVATE_APPLY_NEIGHBOR_EFFECT,
+        ],
+    ],
+
+    ST_PRIVATE_CONFIRM_ACTIVATIONS_PHASE2 => [
+        "name" => "confirmActivationsPhase2",
+        "descriptionmyturn" => clienttranslate('Phase 2 : ${you} must confirm your activated effect'),
+        "type" => "private",
+        "args" => "argActivateEffect",
+        "possibleactions" => [ "confirmActivations", "cancelLastMoves" ],
+        "transitions" => [
+          'stay' => ST_PRIVATE_CONFIRM_ACTIVATIONS,
+          'next' => ST_PRIVATE_BUY_CARD,
         ],
     ],
 

@@ -2567,6 +2567,7 @@ var AfterUs = /** @class */ (function () {
                 break;
             case 'activateEffect':
             case 'confirmActivations':
+            case 'confirmActivationsPhase2':
                 var activateEffectArgs = args.args;
                 this.getCurrentPlayerTable().setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects, activateEffectArgs.reactivate, activateEffectArgs.possibleEffects);
                 break;
@@ -2677,6 +2678,7 @@ var AfterUs = /** @class */ (function () {
                 this.addCancelLastMoves();
                 break;
             case 'confirmActivations':
+            case 'confirmActivationsPhase2':
                 this.addActionButton("confirmActivations-button", _("Confirm"), function () { return _this.confirmActivations(); });
                 this.addCancelLastMoves();
                 break;

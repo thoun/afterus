@@ -180,6 +180,7 @@ class AfterUs implements AfterUsGame {
                 break;
             case 'activateEffect':
             case 'confirmActivations':
+            case 'confirmActivationsPhase2':
                 const activateEffectArgs = args.args as EnteringActivateEffectArgs;
                 this.getCurrentPlayerTable().setActivableEffect(activateEffectArgs.currentEffect, activateEffectArgs.appliedEffects, activateEffectArgs.remainingEffects, activateEffectArgs.reactivate, activateEffectArgs.possibleEffects);
                 break;
@@ -294,6 +295,7 @@ class AfterUs implements AfterUsGame {
                 this.addCancelLastMoves();
                 break;
             case 'confirmActivations':
+            case 'confirmActivationsPhase2':
                 (this as any).addActionButton(`confirmActivations-button`, _("Confirm"), () => this.confirmActivations());
                 this.addCancelLastMoves();
                 break;
