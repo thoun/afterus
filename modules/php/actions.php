@@ -527,8 +527,10 @@ trait ActionTrait {
         $newCard = $this->getCardFromDb($this->cards->pickCardForLocation($newDeck, 'line'.$playerId, $oldCard->locationArg));
         
         $table = [];
+        $tableTopCards = [];
         foreach ([$oldType, $newType] as $monkeyType) {
             $table[$monkeyType * 10 + $level] = intval($this->cards->countCardInLocation("deck-$monkeyType-$level"));
+            $tableTopCards[$monkeyType * 10 + $level] = Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop("deck-$monkeyType-$level")));
         }
 
         self::notifyAllPlayers('replaceLineCard', clienttranslate('${player_name} uses object ${object} to permanently replace a card with a new card of same type and level from the main board'), [
@@ -540,6 +542,7 @@ trait ActionTrait {
             'oldCard' => $oldCard,
             'newCard' => $newCard,
             'table' => $table,
+            'tableTopCards' => $tableTopCards,
         ]);
 
         $this->cardAddedToDeck($playerId);

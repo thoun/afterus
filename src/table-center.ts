@@ -127,16 +127,16 @@ class TableCenter {
         this.objects.getCards().forEach(object => this.objects.getCardElement(object).classList.toggle('used', this.usedObjects.includes(object)));
     }
     
-    public replaceLineCardUpdateCounters(table: { [type: number]: number; }) {
+    public replaceLineCardUpdateCounters(table: { [type: number]: number; }, tableTopCards: { [type: number]: Card; }) {
         Object.entries(table).forEach(entry => {
             const type = Number(entry[0]);
             const count = entry[1];
-            this.hiddenDecks[type].setCardNumber(count);
+            this.hiddenDecks[type].setCardNumber(count, tableTopCards[type]);
         });
     }
     
-    public addCardForReplaceLine(oldCard: Card): Promise<boolean> {
+    public addCardForReplaceLine(oldCard: Card, visible: boolean): Promise<boolean> {
         const type = oldCard.type * 10 + oldCard.level;
-        return this.hiddenDecks[type].addCard(oldCard);
+        return this.hiddenDecks[type].addCard(visible ? { id: oldCard.id } as Card : oldCard, undefined, { visible });
     }
 }

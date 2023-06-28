@@ -1619,6 +1619,8 @@ var CardManager = /** @class */ (function () {
         this.game = game;
         this.settings = settings;
         this.stocks = [];
+        this.updateFrontTimeoutId = [];
+        this.updateBackTimeoutId = [];
         this.animationManager = (_a = settings.animationManager) !== null && _a !== void 0 ? _a : new AnimationManager(game);
     }
     /**
@@ -1722,19 +1724,28 @@ var CardManager = /** @class */ (function () {
         }
         var isVisible = visible !== null && visible !== void 0 ? visible : this.isCardVisible(card);
         element.dataset.side = isVisible ? 'front' : 'back';
+        var stringId = JSON.stringify(this.getId(card));
         if ((_a = settings === null || settings === void 0 ? void 0 : settings.updateFront) !== null && _a !== void 0 ? _a : true) {
+            if (this.updateFrontTimeoutId[stringId]) { // make sure there is not a delayed animation that will overwrite the last flip request
+                clearTimeout(this.updateFrontTimeoutId[stringId]);
+                delete this.updateFrontTimeoutId[stringId];
+            }
             var updateFrontDelay = (_b = settings === null || settings === void 0 ? void 0 : settings.updateFrontDelay) !== null && _b !== void 0 ? _b : 500;
             if (!isVisible && updateFrontDelay > 0 && this.animationsActive()) {
-                setTimeout(function () { var _a, _b; return (_b = (_a = _this.settings).setupFrontDiv) === null || _b === void 0 ? void 0 : _b.call(_a, card, element.getElementsByClassName('front')[0]); }, updateFrontDelay);
+                this.updateFrontTimeoutId[stringId] = setTimeout(function () { var _a, _b; return (_b = (_a = _this.settings).setupFrontDiv) === null || _b === void 0 ? void 0 : _b.call(_a, card, element.getElementsByClassName('front')[0]); }, updateFrontDelay);
             }
             else {
                 (_d = (_c = this.settings).setupFrontDiv) === null || _d === void 0 ? void 0 : _d.call(_c, card, element.getElementsByClassName('front')[0]);
             }
         }
         if ((_e = settings === null || settings === void 0 ? void 0 : settings.updateBack) !== null && _e !== void 0 ? _e : false) {
+            if (this.updateBackTimeoutId[stringId]) { // make sure there is not a delayed animation that will overwrite the last flip request
+                clearTimeout(this.updateBackTimeoutId[stringId]);
+                delete this.updateBackTimeoutId[stringId];
+            }
             var updateBackDelay = (_f = settings === null || settings === void 0 ? void 0 : settings.updateBackDelay) !== null && _f !== void 0 ? _f : 0;
             if (isVisible && updateBackDelay > 0 && this.animationsActive()) {
-                setTimeout(function () { var _a, _b; return (_b = (_a = _this.settings).setupBackDiv) === null || _b === void 0 ? void 0 : _b.call(_a, card, element.getElementsByClassName('back')[0]); }, updateBackDelay);
+                this.updateBackTimeoutId[stringId] = setTimeout(function () { var _a, _b; return (_b = (_a = _this.settings).setupBackDiv) === null || _b === void 0 ? void 0 : _b.call(_a, card, element.getElementsByClassName('back')[0]); }, updateBackDelay);
             }
             else {
                 (_h = (_g = this.settings).setupBackDiv) === null || _h === void 0 ? void 0 : _h.call(_g, card, element.getElementsByClassName('back')[0]);
@@ -2117,17 +2128,17 @@ var TableCenter = /** @class */ (function () {
         }
         this.objects.getCards().forEach(function (object) { return _this.objects.getCardElement(object).classList.toggle('used', _this.usedObjects.includes(object)); });
     };
-    TableCenter.prototype.replaceLineCardUpdateCounters = function (table) {
+    TableCenter.prototype.replaceLineCardUpdateCounters = function (table, tableTopCards) {
         var _this = this;
         Object.entries(table).forEach(function (entry) {
             var type = Number(entry[0]);
             var count = entry[1];
-            _this.hiddenDecks[type].setCardNumber(count);
+            _this.hiddenDecks[type].setCardNumber(count, tableTopCards[type]);
         });
     };
-    TableCenter.prototype.addCardForReplaceLine = function (oldCard) {
+    TableCenter.prototype.addCardForReplaceLine = function (oldCard, visible) {
         var type = oldCard.type * 10 + oldCard.level;
-        return this.hiddenDecks[type].addCard(oldCard);
+        return this.hiddenDecks[type].addCard(visible ? { id: oldCard.id } : oldCard, undefined, { visible: visible });
     };
     return TableCenter;
 }());
@@ -2356,7 +2367,7 @@ var PlayerTable = /** @class */ (function () {
         this.deck.setCardNumber(deckCount);
     };
     PlayerTable.prototype.replaceLineCard = function (card) {
-        this.line.addCard(card);
+        return this.line.addCard(card);
     };
     PlayerTable.prototype.replaceTopDeck = function (card) {
         this.deck.addCard(card, undefined, { autoUpdateCardNumber: true });
@@ -3120,21 +3131,38 @@ var AfterUs = /** @class */ (function () {
             ['deckTopCard', 1],
         ];
         notifs.forEach(function (notif) {
-            dojo.subscribe(notif[0], _this, "notif_".concat(notif[0]));
+            dojo.subscribe(notif[0], _this, function (notifDetails) {
+                log("notif_".concat(notif[0]), notifDetails.args);
+                var promise = _this["notif_".concat(notif[0])](notifDetails.args);
+                // tell the UI notification ends, if the function returned a promise
+                promise === null || promise === void 0 ? void 0 : promise.then(function () { return _this.notifqueue.onSynchronousNotificationEnd(); });
+            });
             _this.notifqueue.setSynchronous(notif[0], notif[1]);
         });
+        if (isDebug) {
+            notifs.forEach(function (notif) {
+                if (!_this["notif_".concat(notif[0])]) {
+                    console.warn("notif_".concat(notif[0], " function is not declared, but listed in setupNotifications"));
+                }
+            });
+            Object.getOwnPropertyNames(AfterUs.prototype).filter(function (item) { return item.startsWith('notif_'); }).map(function (item) { return item.slice(6); }).forEach(function (item) {
+                if (!notifs.some(function (notif) { return notif[0] == item; })) {
+                    console.warn("notif_".concat(item, " function is declared, but not listed in setupNotifications"));
+                }
+            });
+        }
     };
-    AfterUs.prototype.notif_newRound = function (notif) {
+    AfterUs.prototype.notif_newRound = function (args) {
         this.tableCenter.newRound();
-        this.getPlayerTable(notif.args.playerId).newRound(notif.args.cards, notif.args.deckCount, notif.args.deckTopCard);
+        this.getPlayerTable(args.playerId).newRound(args.cards, args.deckCount, args.deckTopCard);
     };
-    AfterUs.prototype.notif_switchedCards = function (notif) {
-        this.getPlayerTable(notif.args.playerId).switchCards(notif.args.movedCards);
+    AfterUs.prototype.notif_switchedCards = function (args) {
+        this.getPlayerTable(args.playerId).switchCards(args.movedCards);
     };
-    AfterUs.prototype.notif_activatedEffect = function (notif) {
+    AfterUs.prototype.notif_activatedEffect = function (args) {
         var _this = this;
-        var playerId = notif.args.playerId;
-        var player = notif.args.player;
+        var playerId = args.playerId;
+        var player = args.player;
         this.flowerCounters[playerId].toValue(player.flowers);
         this.fruitCounters[playerId].toValue(player.fruits);
         this.grainCounters[playerId].toValue(player.grains);
@@ -3152,62 +3180,73 @@ var AfterUs = /** @class */ (function () {
             });
         });
     };
-    AfterUs.prototype.notif_selectedToken = function (notif) {
+    AfterUs.prototype.notif_selectedToken = function (args) {
         var _this = this;
-        var currentPlayer = this.getPlayerId() == notif.args.playerId;
-        if (notif.args.token || !currentPlayer || notif.args.cancel) {
-            this.getPlayerTable(notif.args.playerId).setSelectedToken(notif.args.cancel ? null : notif.args.token);
+        var currentPlayer = this.getPlayerId() == args.playerId;
+        if (args.token || !currentPlayer || args.cancel) {
+            this.getPlayerTable(args.playerId).setSelectedToken(args.cancel ? null : args.token);
             if (currentPlayer) {
-                this.lastSelectedToken = notif.args.cancel ? null : notif.args.token;
+                this.lastSelectedToken = args.cancel ? null : args.token;
                 [1, 2, 3, 4].forEach(function (type) { var _a; return (_a = document.getElementById("chooseToken".concat(type, "-button"))) === null || _a === void 0 ? void 0 : _a.classList.toggle('selected-token-button', type == _this.lastSelectedToken); });
             }
         }
     };
-    AfterUs.prototype.notif_revealTokens = function (notif) {
+    AfterUs.prototype.notif_revealTokens = function (args) {
         var _this = this;
-        Object.entries(notif.args.tokens).forEach(function (val) { return _this.getPlayerTable(+val[0]).setSelectedToken(val[1]); });
+        Object.entries(args.tokens).forEach(function (val) { return _this.getPlayerTable(+val[0]).setSelectedToken(val[1]); });
     };
-    AfterUs.prototype.notif_buyCard = function (notif) {
-        this.getPlayerTable(notif.args.playerId).addCardToDeck(notif.args.card);
-        this.tableCenter.setRemaining(notif.args.deckType, notif.args.deckCount, notif.args.deckTopCard);
-        this.notif_activatedEffect(notif);
+    AfterUs.prototype.notif_buyCard = function (args) {
+        this.getPlayerTable(args.playerId).addCardToDeck(args.card);
+        this.tableCenter.setRemaining(args.deckType, args.deckCount, args.deckTopCard);
+        this.notif_activatedEffect(args);
     };
-    AfterUs.prototype.notif_endRound = function (notif) {
-        this.getPlayerTable(notif.args.playerId).endRound();
+    AfterUs.prototype.notif_endRound = function (args) {
+        this.getPlayerTable(args.playerId).endRound();
     };
-    AfterUs.prototype.notif_discardedCard = function (notif) {
-        this.getPlayerTable(notif.args.playerId).discardCard(notif.args.card, notif.args.line);
-        this.notif_activatedEffect(notif);
+    AfterUs.prototype.notif_discardedCard = function (args) {
+        this.getPlayerTable(args.playerId).discardCard(args.card, args.line);
+        this.notif_activatedEffect(args);
     };
-    AfterUs.prototype.notif_addCardToLine = function (notif) {
-        this.getPlayerTable(notif.args.playerId).addCardToLine(notif.args.card, notif.args.line, notif.args.deckCount, notif.args.deckTopCard);
-        this.notif_activatedEffect(notif);
+    AfterUs.prototype.notif_addCardToLine = function (args) {
+        this.getPlayerTable(args.playerId).addCardToLine(args.card, args.line, args.deckCount, args.deckTopCard);
+        this.notif_activatedEffect(args);
     };
-    AfterUs.prototype.notif_replaceLineCard = function (notif) {
-        var _this = this;
-        this.tableCenter.addCardForReplaceLine(notif.args.oldCard).then(function () {
-            _this.tableCenter.addCardForReplaceLine(notif.args.newCard);
-            _this.getPlayerTable(notif.args.playerId).replaceLineCard(notif.args.newCard);
-            _this.tableCenter.replaceLineCardUpdateCounters(notif.args.table);
-            _this.notif_activatedEffect(notif);
+    AfterUs.prototype.notif_replaceLineCard = function (args) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.tableCenter.addCardForReplaceLine(args.oldCard, false)];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.tableCenter.addCardForReplaceLine(args.newCard, true)];
+                    case 2:
+                        _a.sent();
+                        this.tableCenter.replaceLineCardUpdateCounters(args.table, args.tableTopCards);
+                        return [4 /*yield*/, this.getPlayerTable(args.playerId).replaceLineCard(args.newCard)];
+                    case 3:
+                        _a.sent();
+                        this.notif_activatedEffect(args);
+                        return [2 /*return*/];
+                }
+            });
         });
     };
-    AfterUs.prototype.notif_replaceTopDeck = function (notif) {
-        this.getPlayerTable(notif.args.playerId).replaceTopDeck(notif.args.card);
-        this.notif_activatedEffect(notif);
+    AfterUs.prototype.notif_replaceTopDeck = function (args) {
+        this.getPlayerTable(args.playerId).replaceTopDeck(args.card);
+        this.notif_activatedEffect(args);
     };
-    AfterUs.prototype.notif_useObject = function (notif) {
-        this.tableCenter.addUsedObject(notif.args.object);
+    AfterUs.prototype.notif_useObject = function (args) {
+        this.tableCenter.addUsedObject(args.object);
     };
-    AfterUs.prototype.notif_refillDeck = function (notif) {
-        this.getPlayerTable(notif.args.playerId).refillDeck(notif.args.deckCount);
+    AfterUs.prototype.notif_refillDeck = function (args) {
+        this.getPlayerTable(args.playerId).refillDeck(args.deckCount);
     };
-    AfterUs.prototype.notif_cancelLastMoves = function (notif) {
-        this.getPlayerTable(notif.args.playerId).setLine(notif.args.line);
-        this.notif_activatedEffect(notif);
+    AfterUs.prototype.notif_cancelLastMoves = function (args) {
+        this.getPlayerTable(args.playerId).setLine(args.line);
+        this.notif_activatedEffect(args);
     };
-    AfterUs.prototype.notif_deckTopCard = function (notif) {
-        this.getPlayerTable(notif.args.playerId).deckTopCard(notif.args.card);
+    AfterUs.prototype.notif_deckTopCard = function (args) {
+        this.getPlayerTable(args.playerId).deckTopCard(args.card);
     };
     /**
      * Show last turn banner.

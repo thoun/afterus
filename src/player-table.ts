@@ -271,8 +271,8 @@ class PlayerTable {
         this.deck.setCardNumber(deckCount);
     }
     
-    public replaceLineCard(card: Card) {
-        this.line.addCard(card);
+    public replaceLineCard(card: Card): Promise<any> {
+        return this.line.addCard(card);
     }
 
     public replaceTopDeck(card: Card) {
