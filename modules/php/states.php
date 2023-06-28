@@ -28,6 +28,8 @@ trait StateTrait {
                 'deckCount' => intval($this->cards->countCardInLocation('pdeck'.$playerId)),
                 'deckTopCard' => Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId))),
             ]);
+
+            $this->cardPickedFromDeck($playerId);
         }
 
         $this->gamestate->nextState('next');
