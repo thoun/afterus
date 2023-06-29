@@ -471,7 +471,7 @@ trait UtilTrait {
         ]);
     }
 
-    function saveForUndo(int $playerId, bool $logUndoPoint) {
+    function saveForUndo(int $playerId, bool $erasePrevious, bool $logUndoPoint) {
         $line = $this->getCardsByLocation('line'.$playerId);
         $player = $this->getPlayer($playerId);
         $appliedEffects = $this->getAppliedEffects($playerId);
@@ -493,7 +493,13 @@ trait UtilTrait {
             $appliedEffects,
             $usedObjects,
         );
-        $jsonObj = json_encode($undo);
+
+        $jsonObj = json_encode([$undo]);
+        if (!$erasePrevious) {
+            $undos = json_decode($this->getUniqueValueFromDB("SELECT `undo` FROM `player` WHERE `player_id` = $playerId"));
+            $jsonObj = json_encode(array_merge($undos, [$undo]));
+        }
+        
         $this->DbQuery("UPDATE `player` SET `undo` = '$jsonObj' WHERE `player_id` = $playerId");
     }
 

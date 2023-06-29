@@ -95,6 +95,7 @@ interface EnteringActivateEffectArgs {
     currentEffect: Effect;
     reactivate: boolean;
     possibleEffects?: Effect[];
+    undoCount: number;
 }
 
 interface EnteringChoseTokenArgs {

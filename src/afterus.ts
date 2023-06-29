@@ -250,8 +250,12 @@ class AfterUs implements AfterUsGame {
         }
     }
 
-    private addCancelLastMoves() {
-        (this as any).addActionButton(`cancelLastMoves-button`, _("Cancel last moves"), () => this.cancelLastMoves(), null, null, 'gray');
+    private addCancelLastMoves(withSingle: boolean, undoCount: number) {
+        (this as any).addActionButton(`cancelLastMove-button`, _("Cancel last move"), () => withSingle ? this.cancelLastMove() : this.cancelLastMoves(), null, null, 'gray');
+
+        if (withSingle && undoCount > 1) {
+            (this as any).addActionButton(`cancelLastMoves-button`, _("Cancel last ${moves} moves").replace('${moves}', undoCount), () => this.cancelLastMoves(), null, null, 'gray');
+        }
     }
 
     private createChooseTokenButton(type: number, gray: boolean = false) {
@@ -303,12 +307,12 @@ class AfterUs implements AfterUsGame {
                     document.getElementById(`activateEffect-button`).classList.add(currentEffect.convertSign ? 'button-convert' : 'button-gain');
                 }
                 (this as any).addActionButton(`skipEffect-button`, _("Skip"), () => this.skipEffect());
-                this.addCancelLastMoves();
+                this.addCancelLastMoves(true, args.undoCount);
                 break;
             case 'confirmActivations':
             case 'confirmActivationsPhase2':
                 (this as any).addActionButton(`confirmActivations-button`, _("Confirm"), () => this.confirmActivations());
-                this.addCancelLastMoves();
+                this.addCancelLastMoves(stateName == 'confirmActivations', args.undoCount);
                 break;
             case 'privateChooseToken':
                 [1, 2, 3, 4].forEach(type => this.createChooseTokenButton(type));
@@ -697,6 +701,14 @@ class AfterUs implements AfterUsGame {
         }
 
         this.takeAction('confirmActivations');
+    }
+  	
+    public cancelLastMove() {
+        if(!(this as any).checkAction('cancelLastMove')) {
+            return;
+        }
+
+        this.takeAction('cancelLastMove');
     }
   	
     public cancelLastMoves() {

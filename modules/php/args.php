@@ -32,6 +32,8 @@ trait ArgsTrait {
 
         $reactivate = $currentEffect ? $this->array_some($currentEffect->right, fn($condition) => $condition[1] == REACTIVATE) : false;
 
+        $undos = json_decode($this->getUniqueValueFromDB("SELECT `undo` FROM `player` WHERE `player_id` = $playerId"));
+        
         return [
             'line' => $line,
             'tamarins' => count(array_filter($line, fn($card) => $card->type == 0)),
@@ -41,6 +43,7 @@ trait ArgsTrait {
             'currentEffect' => $currentEffect,
             'reactivate' => $reactivate,
             'possibleEffects' => $reactivate ? $this->getPossibleEffects($playerId, $effects, $line, true) : null,
+            'undoCount' => count($undos),
         ];
     }
 

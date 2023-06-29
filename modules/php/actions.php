@@ -133,6 +133,8 @@ trait ActionTrait {
 
         $playerId = intval($this->getCurrentPlayerId());
 
+        $this->saveForUndo($playerId, false, false);
+
         $args = $this->argActivateEffect($playerId);
         $currentEffect = $args['currentEffect'];
         $line = $args['line'];
@@ -160,6 +162,7 @@ trait ActionTrait {
         $this->applyActivateEffect($playerId, $appliedEffect, $currentEffect, $line);
 
         $remaining = $this->applyAutoGainEffects($playerId);
+
         $this->gamestate->nextPrivateState($playerId, $remaining ? 'stay' : 'next');
     }
 
@@ -191,6 +194,8 @@ trait ActionTrait {
         self::checkAction('skipEffect');
 
         $playerId = intval($this->getCurrentPlayerId());
+
+        $this->saveForUndo($playerId, false, false);
         
         $args = $this->argActivateEffect($playerId);
         $effect = $args['currentEffect'];
@@ -273,7 +278,7 @@ trait ActionTrait {
         
         $reactivate = $args['copiedType'] == 4;
         if ($reactivate) {            
-            $this->saveForUndo($playerId, false);
+            $this->saveForUndo($playerId, true, false);
         }
 
         $give = [2, $type];
@@ -547,7 +552,7 @@ trait ActionTrait {
 
         $this->cardAddedToDeck($playerId);
 
-        $this->saveForUndo($playerId, true);
+        $this->saveForUndo($playerId, true, true);
 
         $this->applyCancelObject($playerId);
     }
@@ -635,7 +640,7 @@ trait ActionTrait {
 
         $this->cardAddedToDeck($playerId);
 
-        $this->saveForUndo($playerId, true);
+        $this->saveForUndo($playerId, true, true);
 
         $this->applyCancelObject($playerId);
     }
@@ -707,7 +712,7 @@ trait ActionTrait {
             'order' => json_encode(array_map(fn($card) => $card->locationArg, $this->getCardsByLocation('line'.$playerId))),
         ]);*/
 
-        $this->saveForUndo($playerId, true);
+        $this->saveForUndo($playerId, true, true);
 
         if ($this->gamestate->isPlayerActive($playerId)) {
             $this->gamestate->nextPrivateState($playerId, 'stay');
@@ -755,16 +760,23 @@ trait ActionTrait {
 
         $this->takeCard($playerId, $level, $type, [$cost, ENERGY]);
 
-        $this->saveForUndo($playerId, true);
+        $this->saveForUndo($playerId, true, true);
 
         $this->applyCancelObject($playerId);
     }
 
-    public function cancelLastMoves() {
-        self::checkAction('cancelLastMoves');
+    public function cancelLastMove() {
+        self::checkAction('cancelLastMove');
+
 
         $playerId = intval($this->getCurrentPlayerId());
-        $undo = json_decode($this->getUniqueValueFromDB("SELECT `undo` FROM `player` WHERE `player_id` = $playerId"));
+        $undos = json_decode($this->getUniqueValueFromDB("SELECT `undo` FROM `player` WHERE `player_id` = $playerId"));
+        if (count($undos) <= 1) {
+            $this->cancelLastMoves();
+            return;
+        }
+
+        $undo = $undos[count($undos) - 1];
 
         $line = [];
         foreach((array)$undo->lineIds as $index => $id) {
@@ -775,7 +787,41 @@ trait ActionTrait {
         $player = $undo->player;
         $appliedEffectsJsonObj = json_encode($undo->appliedEffects);
         $usedObjectsJsonObj = json_encode($undo->usedObjects);
-        $this->DbQuery("UPDATE `player` SET `player_flower` = $player->flowers, `player_fruit` = $player->fruits, `player_grain` = $player->grains, `player_energy` = $player->energy, `player_score` = $player->score, `player_rage` = $player->rage, `applied_effects` = '$appliedEffectsJsonObj', `used_objects` = '$usedObjectsJsonObj' WHERE `player_id` = $playerId");
+        $undosJson = json_encode(array_slice($undos, 0, count($undos) - 1));
+
+        $this->DbQuery("UPDATE `player` SET `player_flower` = $player->flowers, `player_fruit` = $player->fruits, `player_grain` = $player->grains, `player_energy` = $player->energy, `player_score` = $player->score, `player_rage` = $player->rage, `applied_effects` = '$appliedEffectsJsonObj', `used_objects` = '$usedObjectsJsonObj', `undo` = '$undosJson' WHERE `player_id` = $playerId");
+
+        self::notifyAllPlayers('cancelLastMoves', clienttranslate('${player_name} cancels their last move'), [
+            'playerId' => $playerId,
+            'player_name' => $this->getPlayerName($playerId),
+            'line' => $line,
+            'player' => $this->getPlayer($playerId),
+        ]);
+
+        $this->gamestate->setPrivateState($playerId, $undo->privateStateId);
+    } 
+
+    public function cancelLastMoves() {
+        self::checkAction('cancelLastMoves');
+
+        $playerId = intval($this->getCurrentPlayerId());
+        $undos = json_decode($this->getUniqueValueFromDB("SELECT `undo` FROM `player` WHERE `player_id` = $playerId"));
+        $undo = $undos[0];
+
+        $line = [];
+        foreach((array)$undo->lineIds as $index => $id) {
+            $this->cards->moveCard($id, 'line'.$playerId, $index);
+            $line[] = $this->getCardFromDb($this->cards->getCard($id));
+        }
+        
+        $player = $undo->player;
+        $appliedEffectsJsonObj = json_encode($undo->appliedEffects);
+        $usedObjectsJsonObj = json_encode($undo->usedObjects);
+
+
+        $undosJson = json_encode([$undo]);
+
+        $this->DbQuery("UPDATE `player` SET `player_flower` = $player->flowers, `player_fruit` = $player->fruits, `player_grain` = $player->grains, `player_energy` = $player->energy, `player_score` = $player->score, `player_rage` = $player->rage, `applied_effects` = '$appliedEffectsJsonObj', `used_objects` = '$usedObjectsJsonObj', `undo` = '$undosJson' WHERE `player_id` = $playerId");
 
         self::notifyAllPlayers('cancelLastMoves', clienttranslate('${player_name} cancels their last moves'), [
             'playerId' => $playerId,

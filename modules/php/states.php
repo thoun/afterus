@@ -41,7 +41,7 @@ trait StateTrait {
 
         $playersIds = $this->getPlayersIds();
         foreach ($playersIds as $playerId) {
-            $this->saveForUndo($playerId, false);
+            $this->saveForUndo($playerId, true, false);
         }
     }
 
@@ -101,7 +101,7 @@ trait StateTrait {
         $this->gamestate->nextState(count($playersIdsWithReactivate) > 0 ? 'reactivate' : 'next');
 
         foreach ($playersIdsWithReactivate as $playerId) {
-            $this->saveForUndo($playerId, false);
+            $this->saveForUndo($playerId, true, false);
         }
     }
 

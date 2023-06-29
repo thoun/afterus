@@ -2654,9 +2654,12 @@ var AfterUs = /** @class */ (function () {
                 break;
         }
     };
-    AfterUs.prototype.addCancelLastMoves = function () {
+    AfterUs.prototype.addCancelLastMoves = function (withSingle, undoCount) {
         var _this = this;
-        this.addActionButton("cancelLastMoves-button", _("Cancel last moves"), function () { return _this.cancelLastMoves(); }, null, null, 'gray');
+        this.addActionButton("cancelLastMove-button", _("Cancel last move"), function () { return withSingle ? _this.cancelLastMove() : _this.cancelLastMoves(); }, null, null, 'gray');
+        if (withSingle && undoCount > 1) {
+            this.addActionButton("cancelLastMoves-button", _("Cancel last ${moves} moves").replace('${moves}', undoCount), function () { return _this.cancelLastMoves(); }, null, null, 'gray');
+        }
     };
     AfterUs.prototype.createChooseTokenButton = function (type, gray) {
         var _this = this;
@@ -2708,12 +2711,12 @@ var AfterUs = /** @class */ (function () {
                     document.getElementById("activateEffect-button").classList.add(currentEffect.convertSign ? 'button-convert' : 'button-gain');
                 }
                 this.addActionButton("skipEffect-button", _("Skip"), function () { return _this.skipEffect(); });
-                this.addCancelLastMoves();
+                this.addCancelLastMoves(true, args.undoCount);
                 break;
             case 'confirmActivations':
             case 'confirmActivationsPhase2':
                 this.addActionButton("confirmActivations-button", _("Confirm"), function () { return _this.confirmActivations(); });
-                this.addCancelLastMoves();
+                this.addCancelLastMoves(stateName == 'confirmActivations', args.undoCount);
                 break;
             case 'privateChooseToken':
                 [1, 2, 3, 4].forEach(function (type) { return _this.createChooseTokenButton(type); });
@@ -3013,6 +3016,12 @@ var AfterUs = /** @class */ (function () {
             return;
         }
         this.takeAction('confirmActivations');
+    };
+    AfterUs.prototype.cancelLastMove = function () {
+        if (!this.checkAction('cancelLastMove')) {
+            return;
+        }
+        this.takeAction('cancelLastMove');
     };
     AfterUs.prototype.cancelLastMoves = function () {
         if (!this.checkAction('cancelLastMoves')) {
