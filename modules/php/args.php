@@ -156,4 +156,17 @@ trait ArgsTrait {
             'cost' => $cost,
         ];
     }
+
+    function argEndScore() {
+        $playersIds = $this->getPlayersIds();
+
+        $fullDecks = [];
+        foreach($playersIds as $playerId) {
+            $fullDecks[$playerId] = $this->getFullDeck($playerId);
+        }
+
+        return [
+            'fullDecks' => $fullDecks,
+        ];
+    }
 } 

@@ -13,11 +13,13 @@ trait DebugUtilTrait {
 
 		$this->debugSetRage(10);
 		$this->debugSetEnergy(10);
+		//$this->debugSet('score', 50);
+        $this->setGameStateValue(LAST_TURN, 1);
         
         //$this->debugLastTurn();
     }
 	
-    function debugSet($field, $amount) {
+    function debugSet(string $field, int $amount) {
         $this->DbQuery("UPDATE player SET `player_$field` = $amount");
     }
     function debugSetPlayer($playerId, $field, $amount) {

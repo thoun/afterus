@@ -42,6 +42,7 @@ interface AfterUsPlayer extends Player {
     deckTopCard?: Card;
     discardTopCard?: Card;
     visibleTopCard?: Card;
+    fullDeck?: Card[];
 }
 
 interface AfterUsGamedatas {
@@ -114,6 +115,10 @@ interface EnteringBuyCardArgs {
 interface EnteringApplyNeighborEffectArgs {
     gain: string;
     cost: { [type: number]: boolean };
+}
+
+interface EnteringEndScoreArgs {
+    fullDecks: { [playerId: number]: Card[] };
 }
 
 // newRound

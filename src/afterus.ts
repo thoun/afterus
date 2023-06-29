@@ -211,7 +211,18 @@ class AfterUs implements AfterUsGame {
             case 'gameConsole':
                 this.getCurrentPlayerTable().addButtonsOnCards(card => _('Place this card top of draw pile') + formatTextIcons(` (${card.level * 2 + 1} [Energy])`), card => this.useGameConsole(card.id), 1);
                 break;
+            case 'endScore':
+                this.onEnteringEndScore(args.args);
+                break;
         }
+    }
+
+    private onEnteringEndScore(args: EnteringEndScoreArgs) {
+        Object.keys(args.fullDecks).forEach(pId => {
+            const playerId = Number(pId);
+            this.gamedatas.players[playerId].fullDeck = args.fullDecks[playerId];
+            this.addShowFullDeckButton(playerId);
+        });
     }
 
     public onLeavingState(stateName: string) {
@@ -578,7 +589,20 @@ class AfterUs implements AfterUsGame {
                 (this as any).addTooltipHtml(`neighbor-left-${player.id}`, _("Left neighbor"));
                 (this as any).addTooltipHtml(`neighbor-right-${player.id}`, _("Right neighbor"));
             }
+            
+            if (player.fullDeck) {
+                this.addShowFullDeckButton(playerId);
+            }
+
+            
         });
+    }
+    
+    private addShowFullDeckButton(playerId: number) {
+        dojo.place(`<div>
+        <button class="bgabutton bgabutton_gray discarded-button" id="show-full-deck-button-${playerId}">${_('Show full deck')}</button>
+        </div>`, `player_board_${playerId}`);
+        document.getElementById(`show-full-deck-button-${playerId}`).addEventListener('click', () => this.showFullDeck(playerId));
     }
 
     private createPlayerTables(gamedatas: AfterUsGamedatas) {
@@ -596,6 +620,29 @@ class AfterUs implements AfterUsGame {
 
     private setScore(playerId: number, score: number) {
         (this as any).scoreCtrl[playerId]?.toValue(score);
+    }
+
+    private showFullDeck(playerId: number) {
+        const fullDeckDialog = new ebg.popindialog();
+        fullDeckDialog.create('showFullDeckDialog');
+        fullDeckDialog.setTitle('');
+        
+        let html = `<div id="full-deck-popin">
+            <h1>${_("Full deck")}</h1>
+            <div id="full-deck-cards"></div>
+        </div>`;
+        
+        // Show the dialog
+        fullDeckDialog.setContent(html);
+
+        fullDeckDialog.show();
+
+        this.gamedatas.players[playerId].fullDeck.forEach(card => {
+            const div = document.createElement('div');
+            div.id = `full-deck-card-${card.id}`;
+            document.getElementById('full-deck-cards').appendChild(div),
+            this.cardsManager.setForHelp(card, div.id);
+        });
     }
 
     public onFrameClicked(row: number, cardIndex: number, index: number): void {

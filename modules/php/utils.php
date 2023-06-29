@@ -145,8 +145,8 @@ trait UtilTrait {
 
     function setupCards(array $playersIds) {
         // number cards
-        $cards = [];
         foreach ($playersIds as $playerId) {
+            $cards = [];
             foreach ($this->TAMARINS as $index => $card) {
                 $cards[] = [ 'type' => 0, 'type_arg' => $index + 1, 'nbr' => 1 ];
             }
@@ -518,6 +518,14 @@ trait UtilTrait {
             'playerId' => $playerId,
             'card' => $this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId)),
         ]);
+    }
+
+    function getFullDeck(int $playerId) {
+        return array_merge(
+            $this->getCardsByLocation('pdeck'.$playerId),
+            $this->getCardsByLocation('line'.$playerId),
+            $this->getCardsByLocation('discard'.$playerId),
+        );
     }
     
 }

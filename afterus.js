@@ -1831,20 +1831,7 @@ var CardsManager = /** @class */ (function (_super) {
             setupDiv: function (card, div) {
                 div.dataset.cardId = '' + card.id;
             },
-            setupFrontDiv: function (card, div) {
-                div.id = "".concat(_this.getId(card), "-front");
-                div.dataset.level = '' + card.level;
-                div.dataset.type = '' + card.type;
-                div.dataset.subType = '' + card.subType;
-                div.dataset.playerColor = card.playerId ? '' + game.getPlayerColor(card.playerId) : '';
-                if (card.frames && !div.querySelector('.frame')) {
-                    _this.createFrames(div, card.frames);
-                }
-                var tooltip = _this.getTooltip(card);
-                if (tooltip) {
-                    _this.game.setTooltip(div.id, tooltip);
-                }
-            },
+            setupFrontDiv: function (card, div) { return _this.setupFrontDiv(card, div); },
             isCardVisible: function (card) { return card.type !== null && card.type !== undefined; },
             cardWidth: 142,
             cardHeight: 198,
@@ -1852,6 +1839,23 @@ var CardsManager = /** @class */ (function (_super) {
         _this.game = game;
         return _this;
     }
+    CardsManager.prototype.setupFrontDiv = function (card, div, ignoreTooltip) {
+        if (ignoreTooltip === void 0) { ignoreTooltip = false; }
+        div.id = "".concat(this.getId(card), "-front");
+        div.dataset.level = '' + card.level;
+        div.dataset.type = '' + card.type;
+        div.dataset.subType = '' + card.subType;
+        div.dataset.playerColor = card.playerId ? '' + this.game.getPlayerColor(card.playerId) : '';
+        if (card.frames && !div.querySelector('.frame')) {
+            this.createFrames(div, card.frames);
+        }
+        if (!ignoreTooltip) {
+            var tooltip = this.getTooltip(card);
+            if (tooltip) {
+                this.game.setTooltip(div.id, tooltip);
+            }
+        }
+    };
     CardsManager.prototype.createFrame = function (div, frame, row, index, left) {
         var _this = this;
         if (left === void 0) { left = null; }
@@ -1949,6 +1953,13 @@ var CardsManager = /** @class */ (function (_super) {
             return undefined;
         }
         return "".concat(_('${type} level ${level}').replace('${type}', "<strong>".concat(this.getMonkeyType(card.type), "</strong>")).replace('${level}', "<strong>".concat(card.level, "</strong>")), "<br>\n        ").concat(_('Rage gain:'), " ").concat(card.rageGain[0], " ").concat(formatTextIcons(getResourceCode(card.rageGain[1])), "<br>\n        ").concat(_('Card number:'), " ").concat(card.number);
+    };
+    CardsManager.prototype.setForHelp = function (card, divId) {
+        var div = document.getElementById(divId);
+        div.classList.add('card');
+        div.dataset.side = 'front';
+        div.innerHTML = "\n        <div class=\"card-sides\">\n            <div class=\"card-side front\">\n            </div>\n            <div class=\"card-side back\">\n            </div>\n        </div>";
+        this.setupFrontDiv(card, div.querySelector('.front'), true);
     };
     return CardsManager;
 }(CardManager));
@@ -2608,7 +2619,18 @@ var AfterUs = /** @class */ (function () {
             case 'gameConsole':
                 this.getCurrentPlayerTable().addButtonsOnCards(function (card) { return _('Place this card top of draw pile') + formatTextIcons(" (".concat(card.level * 2 + 1, " [Energy])")); }, function (card) { return _this.useGameConsole(card.id); }, 1);
                 break;
+            case 'endScore':
+                this.onEnteringEndScore(args.args);
+                break;
         }
+    };
+    AfterUs.prototype.onEnteringEndScore = function (args) {
+        var _this = this;
+        Object.keys(args.fullDecks).forEach(function (pId) {
+            var playerId = Number(pId);
+            _this.gamedatas.players[playerId].fullDeck = args.fullDecks[playerId];
+            _this.addShowFullDeckButton(playerId);
+        });
     };
     AfterUs.prototype.onLeavingState = function (stateName) {
         log('Leaving state: ' + stateName);
@@ -2908,7 +2930,15 @@ var AfterUs = /** @class */ (function () {
                 _this.addTooltipHtml("neighbor-left-".concat(player.id), _("Left neighbor"));
                 _this.addTooltipHtml("neighbor-right-".concat(player.id), _("Right neighbor"));
             }
+            if (player.fullDeck) {
+                _this.addShowFullDeckButton(playerId);
+            }
         });
+    };
+    AfterUs.prototype.addShowFullDeckButton = function (playerId) {
+        var _this = this;
+        dojo.place("<div>\n        <button class=\"bgabutton bgabutton_gray discarded-button\" id=\"show-full-deck-button-".concat(playerId, "\">").concat(_('Show full deck'), "</button>\n        </div>"), "player_board_".concat(playerId));
+        document.getElementById("show-full-deck-button-".concat(playerId)).addEventListener('click', function () { return _this.showFullDeck(playerId); });
     };
     AfterUs.prototype.createPlayerTables = function (gamedatas) {
         var _this = this;
@@ -2924,6 +2954,22 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.setScore = function (playerId, score) {
         var _a;
         (_a = this.scoreCtrl[playerId]) === null || _a === void 0 ? void 0 : _a.toValue(score);
+    };
+    AfterUs.prototype.showFullDeck = function (playerId) {
+        var _this = this;
+        var fullDeckDialog = new ebg.popindialog();
+        fullDeckDialog.create('showFullDeckDialog');
+        fullDeckDialog.setTitle('');
+        var html = "<div id=\"full-deck-popin\">\n            <h1>".concat(_("Full deck"), "</h1>\n            <div id=\"full-deck-cards\"></div>\n        </div>");
+        // Show the dialog
+        fullDeckDialog.setContent(html);
+        fullDeckDialog.show();
+        this.gamedatas.players[playerId].fullDeck.forEach(function (card) {
+            var div = document.createElement('div');
+            div.id = "full-deck-card-".concat(card.id);
+            document.getElementById('full-deck-cards').appendChild(div),
+                _this.cardsManager.setForHelp(card, div.id);
+        });
     };
     AfterUs.prototype.onFrameClicked = function (row, cardIndex, index) {
         var actionName = ['tokenSelectReactivate', 'phase2'].includes(this.gamedatas.gamestate.name) ?

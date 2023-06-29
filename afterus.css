@@ -1321,3 +1321,13 @@ html, .mode_3d #game_play_area_background {
     transform: scale(1);
   }
 }
+#full-deck-popin {
+  width: 800px;
+  max-width: 95vw;
+}
+#full-deck-popin #full-deck-cards {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}

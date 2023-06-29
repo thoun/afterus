@@ -12,27 +12,31 @@ class CardsManager extends CardManager<Card> {
             setupDiv: (card: Card, div: HTMLElement) => {
                 div.dataset.cardId = ''+card.id;
             },
-            setupFrontDiv: (card: Card, div: HTMLElement) => { 
-                div.id = `${this.getId(card)}-front`;
-
-                div.dataset.level = ''+card.level;
-                div.dataset.type = ''+card.type;
-                div.dataset.subType = ''+card.subType;
-                div.dataset.playerColor = card.playerId ? ''+game.getPlayerColor(card.playerId) : '';
-
-                if (card.frames && !div.querySelector('.frame')) {
-                    this.createFrames(div, card.frames);
-                }
-
-                const tooltip = this.getTooltip(card);
-                if (tooltip) {
-                    this.game.setTooltip(div.id, tooltip);
-                }
-            },
+            setupFrontDiv: (card: Card, div: HTMLElement) => this.setupFrontDiv(card, div),
             isCardVisible: card => card.type !== null && card.type !== undefined,
             cardWidth: 142,
             cardHeight: 198,
         });
+    }
+
+    private setupFrontDiv(card: Card, div: HTMLElement, ignoreTooltip: boolean = false) { 
+        div.id = `${this.getId(card)}-front`;
+
+        div.dataset.level = ''+card.level;
+        div.dataset.type = ''+card.type;
+        div.dataset.subType = ''+card.subType;
+        div.dataset.playerColor = card.playerId ? ''+this.game.getPlayerColor(card.playerId) : '';
+
+        if (card.frames && !div.querySelector('.frame')) {
+            this.createFrames(div, card.frames);
+        }
+
+        if (!ignoreTooltip) {
+            const tooltip = this.getTooltip(card);
+            if (tooltip) {
+                this.game.setTooltip(div.id, tooltip);
+            }
+        }
     }
 
     private createFrame(div: HTMLElement, frame: Frame, row: number, index: number, left: number | null = null) {
@@ -134,5 +138,19 @@ class CardsManager extends CardManager<Card> {
         return `${_('${type} level ${level}').replace('${type}', `<strong>${this.getMonkeyType(card.type)}</strong>`).replace('${level}', `<strong>${card.level}</strong>`)}<br>
         ${_('Rage gain:')} ${card.rageGain[0]} ${formatTextIcons(getResourceCode(card.rageGain[1]))}<br>
         ${_('Card number:')} ${card.number}`;
+    }
+    
+    public setForHelp(card: Card, divId: string): void {
+        const div = document.getElementById(divId);
+        div.classList.add('card');
+        div.dataset.side = 'front';
+        div.innerHTML = `
+        <div class="card-sides">
+            <div class="card-side front">
+            </div>
+            <div class="card-side back">
+            </div>
+        </div>`
+        this.setupFrontDiv(card, div.querySelector('.front'), true);
     }
 }

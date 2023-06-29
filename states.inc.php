@@ -330,6 +330,7 @@ $gameGameStates = [
         "description" => "",
         "type" => "game",
         "action" => "stEndScore",
+        "args" => "argEndScore",
         "transitions" => [
             "endGame" => ST_END_GAME,
         ],

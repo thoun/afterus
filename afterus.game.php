@@ -167,6 +167,10 @@ class AfterUs extends Table {
                 $result['usedObjects'] = $this->getUsedObjects($playerId);
                 $player['visibleTopCard'] = $this->getLastCard($playerId);
             }
+
+            if ($isEndScore) {
+                $player['fullDeck'] = $this->getFullDeck($playerId);
+            }
         }
 
         /*$result['costs'] = $this->getGlobalVariable(COSTS, true);
