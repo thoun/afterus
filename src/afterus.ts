@@ -13,9 +13,9 @@ const ACTION_TIMER_DURATION = 5;
 const LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
 const LOCAL_STORAGE_JUMP_TO_FOLDED_KEY = 'AfterUs-jump-to-folded';
 
-const FLOWER = 4;
-const FRUIT = 4;
-const GRAIN = 4;
+const FLOWER = 1;
+const FRUIT = 2;
+const GRAIN = 3;
 const ENERGY = 4;
 const POINT = 5;
 const RAGE = 6;
@@ -259,8 +259,32 @@ class AfterUs implements AfterUsGame {
     }
 
     private createChooseTokenButton(type: number, gray: boolean = false) {
+        const costs = [3, 6].map(number => {
+            let canPay = false;
+            switch (type) {
+                case FLOWER: 
+                    canPay = this.flowerCounters[this.getPlayerId()]?.getValue() >= number;
+                    break;
+                case FRUIT: 
+                    canPay = this.fruitCounters[this.getPlayerId()]?.getValue() >= number;
+                    break;
+                case GRAIN: 
+                    canPay = this.grainCounters[this.getPlayerId()]?.getValue() >= number;
+                    break;
+                case 4: 
+                    canPay = Math.max(
+                        this.flowerCounters[this.getPlayerId()]?.getValue(),
+                        this.fruitCounters[this.getPlayerId()]?.getValue(),
+                        this.grainCounters[this.getPlayerId()]?.getValue()
+                    ) >= number;
+                    break;
+            }
+            return `<span class="${canPay ? (gray ? '' : 'ok-can-pay') : 'warning-cant-pay'}">${number}</span>`;
+        }).join('/');
+
+        const label = `${this.cardsManager.getMonkeyType(type)} (${costs} ${type == 4 ? [1,2,3].map(r => formatTextIcons(getResourceCode(r))).join('/') : formatTextIcons(getResourceCode(type))})`;
         (this as any).addActionButton(`chooseToken${type}-button`, `
-        ${this.cardsManager.getMonkeyType(type)} (3/6 ${type == 4 ? [1,2,3].map(r => formatTextIcons(getResourceCode(r))).join('/') : formatTextIcons(getResourceCode(type))})<br>
+        ${label}<br>
         <div class="action-token" data-type="${type}"></div>
         `, () => this.chooseToken(type), null, null, gray ? 'gray' : undefined);
     }

@@ -2447,9 +2447,9 @@ var ANIMATION_MS = 500;
 var ACTION_TIMER_DURATION = 5;
 var LOCAL_STORAGE_ZOOM_KEY = 'AfterUs-zoom';
 var LOCAL_STORAGE_JUMP_TO_FOLDED_KEY = 'AfterUs-jump-to-folded';
-var FLOWER = 4;
-var FRUIT = 4;
-var GRAIN = 4;
+var FLOWER = 1;
+var FRUIT = 2;
+var GRAIN = 3;
 var ENERGY = 4;
 var POINT = 5;
 var RAGE = 6;
@@ -2664,7 +2664,27 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.createChooseTokenButton = function (type, gray) {
         var _this = this;
         if (gray === void 0) { gray = false; }
-        this.addActionButton("chooseToken".concat(type, "-button"), "\n        ".concat(this.cardsManager.getMonkeyType(type), " (3/6 ").concat(type == 4 ? [1, 2, 3].map(function (r) { return formatTextIcons(getResourceCode(r)); }).join('/') : formatTextIcons(getResourceCode(type)), ")<br>\n        <div class=\"action-token\" data-type=\"").concat(type, "\"></div>\n        "), function () { return _this.chooseToken(type); }, null, null, gray ? 'gray' : undefined);
+        var costs = [3, 6].map(function (number) {
+            var _a, _b, _c, _d, _e, _f;
+            var canPay = false;
+            switch (type) {
+                case FLOWER:
+                    canPay = ((_a = _this.flowerCounters[_this.getPlayerId()]) === null || _a === void 0 ? void 0 : _a.getValue()) >= number;
+                    break;
+                case FRUIT:
+                    canPay = ((_b = _this.fruitCounters[_this.getPlayerId()]) === null || _b === void 0 ? void 0 : _b.getValue()) >= number;
+                    break;
+                case GRAIN:
+                    canPay = ((_c = _this.grainCounters[_this.getPlayerId()]) === null || _c === void 0 ? void 0 : _c.getValue()) >= number;
+                    break;
+                case 4:
+                    canPay = Math.max((_d = _this.flowerCounters[_this.getPlayerId()]) === null || _d === void 0 ? void 0 : _d.getValue(), (_e = _this.fruitCounters[_this.getPlayerId()]) === null || _e === void 0 ? void 0 : _e.getValue(), (_f = _this.grainCounters[_this.getPlayerId()]) === null || _f === void 0 ? void 0 : _f.getValue()) >= number;
+                    break;
+            }
+            return "<span class=\"".concat(canPay ? (gray ? '' : 'ok-can-pay') : 'warning-cant-pay', "\">").concat(number, "</span>");
+        }).join('/');
+        var label = "".concat(this.cardsManager.getMonkeyType(type), " (").concat(costs, " ").concat(type == 4 ? [1, 2, 3].map(function (r) { return formatTextIcons(getResourceCode(r)); }).join('/') : formatTextIcons(getResourceCode(type)), ")");
+        this.addActionButton("chooseToken".concat(type, "-button"), "\n        ".concat(label, "<br>\n        <div class=\"action-token\" data-type=\"").concat(type, "\"></div>\n        "), function () { return _this.chooseToken(type); }, null, null, gray ? 'gray' : undefined);
     };
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
     //                        action status bar (ie: the HTML links in the status bar).

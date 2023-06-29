@@ -193,10 +193,17 @@ html, .mode_3d #game_play_area_background {
 }
 }
 
+.ok-can-pay {
+  color: rgb(150, 255, 150);
+}
+.warning-cant-pay {
+  color: rgb(255, 150, 150);
+}
+
 #full-deck-popin {
   width: 800px;
   max-width: 95vw;
-  
+
   #full-deck-cards {
     display: flex;
     justify-content: center;
