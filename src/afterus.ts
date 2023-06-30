@@ -308,27 +308,31 @@ class AfterUs implements AfterUsGame {
             case 'activateEffect':
                 const activateEffectArgs = args as EnteringActivateEffectArgs;
                 const currentEffect = activateEffectArgs.currentEffect;
-                if (currentEffect && !activateEffectArgs.reactivate) {
-                    if (currentEffect.left.length == 1) {
-                        if (currentEffect.left[0][1] == DIFFERENT) {
-                            currentEffect.left = [];
-                            currentEffect.convertSign = false;
-                        } else if (currentEffect.left[0][1] == PER_TAMARINS) {
-                            currentEffect.left[0][0] *= activateEffectArgs.tamarins;
-                            currentEffect.left[0][1] = POINT;
-                        }
-                    } else if (currentEffect.left.length == 0) {
-                        currentEffect.convertSign = false;
-                    }
-
-                    let label;
-                    if (!currentEffect.convertSign) {
-                        label = _("Gain ${resources}").replace('${resources}', getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                if (currentEffect) {
+                    if (activateEffectArgs.reactivate) {
+                        this.createFakeButtonForReactivate();
                     } else {
-                        label = _("Spend ${left} to gain ${right}").replace('${left}', getResourcesQuantityIcons(currentEffect.left)).replace('${right}', getResourcesQuantityIcons(currentEffect.right));
+                        if (currentEffect.left.length == 1) {
+                            if (currentEffect.left[0][1] == DIFFERENT) {
+                                currentEffect.left = [];
+                                currentEffect.convertSign = false;
+                            } else if (currentEffect.left[0][1] == PER_TAMARINS) {
+                                currentEffect.left[0][0] *= activateEffectArgs.tamarins;
+                                currentEffect.left[0][1] = POINT;
+                            }
+                        } else if (currentEffect.left.length == 0) {
+                            currentEffect.convertSign = false;
+                        }
+
+                        let label;
+                        if (!currentEffect.convertSign) {
+                            label = _("Gain ${resources}").replace('${resources}', getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                        } else {
+                            label = _("Spend ${left} to gain ${right}").replace('${left}', getResourcesQuantityIcons(currentEffect.left)).replace('${right}', getResourcesQuantityIcons(currentEffect.right));
+                        }
+                        (this as any).addActionButton(`activateEffect-button`, label, () => this.activateEffect());
+                        document.getElementById(`activateEffect-button`).classList.add(currentEffect.convertSign ? 'button-convert' : 'button-gain');
                     }
-                    (this as any).addActionButton(`activateEffect-button`, label, () => this.activateEffect());
-                    document.getElementById(`activateEffect-button`).classList.add(currentEffect.convertSign ? 'button-convert' : 'button-gain');
                 }
                 (this as any).addActionButton(`skipEffect-button`, _("Skip"), () => this.skipEffect());
                 this.addCancelLastMoves(true, args.undoCount);
@@ -340,6 +344,9 @@ class AfterUs implements AfterUsGame {
                 break;
             case 'privateChooseToken':
                 [1, 2, 3, 4].forEach(type => this.createChooseTokenButton(type));
+                break;
+            case 'activateEffectToken':
+                this.createFakeButtonForReactivate();
                 break;
             case 'buyCard':
                 const buyCardArgs = args as EnteringBuyCardArgs;
@@ -437,6 +444,11 @@ class AfterUs implements AfterUsGame {
                 (this as any).addActionButton(`cancelObject-button`, _("Cancel"), () => this.cancelObject(), null, null, 'gray');
                 break;
         }
+    }
+
+    createFakeButtonForReactivate() {
+        (this as any).addActionButton(`fakeReactivate-button`, _("Click on a frame to reactivate it"), null);
+        document.getElementById(`fakeReactivate-button`).classList.add('disabled');
     }
 
     ///////////////////////////////////////////////////

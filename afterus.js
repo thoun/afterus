@@ -2706,29 +2706,34 @@ var AfterUs = /** @class */ (function () {
             case 'activateEffect':
                 var activateEffectArgs = args;
                 var currentEffect = activateEffectArgs.currentEffect;
-                if (currentEffect && !activateEffectArgs.reactivate) {
-                    if (currentEffect.left.length == 1) {
-                        if (currentEffect.left[0][1] == DIFFERENT) {
-                            currentEffect.left = [];
-                            currentEffect.convertSign = false;
-                        }
-                        else if (currentEffect.left[0][1] == PER_TAMARINS) {
-                            currentEffect.left[0][0] *= activateEffectArgs.tamarins;
-                            currentEffect.left[0][1] = POINT;
-                        }
-                    }
-                    else if (currentEffect.left.length == 0) {
-                        currentEffect.convertSign = false;
-                    }
-                    var label = void 0;
-                    if (!currentEffect.convertSign) {
-                        label = _("Gain ${resources}").replace('${resources}', getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                if (currentEffect) {
+                    if (activateEffectArgs.reactivate) {
+                        this.createFakeButtonForReactivate();
                     }
                     else {
-                        label = _("Spend ${left} to gain ${right}").replace('${left}', getResourcesQuantityIcons(currentEffect.left)).replace('${right}', getResourcesQuantityIcons(currentEffect.right));
+                        if (currentEffect.left.length == 1) {
+                            if (currentEffect.left[0][1] == DIFFERENT) {
+                                currentEffect.left = [];
+                                currentEffect.convertSign = false;
+                            }
+                            else if (currentEffect.left[0][1] == PER_TAMARINS) {
+                                currentEffect.left[0][0] *= activateEffectArgs.tamarins;
+                                currentEffect.left[0][1] = POINT;
+                            }
+                        }
+                        else if (currentEffect.left.length == 0) {
+                            currentEffect.convertSign = false;
+                        }
+                        var label = void 0;
+                        if (!currentEffect.convertSign) {
+                            label = _("Gain ${resources}").replace('${resources}', getResourcesQuantityIcons(currentEffect.left.concat(currentEffect.right)));
+                        }
+                        else {
+                            label = _("Spend ${left} to gain ${right}").replace('${left}', getResourcesQuantityIcons(currentEffect.left)).replace('${right}', getResourcesQuantityIcons(currentEffect.right));
+                        }
+                        this.addActionButton("activateEffect-button", label, function () { return _this.activateEffect(); });
+                        document.getElementById("activateEffect-button").classList.add(currentEffect.convertSign ? 'button-convert' : 'button-gain');
                     }
-                    this.addActionButton("activateEffect-button", label, function () { return _this.activateEffect(); });
-                    document.getElementById("activateEffect-button").classList.add(currentEffect.convertSign ? 'button-convert' : 'button-gain');
                 }
                 this.addActionButton("skipEffect-button", _("Skip"), function () { return _this.skipEffect(); });
                 this.addCancelLastMoves(true, args.undoCount);
@@ -2740,6 +2745,9 @@ var AfterUs = /** @class */ (function () {
                 break;
             case 'privateChooseToken':
                 [1, 2, 3, 4].forEach(function (type) { return _this.createChooseTokenButton(type); });
+                break;
+            case 'activateEffectToken':
+                this.createFakeButtonForReactivate();
                 break;
             case 'buyCard':
                 var buyCardArgs_1 = args;
@@ -2831,6 +2839,10 @@ var AfterUs = /** @class */ (function () {
                 this.addActionButton("cancelObject-button", _("Cancel"), function () { return _this.cancelObject(); }, null, null, 'gray');
                 break;
         }
+    };
+    AfterUs.prototype.createFakeButtonForReactivate = function () {
+        this.addActionButton("fakeReactivate-button", _("Click on a frame to reactivate it"), null);
+        document.getElementById("fakeReactivate-button").classList.add('disabled');
     };
     ///////////////////////////////////////////////////
     //// Utility methods
