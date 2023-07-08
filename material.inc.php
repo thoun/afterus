@@ -176,7 +176,7 @@ $this->CHIMPANZEES1 = [
     ]),
     new LevelCard(156, [
         [new ClosedFrame([[1, FRUIT]]), new RightFrame([[1, FLOWER]], false)],
-        [new ClosedFrame([[1, PER_TAMARINS]]), new RightFrame([[1, ENERGY]], true)],
+        [new ClosedFrame([[1, PER_TAMARINS]])],
         [new LeftFrame([[1, REACTIVATE]], true), new RightFrame([[1, FLOWER], [1, ENERGY]], true)],
     ]),
     new LevelCard(157, [
