@@ -2231,7 +2231,7 @@ var PlayerTable = /** @class */ (function () {
         });
         this.deckTopCard(player.visibleTopCard);
     }
-    PlayerTable.prototype.onDiscardCardClick = function (card) {
+    PlayerTable.prototype.onRemoveCardClick = function (card) {
         var _this = this;
         var _a;
         var pref = Number((_a = this.game.prefs[202]) === null || _a === void 0 ? void 0 : _a.value);
@@ -2239,7 +2239,7 @@ var PlayerTable = /** @class */ (function () {
             this.game.useRage(card.id);
         }
         else {
-            this.game.confirmationDialog(_("Are you sure you want to discard this card ?"), function () { return _this.game.useRage(card.id); });
+            this.game.confirmationDialog(_("Are you sure you want to remove this card ?"), function () { return _this.game.useRage(card.id); });
         }
     };
     PlayerTable.prototype.addRageButton = function (card) {
@@ -2250,13 +2250,13 @@ var PlayerTable = /** @class */ (function () {
         }
         var button = document.createElement('button');
         button.id = "rage-button-".concat(card.id);
-        button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
+        button.classList.add('rage-button', 'bgabutton', 'bgabutton_red');
         button.dataset.playerId = '' + this.playerId;
         button.innerHTML = formatTextIcons('[Rage]');
         div.appendChild(button);
-        button.addEventListener('click', function () { return _this.onDiscardCardClick(card); });
+        button.addEventListener('click', function () { return _this.onRemoveCardClick(card); });
         this.game.setButtonActivation(button.id, 'rage', 4);
-        this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
+        this.game.setTooltip(button.id, formatTextIcons(_('Remove this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
     };
     PlayerTable.prototype.newRound = function (cards, deckCount, deckTopCard) {
         this.resetLine(cards, true);
@@ -2351,8 +2351,7 @@ var PlayerTable = /** @class */ (function () {
         var cards = this.line.getCards();
         this.discard.addCards(cards.map(function (card) { return ({ id: card.id }); }));
     };
-    PlayerTable.prototype.discardCard = function (card, line) {
-        this.discard.addCard(card, null, { autoUpdateCardNumber: true, });
+    PlayerTable.prototype.removeCard = function (card, line) {
         if (line) {
             this.line.removeAll();
             this.resetLine(line, false);
@@ -3207,7 +3206,7 @@ var AfterUs = /** @class */ (function () {
             ['revealTokens', ANIMATION_MS],
             ['buyCard', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
-            ['discardedCard', ANIMATION_MS],
+            ['removedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
             ['replaceLineCard', ANIMATION_MS * 2],
             ['replaceTopDeck', ANIMATION_MS],
@@ -3290,8 +3289,8 @@ var AfterUs = /** @class */ (function () {
     AfterUs.prototype.notif_endRound = function (args) {
         this.getPlayerTable(args.playerId).endRound();
     };
-    AfterUs.prototype.notif_discardedCard = function (args) {
-        this.getPlayerTable(args.playerId).discardCard(args.card, args.line);
+    AfterUs.prototype.notif_removedCard = function (args) {
+        this.getPlayerTable(args.playerId).removeCard(args.card, args.line);
         this.notif_activatedEffect(args);
     };
     AfterUs.prototype.notif_addCardToLine = function (args) {

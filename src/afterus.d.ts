@@ -173,7 +173,7 @@ interface NotifUseObjectArgs {
 }
 
 // discardedCard
-interface NotifDiscardedCardArgs extends NotifActivatedEffectArgs {
+interface NotifRemovedCardArgs extends NotifActivatedEffectArgs {
     card: Card;
     line?: Card[];
 }

@@ -387,7 +387,7 @@ trait ActionTrait {
         $card = $this->getCardFromDb($this->cards->getCard($id));
 
         if ($card == null || $card->location != 'line'.$playerId) {
-            throw new BgaUserException("You can't discard this card");
+            throw new BgaUserException("You can't remove this card");
         }
 
         if ($this->getPlayer($playerId)->rage < 4) {
@@ -408,8 +408,8 @@ trait ActionTrait {
         $this->gainResource($playerId, $resource, []);
 
         $message = $card->type == TAMARINS ?
-            _('${player_name} gains ${resources} by discarding a tamarin') :
-            _('${player_name} gains ${resources} by discarding a ${level} ${type}');
+            _('${player_name} gains ${resources} by removing a tamarin') :
+            _('${player_name} gains ${resources} by removing a ${level} ${type}');
 
         $line = null;
         $privateState = $this->getPlayerPrivateState($playerId);
@@ -422,7 +422,7 @@ trait ActionTrait {
             }
         }
 
-        self::notifyAllPlayers('discardedCard', $message, [
+        self::notifyAllPlayers('removedCard', $message, [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
             'player' => $this->getPlayer($playerId),

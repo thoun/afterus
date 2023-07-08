@@ -932,7 +932,7 @@ class AfterUs implements AfterUsGame {
             ['revealTokens', ANIMATION_MS],
             ['buyCard', ANIMATION_MS],
             ['endRound', ANIMATION_MS],
-            ['discardedCard', ANIMATION_MS],
+            ['removedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
             ['replaceLineCard', ANIMATION_MS * 2],
             ['replaceTopDeck', ANIMATION_MS],
@@ -1028,8 +1028,8 @@ class AfterUs implements AfterUsGame {
         this.getPlayerTable(args.playerId).endRound();
     }  
 
-    notif_discardedCard(args: NotifDiscardedCardArgs) {
-        this.getPlayerTable(args.playerId).discardCard(args.card, args.line);
+    notif_removedCard(args: NotifRemovedCardArgs) {
+        this.getPlayerTable(args.playerId).removeCard(args.card, args.line);
         this.notif_activatedEffect(args);
     }  
 

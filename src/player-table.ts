@@ -112,13 +112,13 @@ class PlayerTable {
         this.deckTopCard(player.visibleTopCard);
     }
 
-    private onDiscardCardClick(card: Card) {
+    private onRemoveCardClick(card: Card) {
         const pref = Number((this.game as any).prefs[202]?.value);
         if (pref == 3 || (pref == 2 && card.type == 0)) {
             this.game.useRage(card.id);
         } else {
             (this.game as any).confirmationDialog(
-                _("Are you sure you want to discard this card ?"), 
+                _("Are you sure you want to remove this card ?"), 
                 () => this.game.useRage(card.id)
             );
         }
@@ -132,13 +132,13 @@ class PlayerTable {
         
         const button = document.createElement('button');
         button.id = `rage-button-${card.id}`;
-        button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
+        button.classList.add('rage-button', 'bgabutton', 'bgabutton_red');
         button.dataset.playerId = ''+this.playerId;
         button.innerHTML = formatTextIcons('[Rage]');
         div.appendChild(button);
-        button.addEventListener('click', () => this.onDiscardCardClick(card));
+        button.addEventListener('click', () => this.onRemoveCardClick(card));
         this.game.setButtonActivation(button.id, 'rage', 4);
-        this.game.setTooltip(button.id, formatTextIcons(_('Discard this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
+        this.game.setTooltip(button.id, formatTextIcons(_('Remove this card (${cost}) to gain ${gain}').replace('${cost}', '4 [Rage]')).replace('${gain}', getResourcesQuantityIcons([card.rageGain])));
     }
     
     public newRound(cards: Card[], deckCount: number, deckTopCard?: Card) {         
@@ -241,9 +241,7 @@ class PlayerTable {
         this.discard.addCards(cards.map(card => ({ id: card.id } as Card)));
     }
     
-    public discardCard(card: Card, line?: Card[]) {
-        this.discard.addCard(card, null, { autoUpdateCardNumber: true, });
-
+    public removeCard(card: Card, line?: Card[]) {
         if (line) {
             this.line.removeAll();
             this.resetLine(line, false);
@@ -252,7 +250,6 @@ class PlayerTable {
         }
 
         this.updateVisibleMoveButtons();
-        
     }
 
     public addCardToLine(card: Card, line: Card[], deckCount: number, deckTopCard?: Card) {
