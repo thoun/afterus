@@ -141,6 +141,8 @@ trait ActionTrait {
         $appliedEffect = $currentEffect;
 
         if ($args['reactivate']) {
+
+
             $location = 'line'.$playerId;
             $card = $this->getCardByLocation($location, $cardIndex);
             $frame = $card->frames[$row][$index];
@@ -152,6 +154,11 @@ trait ActionTrait {
 
             $rowEffects = array_filter($args['possibleEffects'], fn($effect) => $effect->row === $row && $effect->cardIndex === $cardIndex);
             $closedFrameIndex = $frame->type == CLOSED ? $index : null;
+
+            if ($currentEffect->row === $row && $currentEffect->cardIndex === $cardIndex && $currentEffect->closedFrameIndex === $closedFrameIndex) {
+                throw new BgaUserException(self::_('You must click on another frame to activate it, not the current frame'));
+            }
+
             $appliedEffect = $this->array_find($rowEffects, fn($effect) => $effect->closedFrameIndex === $closedFrameIndex);
 
             foreach($currentEffect->left as $resource) {
