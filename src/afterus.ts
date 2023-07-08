@@ -3,6 +3,7 @@ declare const ebg;
 declare const $;
 declare const dojo: Dojo;
 declare const _;
+declare const __;
 declare const g_gamethemeurl;
 declare const g_replayFrom;
 declare const g_archive_mode;
@@ -689,7 +690,7 @@ class AfterUs implements AfterUsGame {
         const actionName = ['tokenSelectReactivate', 'phase2'].includes(this.gamedatas.gamestate.name) ? 
             'activateEffectToken' : 
             'activateEffect';
-        this.takeAction(actionName, {
+        this.takeNoLockAction(actionName, {
             row, 
             cardIndex,
             index,
@@ -701,7 +702,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('moveCard', {
+        this.takeNoLockAction('moveCard', {
             index, 
             direction: direction < 0,
         });
@@ -712,7 +713,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('validateCardOrder');
+        this.takeNoLockAction('validateCardOrder');
     }
   	
     public activateEffect() {
@@ -720,7 +721,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('activateEffect');
+        this.takeNoLockAction('activateEffect');
     }
   	
     public skipEffect() {
@@ -728,7 +729,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('skipEffect');
+        this.takeNoLockAction('skipEffect');
     }
   	
     public confirmActivations() {
@@ -736,7 +737,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('confirmActivations');
+        this.takeNoLockAction('confirmActivations');
     }
   	
     public cancelLastMove() {
@@ -744,7 +745,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('cancelLastMove');
+        this.takeNoLockAction('cancelLastMove');
     }
   	
     public cancelLastMoves() {
@@ -752,7 +753,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('cancelLastMoves');
+        this.takeNoLockAction('cancelLastMoves');
     }
   	
     public chooseToken(type: number) {
@@ -760,7 +761,7 @@ class AfterUs implements AfterUsGame {
             return;
         }*/
 
-        this.takeAction('chooseToken', {
+        this.takeNoLockAction('chooseToken', {
             type, 
         });
     }
@@ -770,7 +771,7 @@ class AfterUs implements AfterUsGame {
             return;
         }*/
 
-        this.takeAction('cancelChooseToken');
+        this.takeNoLockAction('cancelChooseToken');
     }
   	
     public neighborEffect(type: number) {
@@ -778,7 +779,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('neighborEffect', {
+        this.takeNoLockAction('neighborEffect', {
             type,
         });
     }
@@ -788,7 +789,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('applyNeighborEffect', {
+        this.takeNoLockAction('applyNeighborEffect', {
             type,
         });
     }
@@ -798,7 +799,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('cancelNeighborEffect');
+        this.takeNoLockAction('cancelNeighborEffect');
     }
   	
     public buyCard(level: number, type: number) {
@@ -806,7 +807,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('buyCard', {
+        this.takeNoLockAction('buyCard', {
             level,
             type,
         });
@@ -817,23 +818,23 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('endTurn');
+        this.takeNoLockAction('endTurn');
     }
 
     public setAutoGain(autoGain: boolean) {
         this.takeNoLockAction('setAutoGain', {
             autoGain
-        });
+        }, true);
     }
 
     public useRage(id: number): void {
-        this.takeAction('useRage', {
+        this.takeNoLockAction('useRage', {
             id,
         });
     }
 
     public useObject(number: number): void {
-        this.takeAction('useObject', {
+        this.takeNoLockAction('useObject', {
             number,
         });
     }
@@ -843,7 +844,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('cancelObject');
+        this.takeNoLockAction('cancelObject');
     }
 
     public useMobilePhone(id: number, type: number): void {
@@ -851,7 +852,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('useMobilePhone', {
+        this.takeNoLockAction('useMobilePhone', {
             id,
             type,
         });
@@ -862,7 +863,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('useMinibar', {
+        this.takeNoLockAction('useMinibar', {
             left,
             right,
         });
@@ -873,7 +874,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('useGhettoBlaster', {
+        this.takeNoLockAction('useGhettoBlaster', {
             id,
         });
     }
@@ -883,7 +884,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('useGameConsole', {
+        this.takeNoLockAction('useGameConsole', {
             id,
         });
     }
@@ -893,7 +894,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeAction('useMoped', {
+        this.takeNoLockAction('useMoped', {
             type,
             level,
         });
@@ -904,7 +905,13 @@ class AfterUs implements AfterUsGame {
         data.lock = true;
         (this as any).ajaxcall(`/afterus/afterus/${action}.html`, data, this, () => {});
     }
-    public takeNoLockAction(action: string, data?: any) {
+    public takeNoLockAction(action: string, data?: any, invisible: boolean = false) {
+        if (!invisible) {   
+            $("gameaction_status").innerHTML = __("lang_mainsite", "Updating game situation ...");
+            dojo.style("pagemaintitle_wrap", "display", "none");
+            dojo.style("gameaction_status_wrap", "display", "block");
+        }
+
         data = data || {};
         (this as any).ajaxcall(`/afterus/afterus/${action}.html`, data, this, () => {});
     }

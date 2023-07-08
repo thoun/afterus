@@ -3009,7 +3009,7 @@ var AfterUs = /** @class */ (function () {
         var actionName = ['tokenSelectReactivate', 'phase2'].includes(this.gamedatas.gamestate.name) ?
             'activateEffectToken' :
             'activateEffect';
-        this.takeAction(actionName, {
+        this.takeNoLockAction(actionName, {
             row: row,
             cardIndex: cardIndex,
             index: index,
@@ -3019,7 +3019,7 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('moveCard')) {
             return;
         }
-        this.takeAction('moveCard', {
+        this.takeNoLockAction('moveCard', {
             index: index,
             direction: direction < 0,
         });
@@ -3028,43 +3028,43 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('validateCardOrder')) {
             return;
         }
-        this.takeAction('validateCardOrder');
+        this.takeNoLockAction('validateCardOrder');
     };
     AfterUs.prototype.activateEffect = function () {
         if (!this.checkAction('activateEffect')) {
             return;
         }
-        this.takeAction('activateEffect');
+        this.takeNoLockAction('activateEffect');
     };
     AfterUs.prototype.skipEffect = function () {
         if (!this.checkAction('skipEffect')) {
             return;
         }
-        this.takeAction('skipEffect');
+        this.takeNoLockAction('skipEffect');
     };
     AfterUs.prototype.confirmActivations = function () {
         if (!this.checkAction('confirmActivations')) {
             return;
         }
-        this.takeAction('confirmActivations');
+        this.takeNoLockAction('confirmActivations');
     };
     AfterUs.prototype.cancelLastMove = function () {
         if (!this.checkAction('cancelLastMove')) {
             return;
         }
-        this.takeAction('cancelLastMove');
+        this.takeNoLockAction('cancelLastMove');
     };
     AfterUs.prototype.cancelLastMoves = function () {
         if (!this.checkAction('cancelLastMoves')) {
             return;
         }
-        this.takeAction('cancelLastMoves');
+        this.takeNoLockAction('cancelLastMoves');
     };
     AfterUs.prototype.chooseToken = function (type) {
         /*if(!(this as any).checkAction('chooseToken')) {
             return;
         }*/
-        this.takeAction('chooseToken', {
+        this.takeNoLockAction('chooseToken', {
             type: type,
         });
     };
@@ -3072,13 +3072,13 @@ var AfterUs = /** @class */ (function () {
         /*if(!(this as any).checkAction('cancelChooseToken')) {
             return;
         }*/
-        this.takeAction('cancelChooseToken');
+        this.takeNoLockAction('cancelChooseToken');
     };
     AfterUs.prototype.neighborEffect = function (type) {
         if (!this.checkAction('neighborEffect')) {
             return;
         }
-        this.takeAction('neighborEffect', {
+        this.takeNoLockAction('neighborEffect', {
             type: type,
         });
     };
@@ -3086,7 +3086,7 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('applyNeighborEffect')) {
             return;
         }
-        this.takeAction('applyNeighborEffect', {
+        this.takeNoLockAction('applyNeighborEffect', {
             type: type,
         });
     };
@@ -3094,13 +3094,13 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('cancelNeighborEffect')) {
             return;
         }
-        this.takeAction('cancelNeighborEffect');
+        this.takeNoLockAction('cancelNeighborEffect');
     };
     AfterUs.prototype.buyCard = function (level, type) {
         if (!this.checkAction('buyCard')) {
             return;
         }
-        this.takeAction('buyCard', {
+        this.takeNoLockAction('buyCard', {
             level: level,
             type: type,
         });
@@ -3109,20 +3109,20 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('endTurn')) {
             return;
         }
-        this.takeAction('endTurn');
+        this.takeNoLockAction('endTurn');
     };
     AfterUs.prototype.setAutoGain = function (autoGain) {
         this.takeNoLockAction('setAutoGain', {
             autoGain: autoGain
-        });
+        }, true);
     };
     AfterUs.prototype.useRage = function (id) {
-        this.takeAction('useRage', {
+        this.takeNoLockAction('useRage', {
             id: id,
         });
     };
     AfterUs.prototype.useObject = function (number) {
-        this.takeAction('useObject', {
+        this.takeNoLockAction('useObject', {
             number: number,
         });
     };
@@ -3130,13 +3130,13 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('cancelObject')) {
             return;
         }
-        this.takeAction('cancelObject');
+        this.takeNoLockAction('cancelObject');
     };
     AfterUs.prototype.useMobilePhone = function (id, type) {
         if (!this.checkAction('useMobilePhone')) {
             return;
         }
-        this.takeAction('useMobilePhone', {
+        this.takeNoLockAction('useMobilePhone', {
             id: id,
             type: type,
         });
@@ -3145,7 +3145,7 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('useMinibar')) {
             return;
         }
-        this.takeAction('useMinibar', {
+        this.takeNoLockAction('useMinibar', {
             left: left,
             right: right,
         });
@@ -3154,7 +3154,7 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('useGhettoBlaster')) {
             return;
         }
-        this.takeAction('useGhettoBlaster', {
+        this.takeNoLockAction('useGhettoBlaster', {
             id: id,
         });
     };
@@ -3162,7 +3162,7 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('useGameConsole')) {
             return;
         }
-        this.takeAction('useGameConsole', {
+        this.takeNoLockAction('useGameConsole', {
             id: id,
         });
     };
@@ -3170,7 +3170,7 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('useMoped')) {
             return;
         }
-        this.takeAction('useMoped', {
+        this.takeNoLockAction('useMoped', {
             type: type,
             level: level,
         });
@@ -3180,7 +3180,13 @@ var AfterUs = /** @class */ (function () {
         data.lock = true;
         this.ajaxcall("/afterus/afterus/".concat(action, ".html"), data, this, function () { });
     };
-    AfterUs.prototype.takeNoLockAction = function (action, data) {
+    AfterUs.prototype.takeNoLockAction = function (action, data, invisible) {
+        if (invisible === void 0) { invisible = false; }
+        if (!invisible) {
+            $("gameaction_status").innerHTML = __("lang_mainsite", "Updating game situation ...");
+            dojo.style("pagemaintitle_wrap", "display", "none");
+            dojo.style("gameaction_status_wrap", "display", "block");
+        }
         data = data || {};
         this.ajaxcall("/afterus/afterus/".concat(action, ".html"), data, this, function () { });
     };
