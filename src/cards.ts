@@ -28,7 +28,7 @@ class CardsManager extends CardManager<Card> {
         div.dataset.playerColor = card.playerId ? ''+this.game.getPlayerColor(card.playerId) : '';
 
         if (card.frames && !div.querySelector('.frame')) {
-            this.createFrames(div, card.frames);
+            this.createFrames(div, card.frames, card.id > 9999);
         }
 
         if (!ignoreTooltip) {
@@ -39,7 +39,7 @@ class CardsManager extends CardManager<Card> {
         }
     }
 
-    private createFrame(div: HTMLElement, frame: Frame, row: number, index: number, left: number | null = null) {
+    private createFrame(div: HTMLElement, frame: Frame, row: number, index: number, left: number | null = null, debug: boolean) {
         let width = 11 + (Math.max(1, frame.left.length + frame.right.length) * 17) + (frame.convertSign ? 8 : 0);
         if (frame.left.some(resource => resource[1] == PER_TAMARINS)) {
             width += 16;
@@ -76,6 +76,11 @@ class CardsManager extends CardManager<Card> {
             this.game.onFrameClicked(row, cardIndex, index);
         });
 
+        if (debug) {
+            frameDiv.classList.add('debug');
+            frameDiv.innerHTML = `${getResourcesQuantityIcons(frame.left)} ${frame.convertSign ? '&gt;' : ''} ${getResourcesQuantityIcons(frame.right)}`
+        }
+
         return frameDiv;
     }
 
@@ -84,23 +89,23 @@ class CardsManager extends CardManager<Card> {
         return match?.length ? Number(match[0]) : 0;
     }
     
-    private createFrames(div: HTMLElement, frames: Frame[][]) {
+    private createFrames(div: HTMLElement, frames: Frame[][], debug: boolean) {
         for (let row = 0; row < 3; row++) {
             const frameOpenedLeft = frames[row].find(frame => frame.type == OPENED_LEFT);
             let leftFrameDiv = null;
             if (frameOpenedLeft) {
-                leftFrameDiv = this.createFrame(div, frameOpenedLeft, row, 0);
+                leftFrameDiv = this.createFrame(div, frameOpenedLeft, row, 0, null, debug);
             }
             const frameOpenedRight = frames[row].find(frame => frame.type == OPENED_RIGHT);
             let rightFrameDiv = null;
             if (frameOpenedRight) {
-                rightFrameDiv = this.createFrame(div, frameOpenedRight, row, frames[row].length - 1);
+                rightFrameDiv = this.createFrame(div, frameOpenedRight, row, frames[row].length - 1, null, debug);
             }
 
             frames[row].forEach((frame, index) => {
                 if (frame != frameOpenedLeft && frame != frameOpenedRight) {
                     let left = index == 0 && frames[row].length === 3 ? 7 : 34;
-                    const frameDiv = this.createFrame(div, frame, row, index, left);
+                    const frameDiv = this.createFrame(div, frame, row, index, left, debug);
                     if (index == 0) {
                         leftFrameDiv = frameDiv;
                     }
@@ -135,7 +140,7 @@ class CardsManager extends CardManager<Card> {
             return undefined;
         }
 
-        return `${_('${type} level ${level}').replace('${type}', `<strong>${this.getMonkeyType(card.type)}</strong>`).replace('${level}', `<strong>${card.level}</strong>`)}<br>
+        return `${(card.level > 0 ? _('${type} level ${level}') : '${type}').replace('${type}', `<strong>${this.getMonkeyType(card.type)}</strong>`).replace('${level}', `<strong>${card.level}</strong>`)}<br>
         ${_('Rage gain:')} ${card.rageGain[0]} ${formatTextIcons(getResourceCode(card.rageGain[1]))}<br>
         ${_('Card number:')} ${card.number}`;
     }
@@ -152,5 +157,49 @@ class CardsManager extends CardManager<Card> {
             </div>
         </div>`
         this.setupFrontDiv(card, div.querySelector('.front'), true);
+    }
+
+    // gameui.cardsManager.debugShowAllCards()
+    private debugShowAllCards() {
+        const TEMP = (this.game as any).gamedatas.TEMP;
+
+        document.getElementById(`table`).insertAdjacentHTML(`afterbegin`, `
+            <div id="all-0" class="debug"></div>
+        `);
+        const tamarins = new LineStock<Card>(this, document.getElementById(`all-0`));
+        Object.entries(TEMP[0]).forEach((entry: any) => {
+            const card = {
+                ...entry[1],
+                id: 10000 + Number(entry[0]),
+                level: 0,
+                type: 0,
+                subType: Number(entry[0]),
+                playerId: 2343492,
+            } as Card;
+            tamarins.addCard(card);
+        });
+        document.getElementById(`all-0`).querySelectorAll('.frame').forEach(frame => frame.classList.add('remaining'));
+
+        [1, 2, 3, 4].forEach(type => {
+            [1, 2].forEach(level => {
+                const typeAndLevel = type * 10 + level;
+                document.getElementById(`table`).insertAdjacentHTML(`afterbegin`, `
+                    <div id="all-${typeAndLevel}" class="debug"></div>
+                `);
+                const stock = new LineStock<Card>(this, document.getElementById(`all-${typeAndLevel}`));
+                Object.entries(TEMP[typeAndLevel]).forEach((entry: any) => {
+                    const card = {
+                        ...entry[1],
+                        id: 10000 + typeAndLevel*100 + Number(entry[0]),
+                        level,
+                        type,
+                        subType: Number(entry[0]),
+                        playerId: 2343492,
+                    } as Card;
+                    stock.addCard(card);
+                });
+                document.getElementById(`all-${typeAndLevel}`).querySelectorAll('.frame').forEach(frame => frame.classList.add('remaining'));
+            });
+        });
     }
 }

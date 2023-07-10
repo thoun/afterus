@@ -1847,7 +1847,7 @@ var CardsManager = /** @class */ (function (_super) {
         div.dataset.subType = '' + card.subType;
         div.dataset.playerColor = card.playerId ? '' + this.game.getPlayerColor(card.playerId) : '';
         if (card.frames && !div.querySelector('.frame')) {
-            this.createFrames(div, card.frames);
+            this.createFrames(div, card.frames, card.id > 9999);
         }
         if (!ignoreTooltip) {
             var tooltip = this.getTooltip(card);
@@ -1856,7 +1856,7 @@ var CardsManager = /** @class */ (function (_super) {
             }
         }
     };
-    CardsManager.prototype.createFrame = function (div, frame, row, index, left) {
+    CardsManager.prototype.createFrame = function (div, frame, row, index, left, debug) {
         var _this = this;
         if (left === void 0) { left = null; }
         var width = 11 + (Math.max(1, frame.left.length + frame.right.length) * 17) + (frame.convertSign ? 8 : 0);
@@ -1892,29 +1892,33 @@ var CardsManager = /** @class */ (function (_super) {
             var cardIndex = _this.getCardStock({ id: cardDivId }).getCards().find(function (c) { return c.id == cardDivId; }).locationArg;
             _this.game.onFrameClicked(row, cardIndex, index);
         });
+        if (debug) {
+            frameDiv.classList.add('debug');
+            frameDiv.innerHTML = "".concat(getResourcesQuantityIcons(frame.left), " ").concat(frame.convertSign ? '&gt;' : '', " ").concat(getResourcesQuantityIcons(frame.right));
+        }
         return frameDiv;
     };
     CardsManager.prototype.propertyToNumber = function (div, property) {
         var match = div.style.getPropertyValue("--".concat(property)).match(/\d+/);
         return (match === null || match === void 0 ? void 0 : match.length) ? Number(match[0]) : 0;
     };
-    CardsManager.prototype.createFrames = function (div, frames) {
+    CardsManager.prototype.createFrames = function (div, frames, debug) {
         var _this = this;
         var _loop_3 = function (row) {
             var frameOpenedLeft = frames[row].find(function (frame) { return frame.type == OPENED_LEFT; });
             var leftFrameDiv = null;
             if (frameOpenedLeft) {
-                leftFrameDiv = this_1.createFrame(div, frameOpenedLeft, row, 0);
+                leftFrameDiv = this_1.createFrame(div, frameOpenedLeft, row, 0, null, debug);
             }
             var frameOpenedRight = frames[row].find(function (frame) { return frame.type == OPENED_RIGHT; });
             var rightFrameDiv = null;
             if (frameOpenedRight) {
-                rightFrameDiv = this_1.createFrame(div, frameOpenedRight, row, frames[row].length - 1);
+                rightFrameDiv = this_1.createFrame(div, frameOpenedRight, row, frames[row].length - 1, null, debug);
             }
             frames[row].forEach(function (frame, index) {
                 if (frame != frameOpenedLeft && frame != frameOpenedRight) {
                     var left = index == 0 && frames[row].length === 3 ? 7 : 34;
-                    var frameDiv = _this.createFrame(div, frame, row, index, left);
+                    var frameDiv = _this.createFrame(div, frame, row, index, left, debug);
                     if (index == 0) {
                         leftFrameDiv = frameDiv;
                     }
@@ -1952,7 +1956,7 @@ var CardsManager = /** @class */ (function (_super) {
         if (!card.number) {
             return undefined;
         }
-        return "".concat(_('${type} level ${level}').replace('${type}', "<strong>".concat(this.getMonkeyType(card.type), "</strong>")).replace('${level}', "<strong>".concat(card.level, "</strong>")), "<br>\n        ").concat(_('Rage gain:'), " ").concat(card.rageGain[0], " ").concat(formatTextIcons(getResourceCode(card.rageGain[1])), "<br>\n        ").concat(_('Card number:'), " ").concat(card.number);
+        return "".concat((card.level > 0 ? _('${type} level ${level}') : '${type}').replace('${type}', "<strong>".concat(this.getMonkeyType(card.type), "</strong>")).replace('${level}', "<strong>".concat(card.level, "</strong>")), "<br>\n        ").concat(_('Rage gain:'), " ").concat(card.rageGain[0], " ").concat(formatTextIcons(getResourceCode(card.rageGain[1])), "<br>\n        ").concat(_('Card number:'), " ").concat(card.number);
     };
     CardsManager.prototype.setForHelp = function (card, divId) {
         var div = document.getElementById(divId);
@@ -1960,6 +1964,30 @@ var CardsManager = /** @class */ (function (_super) {
         div.dataset.side = 'front';
         div.innerHTML = "\n        <div class=\"card-sides\">\n            <div class=\"card-side front\">\n            </div>\n            <div class=\"card-side back\">\n            </div>\n        </div>";
         this.setupFrontDiv(card, div.querySelector('.front'), true);
+    };
+    // gameui.cardsManager.debugShowAllCards()
+    CardsManager.prototype.debugShowAllCards = function () {
+        var _this = this;
+        var TEMP = this.game.gamedatas.TEMP;
+        document.getElementById("table").insertAdjacentHTML("afterbegin", "\n            <div id=\"all-0\" class=\"debug\"></div>\n        ");
+        var tamarins = new LineStock(this, document.getElementById("all-0"));
+        Object.entries(TEMP[0]).forEach(function (entry) {
+            var card = __assign(__assign({}, entry[1]), { id: 10000 + Number(entry[0]), level: 0, type: 0, subType: Number(entry[0]), playerId: 2343492 });
+            tamarins.addCard(card);
+        });
+        document.getElementById("all-0").querySelectorAll('.frame').forEach(function (frame) { return frame.classList.add('remaining'); });
+        [1, 2, 3, 4].forEach(function (type) {
+            [1, 2].forEach(function (level) {
+                var typeAndLevel = type * 10 + level;
+                document.getElementById("table").insertAdjacentHTML("afterbegin", "\n                    <div id=\"all-".concat(typeAndLevel, "\" class=\"debug\"></div>\n                "));
+                var stock = new LineStock(_this, document.getElementById("all-".concat(typeAndLevel)));
+                Object.entries(TEMP[typeAndLevel]).forEach(function (entry) {
+                    var card = __assign(__assign({}, entry[1]), { id: 10000 + typeAndLevel * 100 + Number(entry[0]), level: level, type: type, subType: Number(entry[0]), playerId: 2343492 });
+                    stock.addCard(card);
+                });
+                document.getElementById("all-".concat(typeAndLevel)).querySelectorAll('.frame').forEach(function (frame) { return frame.classList.add('remaining'); });
+            });
+        });
     };
     return CardsManager;
 }(CardManager));

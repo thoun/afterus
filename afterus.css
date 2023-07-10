@@ -882,6 +882,30 @@ body > .card {
   left: 0 !important;
   border-left-width: 0;
 }
+.card .card-sides .card-side.front .frame.debug {
+  background: white;
+  color: black;
+  font-weight: bold;
+  display: flex;
+  font-size: 80%;
+  /*&:hover {
+      opacity: 0;
+  }*/
+}
+.card .card-sides .card-side.front .frame.debug[data-row="0"] {
+  top: 0px;
+}
+.card .card-sides .card-side.front .frame.debug[data-row="1"] {
+  top: 30px;
+}
+.card .card-sides .card-side.front .frame.debug[data-row="2"] {
+  top: 60px;
+}
+.card .card-sides .card-side.front .frame.debug .icon {
+  margin: -2px;
+  width: 16px;
+  height: 16px;
+}
 .card[data-side=back] button {
   display: none;
 }

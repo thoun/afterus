@@ -189,6 +189,9 @@ class AfterUs extends Table {
         $result['tableTopCard'] = $tableTopCard;
         $result['objects'] = $this->getGlobalVariable(OBJECTS, true) ?? [];
         $result['lastTurn'] = !$isEndScore && boolval($this->getGameStateValue(LAST_TURN));
+
+        
+        $result['TEMP'] = $this->CARDS;
   
         return $result;
     }

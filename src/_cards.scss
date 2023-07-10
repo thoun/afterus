@@ -115,6 +115,35 @@
                         left: 0 !important;
                         border-left-width: 0;
                     }
+
+                    &.debug {
+
+                        &[data-row="0"] {
+                            top: 0px;
+                        }
+                        &[data-row="1"] {
+                            top: 30px;
+                        }
+                        &[data-row="2"] {
+                            top: 60px;
+                        }
+
+                        background: white;
+                        color: black;
+                        font-weight: bold;
+                        display: flex;
+                        font-size: 80%;
+
+                        .icon {
+                            margin: -2px;
+                            width: 16px;
+                            height: 16px;
+                        }
+
+                        /*&:hover {
+                            opacity: 0;
+                        }*/
+                    } // TODO check 2nd row, both closed on 243
                 }
             }
         }
