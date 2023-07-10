@@ -1823,6 +1823,78 @@ var CLOSED = 2;
 var OPENED_RIGHT = 3;
 var CARD_WIDTH = 142;
 var CARD_HEIGHT = 198;
+var FRAME_GROUP_FIX = {
+    0: {
+        0: {
+            7: {
+                0: [26, null], // row
+            },
+        },
+    },
+    1: {
+        1: {
+            1: {
+                0: [32, null],
+                1: [19, null], // row
+            },
+            2: {
+                0: [19, null],
+                2: [7, null], // row
+            },
+            3: {
+                0: [null, 8],
+                1: [19, null],
+                2: [8, null], // row
+            },
+            5: {
+                0: [null, 17],
+                1: [null, 27], // row
+            },
+            6: {
+                0: [null, 18],
+                1: [null, 35], // row
+            },
+            7: {
+                1: [null, 15], // row
+            },
+            8: {
+                0: [26, null],
+                1: [23, null], // row
+            },
+            9: {
+                0: [24, null],
+                1: [40, null],
+                2: [8, null], // row
+            },
+            11: {
+                0: [null, 6],
+                1: [10, null], // row
+            },
+            12: {
+                0: [12, null],
+                2: [4, null], // row
+            },
+            13: {
+                1: [20, null], // row
+            },
+            14: {
+                1: [0, 51], // row
+            },
+            15: {
+                0: [72, 0],
+                2: [0, 48], // row
+            },
+            17: {
+                0: [null, 8],
+                2: [15, null], // row
+            },
+            18: {
+                0: [2, null],
+                1: [9, null], // row
+            },
+        },
+    },
+};
 var CardsManager = /** @class */ (function (_super) {
     __extends(CardsManager, _super);
     function CardsManager(game) {
@@ -1876,6 +1948,9 @@ var CardsManager = /** @class */ (function (_super) {
         }
         else if (frame.type == OPENED_RIGHT) {
             frameDiv.classList.add('opened-right');
+            if (!frame.left.length) {
+                width = 28;
+            }
         }
         frameDiv.dataset.row = '' + row;
         frameDiv.dataset.index = '' + index;
@@ -1904,6 +1979,7 @@ var CardsManager = /** @class */ (function (_super) {
     };
     CardsManager.prototype.createFrames = function (div, frames, debug) {
         var _this = this;
+        var _a, _b, _c, _d, _e, _f;
         var _loop_3 = function (row) {
             var frameOpenedLeft = frames[row].find(function (frame) { return frame.type == OPENED_LEFT; });
             var leftFrameDiv = null;
@@ -1915,28 +1991,40 @@ var CardsManager = /** @class */ (function (_super) {
             if (frameOpenedRight) {
                 rightFrameDiv = this_1.createFrame(div, frameOpenedRight, row, frames[row].length - 1, null, debug);
             }
-            frames[row].forEach(function (frame, index) {
-                if (frame != frameOpenedLeft && frame != frameOpenedRight) {
-                    var left = index == 0 && frames[row].length === 3 ? 7 : 34;
-                    var frameDiv = _this.createFrame(div, frame, row, index, left, debug);
-                    if (index == 0) {
-                        leftFrameDiv = frameDiv;
+            var minLeft = leftFrameDiv ? this_1.propertyToNumber(leftFrameDiv, 'width') + 7 : 32;
+            var minRight = rightFrameDiv ? this_1.propertyToNumber(rightFrameDiv, 'width') + 7 : 32;
+            var centerFrames = frames[row].filter(function (frame) { return frame != frameOpenedLeft && frame != frameOpenedRight; });
+            if (centerFrames.length) {
+                var positionFix = (_d = (_c = (_b = (_a = FRAME_GROUP_FIX[div.dataset.type]) === null || _a === void 0 ? void 0 : _a[div.dataset.level]) === null || _b === void 0 ? void 0 : _b[div.dataset.subType]) === null || _c === void 0 ? void 0 : _c[row]) !== null && _d !== void 0 ? _d : [];
+                var frameGroupDiv_1 = document.createElement('div');
+                frameGroupDiv_1.classList.add('frame-group');
+                frameGroupDiv_1.dataset.row = '' + row;
+                frameGroupDiv_1.style.setProperty('--left', " ".concat((_e = positionFix[0]) !== null && _e !== void 0 ? _e : minLeft, "px"));
+                frameGroupDiv_1.style.setProperty('--right', " ".concat((_f = positionFix[1]) !== null && _f !== void 0 ? _f : minRight, "px"));
+                div.appendChild(frameGroupDiv_1);
+                frames[row].forEach(function (frame, index) {
+                    if (frame != frameOpenedLeft && frame != frameOpenedRight) {
+                        var left = index == 0 && frames[row].length === 3 ? 7 : 34;
+                        var frameDiv = _this.createFrame(frameGroupDiv_1, frame, row, index, left, debug);
+                        if (index == 0) {
+                            leftFrameDiv = frameDiv;
+                        }
+                        if (leftFrameDiv && rightFrameDiv && index == 1 && frames[row].length == 3) {
+                            var leftWidth = _this.propertyToNumber(leftFrameDiv, 'left') + _this.propertyToNumber(leftFrameDiv, 'width');
+                            var space = 142 - leftWidth - _this.propertyToNumber(rightFrameDiv, 'width');
+                            frameDiv.style.setProperty('--left', "".concat(leftWidth + (space - _this.propertyToNumber(frameDiv, 'width')) / 2, "px"));
+                        }
+                        else if (leftFrameDiv && index == 1 && frames[row].length == 2) {
+                            var leftWidth = _this.propertyToNumber(leftFrameDiv, 'left') + _this.propertyToNumber(leftFrameDiv, 'width');
+                            frameDiv.style.setProperty('--left', "".concat(leftWidth + 26, "px"));
+                        }
+                        else if (rightFrameDiv && index == 0 && frames[row].length == 2) {
+                            var left_1 = 142 - _this.propertyToNumber(rightFrameDiv, 'width');
+                            frameDiv.style.setProperty('--left', "".concat(left_1 - _this.propertyToNumber(frameDiv, 'width') - 26, "px"));
+                        }
                     }
-                    if (leftFrameDiv && rightFrameDiv && index == 1 && frames[row].length == 3) {
-                        var leftWidth = _this.propertyToNumber(leftFrameDiv, 'left') + _this.propertyToNumber(leftFrameDiv, 'width');
-                        var space = 142 - leftWidth - _this.propertyToNumber(rightFrameDiv, 'width');
-                        frameDiv.style.setProperty('--left', "".concat(leftWidth + (space - _this.propertyToNumber(frameDiv, 'width')) / 2, "px"));
-                    }
-                    else if (leftFrameDiv && index == 1 && frames[row].length == 2) {
-                        var leftWidth = _this.propertyToNumber(leftFrameDiv, 'left') + _this.propertyToNumber(leftFrameDiv, 'width');
-                        frameDiv.style.setProperty('--left', "".concat(leftWidth + 26, "px"));
-                    }
-                    else if (rightFrameDiv && index == 0 && frames[row].length == 2) {
-                        var left_1 = 142 - _this.propertyToNumber(rightFrameDiv, 'width');
-                        frameDiv.style.setProperty('--left', "".concat(left_1 - _this.propertyToNumber(frameDiv, 'width') - 26, "px"));
-                    }
-                }
-            });
+                });
+            }
         };
         var this_1 = this;
         for (var row = 0; row < 3; row++) {

@@ -5,6 +5,79 @@ const OPENED_RIGHT = 3;
 const CARD_WIDTH = 142;
 const CARD_HEIGHT = 198;
 
+const FRAME_GROUP_FIX = {
+    0: { // type
+        0: { // level
+            7: { // index
+                0: [26, null], // row
+            },
+        },
+    },
+    1: { // type
+        1: { // level
+            1: { // index
+                0: [32, null], // row
+                1: [19, null], // row
+            },
+            2: { // index
+                0: [19, null], // row
+                2: [7, null], // row
+            },
+            3: { // index
+                0: [null, 8], // row
+                1: [19, null], // row
+                2: [8, null], // row
+            },
+            5: { // index
+                0: [null, 17], // row
+                1: [null, 27], // row
+            },
+            6: { // index
+                0: [null, 18], // row
+                1: [null, 35], // row
+            },
+            7: { // index
+                1: [null, 15], // row
+            },
+            8: { // index
+                0: [26, null], // row
+                1: [23, null], // row
+            },
+            9: { // index
+                0: [24, null], // row
+                1: [40, null], // row
+                2: [8, null], // row
+            },
+            11: { // index
+                0: [null, 6], // row
+                1: [10, null], // row
+            },
+            12: { // index
+                0: [12, null], // row
+                2: [4, null], // row
+            },
+            13: { // index
+                1: [20, null], // row
+            },
+            14: { // index
+                1: [0, 51], // row
+            },
+            15: { // index
+                0: [72, 0], // row
+                2: [0, 48], // row
+            },
+            17: { // index
+                0: [null, 8], // row
+                2: [15, null], // row
+            },
+            18: { // index
+                0: [2, null], // row
+                1: [9, null], // row
+            },
+        },
+    },
+};
+
 class CardsManager extends CardManager<Card> {
     constructor (public game: AfterUsGame) {
         super(game, {
@@ -57,6 +130,10 @@ class CardsManager extends CardManager<Card> {
             frameDiv.classList.add('opened-left');
         } else if (frame.type == OPENED_RIGHT) {
             frameDiv.classList.add('opened-right');
+
+            if (!frame.left.length) {
+                width = 28;
+            }
         }
         frameDiv.dataset.row = ''+row;
         frameDiv.dataset.index = ''+index;
@@ -102,26 +179,42 @@ class CardsManager extends CardManager<Card> {
                 rightFrameDiv = this.createFrame(div, frameOpenedRight, row, frames[row].length - 1, null, debug);
             }
 
-            frames[row].forEach((frame, index) => {
+            const minLeft = leftFrameDiv ? this.propertyToNumber(leftFrameDiv, 'width') + 7 : 32;
+            const minRight = rightFrameDiv ? this.propertyToNumber(rightFrameDiv, 'width') + 7 : 32;
+
+            const centerFrames = frames[row].filter(frame => frame != frameOpenedLeft && frame != frameOpenedRight);
+            if (centerFrames.length) {
+                const positionFix = FRAME_GROUP_FIX[div.dataset.type]?.[div.dataset.level]?.[div.dataset.subType]?.[row] ?? [];
+
+                const frameGroupDiv = document.createElement('div');
+                frameGroupDiv.classList.add('frame-group');
+                frameGroupDiv.dataset.row = ''+row;
+                frameGroupDiv.style.setProperty('--left', ` ${positionFix[0] ?? minLeft}px`);
+                frameGroupDiv.style.setProperty('--right', ` ${positionFix[1] ?? minRight}px`);
+
+                div.appendChild(frameGroupDiv);
+
+                frames[row].forEach((frame, index) => {
                 if (frame != frameOpenedLeft && frame != frameOpenedRight) {
-                    let left = index == 0 && frames[row].length === 3 ? 7 : 34;
-                    const frameDiv = this.createFrame(div, frame, row, index, left, debug);
-                    if (index == 0) {
-                        leftFrameDiv = frameDiv;
+                        let left = index == 0 && frames[row].length === 3 ? 7 : 34;
+                        const frameDiv = this.createFrame(frameGroupDiv, frame, row, index, left, debug);
+                        if (index == 0) {
+                            leftFrameDiv = frameDiv;
+                        }
+                        if (leftFrameDiv && rightFrameDiv && index == 1 && frames[row].length == 3) {
+                            const leftWidth = this.propertyToNumber(leftFrameDiv, 'left') + this.propertyToNumber(leftFrameDiv, 'width');
+                            const space = 142 - leftWidth - this.propertyToNumber(rightFrameDiv, 'width');
+                            frameDiv.style.setProperty('--left', `${leftWidth + (space - this.propertyToNumber(frameDiv, 'width')) / 2}px`);
+                        } else if (leftFrameDiv && index == 1 && frames[row].length == 2) {
+                            const leftWidth = this.propertyToNumber(leftFrameDiv, 'left') + this.propertyToNumber(leftFrameDiv, 'width');
+                            frameDiv.style.setProperty('--left', `${leftWidth + 26}px`);
+                        } else if (rightFrameDiv && index == 0 && frames[row].length == 2) {
+                            const left = 142 - this.propertyToNumber(rightFrameDiv, 'width');
+                            frameDiv.style.setProperty('--left', `${left - this.propertyToNumber(frameDiv, 'width') - 26}px`);
+                        }
                     }
-                    if (leftFrameDiv && rightFrameDiv && index == 1 && frames[row].length == 3) {
-                        const leftWidth = this.propertyToNumber(leftFrameDiv, 'left') + this.propertyToNumber(leftFrameDiv, 'width');
-                        const space = 142 - leftWidth - this.propertyToNumber(rightFrameDiv, 'width');
-                        frameDiv.style.setProperty('--left', `${leftWidth + (space - this.propertyToNumber(frameDiv, 'width')) / 2}px`);
-                    } else if (leftFrameDiv && index == 1 && frames[row].length == 2) {
-                        const leftWidth = this.propertyToNumber(leftFrameDiv, 'left') + this.propertyToNumber(leftFrameDiv, 'width');
-                        frameDiv.style.setProperty('--left', `${leftWidth + 26}px`);
-                    } else if (rightFrameDiv && index == 0 && frames[row].length == 2) {
-                        const left = 142 - this.propertyToNumber(rightFrameDiv, 'width');
-                        frameDiv.style.setProperty('--left', `${left - this.propertyToNumber(frameDiv, 'width') - 26}px`);
-                    }
-                }
-            });
+                });
+            }
         }
     }
 

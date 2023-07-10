@@ -416,7 +416,7 @@ $this->MANDRILLS1 = [
         [new ClosedFrame([[1, FRUIT], [1, FLOWER]], [[3, POINT]]), new RightFrame([[1, FLOWER], [1, GRAIN]], true)],
     ]), 
     new LevelCard(113, [
-        [new LeftFrame([[1, FRUIT]], false), new ClosedFrame([[1, FLOWER]])],
+        [new LeftFrame([[1, FRUIT]], false), new RightFrame([[1, FLOWER]], false)],
         [new ClosedFrame([[[1, POINT], PER_TAMARINS]]), new RightFrame([[1, FLOWER]], true)],
         [new LeftFrame([[2, POINT]], true), new RightFrame([[2, FLOWER]], true)],
     ]), 
@@ -443,7 +443,7 @@ $this->MANDRILLS1 = [
     new LevelCard(118, [
         [new ClosedFrame([[1, FLOWER]]), new ClosedFrame([[1, FLOWER]]), new RightFrame([[1, ENERGY]], false)],
         [new ClosedFrame([[3, DIFFERENT]], [[1, POINT]]), new RightFrame([[1, FLOWER]], true)],
-        [new ClosedFrame([[3, POINT]])],
+        [new LeftFrame([[3, POINT]], true)],
     ]),
 ];
 

@@ -838,22 +838,24 @@ body > .card {
 .card .card-sides .card-side.front[data-level="2"][data-type="4"][data-sub-type="12"] {
   background-position: 100% 100%;
 }
-.card .card-sides .card-side.front .frame {
+.card .card-sides .card-side.front .frame, .card .card-sides .card-side.front .frame-group {
   --left: unset;
-  border: 3px dashed transparent;
-  position: absolute;
-  width: var(--width);
-  left: var(--left);
   height: 23px;
+  position: absolute;
+  left: var(--left);
 }
-.card .card-sides .card-side.front .frame[data-row="0"] {
+.card .card-sides .card-side.front .frame[data-row="0"], .card .card-sides .card-side.front .frame-group[data-row="0"] {
   top: 92px;
 }
-.card .card-sides .card-side.front .frame[data-row="1"] {
+.card .card-sides .card-side.front .frame[data-row="1"], .card .card-sides .card-side.front .frame-group[data-row="1"] {
   top: 126px;
 }
-.card .card-sides .card-side.front .frame[data-row="2"] {
+.card .card-sides .card-side.front .frame[data-row="2"], .card .card-sides .card-side.front .frame-group[data-row="2"] {
   top: 160px;
+}
+.card .card-sides .card-side.front .frame {
+  border: 3px dashed transparent;
+  width: var(--width);
 }
 .card .card-sides .card-side.front .frame.disabled {
   border-color: darkred;
@@ -883,28 +885,39 @@ body > .card {
   border-left-width: 0;
 }
 .card .card-sides .card-side.front .frame.debug {
+  opacity: 0.8;
+  /*&[data-row="0"] {
+      top: 0px;
+  }
+  &[data-row="1"] {
+      top: 30px;
+  }
+  &[data-row="2"] {
+      top: 60px;
+  }*/
   background: white;
   color: black;
   font-weight: bold;
   display: flex;
   font-size: 80%;
-  /*&:hover {
-      opacity: 0;
-  }*/
-}
-.card .card-sides .card-side.front .frame.debug[data-row="0"] {
-  top: 0px;
-}
-.card .card-sides .card-side.front .frame.debug[data-row="1"] {
-  top: 30px;
-}
-.card .card-sides .card-side.front .frame.debug[data-row="2"] {
-  top: 60px;
 }
 .card .card-sides .card-side.front .frame.debug .icon {
   margin: -2px;
   width: 16px;
   height: 16px;
+}
+.card .card-sides .card-side.front .frame.debug:hover {
+  opacity: 0;
+}
+.card .card-sides .card-side.front .frame-group {
+  display: flex;
+  justify-content: space-evenly;
+  right: var(--right);
+}
+.card .card-sides .card-side.front .frame-group .frame {
+  position: relative !important;
+  top: 0 !important;
+  left: unset !important;
 }
 .card[data-side=back] button {
   display: none;
