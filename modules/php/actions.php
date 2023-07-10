@@ -221,7 +221,11 @@ trait ActionTrait {
 
         $playerId = intval($this->getCurrentPlayerId());
 
-        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+        if (intval($this->gamestate->state_id()) == ST_MULTIPLAYER_PHASE2) {
+            $this->gamestate->nextPrivateState($playerId, 'next');
+        } else {
+            $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+        }
     }
 
     public function chooseToken(int $type) {

@@ -272,7 +272,7 @@ trait UtilTrait {
                 count($effect->right) == 0 || !$this->array_some($effect->right, fn($condition) => $condition[1] == REACTIVATE)
             ));
 
-            $possibleEffects = array_values(array_filter($allEffects, fn($effect) => 
+            $possibleEffects = array_values(array_filter($possibleEffects, fn($effect) => 
                 !$effect->convertSign || 
                 count($effect->left) == 0 || 
                 $this->array_every($this->leftWithReactivateLeft($effect->left, $reactivateLeft), fn($condition) => $this->playerMeetsCondition($player, $condition, $line))
