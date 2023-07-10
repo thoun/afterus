@@ -737,7 +737,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeNoLockAction('confirmActivations');
+        this.takeAction('confirmActivations');
     }
   	
     public cancelLastMove() {
@@ -761,7 +761,7 @@ class AfterUs implements AfterUsGame {
             return;
         }*/
 
-        this.takeNoLockAction('chooseToken', {
+        this.takeAction('chooseToken', {
             type, 
         });
     }
@@ -771,7 +771,7 @@ class AfterUs implements AfterUsGame {
             return;
         }*/
 
-        this.takeNoLockAction('cancelChooseToken');
+        this.takeAction('cancelChooseToken');
     }
   	
     public neighborEffect(type: number) {
@@ -818,7 +818,7 @@ class AfterUs implements AfterUsGame {
             return;
         }
 
-        this.takeNoLockAction('endTurn');
+        this.takeAction('endTurn');
     }
 
     public setAutoGain(autoGain: boolean) {

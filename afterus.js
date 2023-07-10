@@ -3046,7 +3046,7 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('confirmActivations')) {
             return;
         }
-        this.takeNoLockAction('confirmActivations');
+        this.takeAction('confirmActivations');
     };
     AfterUs.prototype.cancelLastMove = function () {
         if (!this.checkAction('cancelLastMove')) {
@@ -3064,7 +3064,7 @@ var AfterUs = /** @class */ (function () {
         /*if(!(this as any).checkAction('chooseToken')) {
             return;
         }*/
-        this.takeNoLockAction('chooseToken', {
+        this.takeAction('chooseToken', {
             type: type,
         });
     };
@@ -3072,7 +3072,7 @@ var AfterUs = /** @class */ (function () {
         /*if(!(this as any).checkAction('cancelChooseToken')) {
             return;
         }*/
-        this.takeNoLockAction('cancelChooseToken');
+        this.takeAction('cancelChooseToken');
     };
     AfterUs.prototype.neighborEffect = function (type) {
         if (!this.checkAction('neighborEffect')) {
@@ -3109,7 +3109,7 @@ var AfterUs = /** @class */ (function () {
         if (!this.checkAction('endTurn')) {
             return;
         }
-        this.takeNoLockAction('endTurn');
+        this.takeAction('endTurn');
     };
     AfterUs.prototype.setAutoGain = function (autoGain) {
         this.takeNoLockAction('setAutoGain', {
