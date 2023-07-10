@@ -238,7 +238,20 @@ trait UtilTrait {
         return $effect;
     }
 
-    public function getPossibleEffects(int $playerId, array $allEffects, array $line, bool $ignoreReactivate) {
+    private function leftWithReactivateLeft(array $left, array $reactivateLeft) {
+        $merged = $left; // copy
+        foreach($reactivateLeft as $condition) {
+            $index = $this->array_findIndex($merged, fn($c) => $c[1] === $condition[1]);
+            if ($index === null) {
+                $merged[] = $condition;
+            } else {
+                $merged[$index][0] += $condition[0];
+            }
+        }
+        return $merged;
+    }
+
+    public function getPossibleEffects(int $playerId, array $allEffects, array $line, bool $ignoreReactivate, ?array $reactivateLeft = []) {
         $player = $this->getPlayer($playerId);
         $possibleEffects = array_values(array_filter($allEffects, fn($effect) => 
             !$effect->convertSign || 
@@ -257,6 +270,12 @@ trait UtilTrait {
         if ($ignoreReactivate) {
             $possibleEffects = array_values(array_filter($possibleEffects, fn($effect) => 
                 count($effect->right) == 0 || !$this->array_some($effect->right, fn($condition) => $condition[1] == REACTIVATE)
+            ));
+
+            $possibleEffects = array_values(array_filter($allEffects, fn($effect) => 
+                !$effect->convertSign || 
+                count($effect->left) == 0 || 
+                $this->array_every($this->leftWithReactivateLeft($effect->left, $reactivateLeft), fn($condition) => $this->playerMeetsCondition($player, $condition, $line))
             ));
         }
 

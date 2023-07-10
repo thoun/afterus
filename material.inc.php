@@ -263,9 +263,9 @@ $this->CHIMPANZEES1 = [
 
 $this->GORILLAS1 = [ 
     new LevelCard(119, [
-        [new LeftFrame([[1, FRUIT]], false), new ClosedFrame([[1, GRAIN]]), new RightFrame([[1, GRAIN]], false)],
-        [new ClosedFrame([[3, DIFFERENT]], [[1, POINT]])],
-        [new LeftFrame([[3, RAGE]], true), new RightFrame([], true)],
+        [new LeftFrame([[1, GRAIN]], false), new ClosedFrame([[1, ENERGY]]), new RightFrame([[1, FLOWER]], false)],
+        [new LeftFrame([[2, POINT]], true), new RightFrame([[1, FLOWER], [1, GRAIN]], true)],
+        [new ClosedFrame([[2, ENERGY]], [[3, RAGE]])],
     ]),
     new LevelCard(120, [
         [new LeftFrame([[1, FLOWER]], false), new ClosedFrame([[1, GRAIN]]), new RightFrame([[1, FRUIT]], false)],

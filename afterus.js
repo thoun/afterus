@@ -2707,7 +2707,7 @@ var AfterUs = /** @class */ (function () {
                 var currentEffect = activateEffectArgs.currentEffect;
                 if (currentEffect) {
                     if (activateEffectArgs.reactivate) {
-                        this.createFakeButtonForReactivate();
+                        this.createFakeButtonForReactivate(currentEffect.left);
                     }
                     else {
                         if (currentEffect.left.length == 1) {
@@ -2746,7 +2746,7 @@ var AfterUs = /** @class */ (function () {
                 [1, 2, 3, 4].forEach(function (type) { return _this.createChooseTokenButton(type); });
                 break;
             case 'activateEffectToken':
-                this.createFakeButtonForReactivate();
+                this.createFakeButtonForReactivate([]);
                 break;
             case 'buyCard':
                 var buyCardArgs_1 = args;
@@ -2839,8 +2839,12 @@ var AfterUs = /** @class */ (function () {
                 break;
         }
     };
-    AfterUs.prototype.createFakeButtonForReactivate = function () {
-        this.addActionButton("fakeReactivate-button", _("Click on a frame to reactivate it"), null);
+    AfterUs.prototype.createFakeButtonForReactivate = function (cost) {
+        var label = _("Click on a frame to reactivate it");
+        if (cost.length) {
+            label += " (".concat(getResourcesQuantityIcons(cost), ")");
+        }
+        this.addActionButton("fakeReactivate-button", label, null);
         document.getElementById("fakeReactivate-button").classList.add('disabled');
     };
     ///////////////////////////////////////////////////

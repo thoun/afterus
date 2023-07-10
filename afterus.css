@@ -960,6 +960,8 @@ body > .card {
   width: 800px;
   height: 550px;
   position: relative;
+  box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
 }
 #table-center #center-board .deck {
   position: absolute;

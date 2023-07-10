@@ -311,7 +311,7 @@ class AfterUs implements AfterUsGame {
                 const currentEffect = activateEffectArgs.currentEffect;
                 if (currentEffect) {
                     if (activateEffectArgs.reactivate) {
-                        this.createFakeButtonForReactivate();
+                        this.createFakeButtonForReactivate(currentEffect.left);
                     } else {
                         if (currentEffect.left.length == 1) {
                             if (currentEffect.left[0][1] == DIFFERENT) {
@@ -347,7 +347,7 @@ class AfterUs implements AfterUsGame {
                 [1, 2, 3, 4].forEach(type => this.createChooseTokenButton(type));
                 break;
             case 'activateEffectToken':
-                this.createFakeButtonForReactivate();
+                this.createFakeButtonForReactivate([]);
                 break;
             case 'buyCard':
                 const buyCardArgs = args as EnteringBuyCardArgs;
@@ -447,8 +447,12 @@ class AfterUs implements AfterUsGame {
         }
     }
 
-    createFakeButtonForReactivate() {
-        (this as any).addActionButton(`fakeReactivate-button`, _("Click on a frame to reactivate it"), null);
+    createFakeButtonForReactivate(cost: number[][]) {
+        let label = _("Click on a frame to reactivate it");
+        if (cost.length) {
+            label += ` (${getResourcesQuantityIcons(cost)})`;
+        }
+        (this as any).addActionButton(`fakeReactivate-button`, label, null);
         document.getElementById(`fakeReactivate-button`).classList.add('disabled');
     }
 

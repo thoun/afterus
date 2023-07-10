@@ -42,7 +42,7 @@ trait ArgsTrait {
             'appliedEffects' => $appliedEffects,
             'currentEffect' => $currentEffect,
             'reactivate' => $reactivate,
-            'possibleEffects' => $reactivate ? $this->getPossibleEffects($playerId, $effects, $line, true) : null,
+            'possibleEffects' => $reactivate ? $this->getPossibleEffects($playerId, $effects, $line, true, $currentEffect->left) : null,
             'undoCount' => count($undos),
         ];
     }
