@@ -90,8 +90,8 @@ trait ActionTrait {
                 $effect->convertSign = false;
             } else if ($effect->left[0][1] == PER_TAMARINS) {
                 $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
+                $effect->left[0] = $effect->left[0][0];
                 $effect->left[0][0] *= $tamarins;
-                $effect->left[0][1] = POINT;
             }
         }
 

@@ -366,8 +366,9 @@ trait UtilTrait {
             case RAGE: $this->DbQuery("UPDATE `player` SET `player_rage` = `player_rage` + $quantity WHERE `player_id` = $playerId"); break;
             case PER_TAMARINS: 
                 $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
-                $this->DbQuery("UPDATE `player` SET `player_score` = `player_score` + $tamarins WHERE `player_id` = $playerId");
-                $this->checkLastTurn();
+                $newResource = $resource[0];
+                $newResource[0] *= $tamarins;
+                $this->gainResource($playerId, $newResource, $line);
                 break;
             default: throw new BgaVisibleSystemException("invalid gainResource $quantity ".$resource[1]);
         }

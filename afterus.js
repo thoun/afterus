@@ -2744,8 +2744,8 @@ var AfterUs = /** @class */ (function () {
                                 currentEffect.convertSign = false;
                             }
                             else if (currentEffect.left[0][1] == PER_TAMARINS) {
+                                currentEffect.left[0] = currentEffect.left[0][0];
                                 currentEffect.left[0][0] *= activateEffectArgs.tamarins;
-                                currentEffect.left[0][1] = POINT;
                             }
                         }
                         else if (currentEffect.left.length == 0) {
