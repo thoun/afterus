@@ -298,7 +298,7 @@ $this->GORILLAS1 = [
         [new LeftFrame([[3, RAGE]], true), new RightFrame([[1, GRAIN]], true)],
     ]),
     new LevelCard(126, [
-        [new LeftFrame([[1, FLOWER]], false), new ClosedFrame([[1, GRAIN]]), new ClosedFrame([[3, DIFFERENT]], [[1, GRAIN]])],
+        [new LeftFrame([[1, FLOWER]], false), new ClosedFrame([[1, FRUIT]]), new ClosedFrame([[3, DIFFERENT]], [[1, GRAIN]])],
         [new LeftFrame([[2, POINT]], true), new RightFrame([[1, ENERGY]], true)],
         [new LeftFrame([[2, RAGE]], true), new ClosedFrame([[1, GRAIN]], [[1, RAGE]]), new RightFrame([[1, FLOWER]], true)],
     ]),
