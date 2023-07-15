@@ -75,6 +75,372 @@ const FRAME_GROUP_FIX = {
                 1: [9, null], // row
             },
         },
+        2: { // level
+            1: { // index
+                0: [32, 13], // row
+                1: [31, null], // row
+                2: [41, null], // row
+            },
+            2: { // index
+                0: [-2, null], // row
+                1: [null, 15], // row
+                2: [-2, null], // row
+            },
+            3: { // index
+                0: [30, 1], // row
+                2: [0, 0], // row
+            },
+            4: { // index
+                1: [37, null], // row
+                2: [12, null], // row
+            },
+            5: { // index
+                0: [32, 5], // row
+                1: [33, null], // row
+            },
+            6: { // index
+                0: [30, null], // row
+                1: [25, null], // row
+                2: [39, null], // row
+            },
+            7: { // index
+                0: [33, null], // row
+                1: [42, null], // row
+            },
+            8: { // index
+                0: [8, 8], // row
+                2: [null, 33], // row
+            },
+            9: { // index
+                0: [31, null], // row
+                2: [13, null], // row
+            },
+            10: { // index
+                0: [28, null], // row
+                1: [10, null], // row
+                2: [37, null], // row
+            },
+            11: { // index
+                0: [58, null], // row
+                1: [36, null], // row
+            },
+            12: { // index
+                0: [8, 8], // row
+                1: [41, 41], // row
+            },
+        },
+    },
+    2: { // type
+        1: { // level
+            1: { // index
+                1: [35, null], // row
+            },
+            3: { // index
+                2: [17, null], // row
+            },
+            4: { // index
+                0: [9, null], // row
+            },
+            5: { // index
+                0: [11, 11], // row
+            },
+            6: { // index
+                0: [6, null], // row
+            },
+            7: { // index
+                1: [8, null], // row
+            },
+            8: { // index
+                0: [32, 4], // row
+                1: [null, 37], // row
+            },
+            9: { // index
+                0: [20, null], // row
+                1: [2, null], // row
+                2: [25, null], // row
+            },
+            10: { // index
+                0: [null, 12], // row
+            },
+            11: { // index
+                1: [null, 0], // row
+            },
+            12: { // index
+                1: [0, 68], // row
+            },
+            13: { // index
+                0: [null, 5], // row
+            },
+            14: { // index
+                0: [39, 0], // row
+            },
+            15: { // index
+                0: [8, null], // row
+                1: [41, null], // row
+            },
+            16: { // index
+                0: [null, 10], // row
+                2: [16, null], // row
+            },
+            17: { // index
+                0: [8, null], // row
+                1: [null, 8], // row
+            },
+            18: { // index
+                0: [null, 32], // row
+            },
+        },
+        2: { // level
+            1: { // index
+                0: [null, 24], // row
+                1: [32, null], // row
+                2: [10, null], // row
+            },
+            2: { // index
+                1: [4, 1], // row
+                2: [28, null], // row
+            },
+            3: { // index
+                0: [null, 20], // row
+                1: [40, null], // row
+                2: [41, null], // row
+            },
+            4: { // index
+                0: [null, 20], // row
+                1: [40, null], // row
+                2: [41, null], // row
+            },
+            5: { // index
+                0: [2, 32], // row
+                1: [22, null], // row
+            },
+            6: { // index
+                0: [40, 0], // row
+                1: [38, 2], // row
+            },
+            7: { // index
+                0: [32, 1], // row
+                1: [40, null], // row
+            },
+            8: { // index
+                0: [18, null], // row
+                1: [10, null], // row
+            },
+            10: { // index
+                0: [32, null], // row
+                1: [40, null], // row
+            },
+            11: { // index
+                1: [39, 2], // row
+                2: [39, null], // row
+            },
+            12: { // index
+                0: [null, 20], // row
+                1: [39, null], // row
+                2: [16, null], // row
+            },
+        },
+    },
+    3: { // type
+        1: { // level
+            2: { // index
+                2: [4, 58], // row
+            },
+            5: { // index
+                0: [8, null], // row
+            },
+            6: { // index
+                2: [15, null], // row
+            },
+            7: { // index
+                0: [13, 32], // row
+            },
+            8: { // index
+                0: [32, 2], // row
+                2: [47, 39], // row
+            },
+            9: { // index
+                0: [null, 21], // row
+            },
+            10: { // index
+                1: [0, 32], // row
+            },
+            11: { // index
+                1: [0, 48], // row
+                2: [6, null], // row
+            },
+            12: { // index
+                0: [12, 30], // row
+                1: [0, 46], // row
+            },
+            13: { // index
+                2: [0, 56], // row
+            },
+            15: { // index
+                0: [32, 2], // row
+                1: [0, 48], // row
+            },
+            16: { // index
+                1: [18, null], // row
+            },
+            17: { // index
+                1: [26, null], // row
+            },
+            18: { // index
+                1: [null, 14], // row
+            },
+        },
+        2: { // level
+            1: { // index
+                2: [null, 33], // row
+            },
+            2: { // index
+                0: [null, 24], // row
+                1: [28, null], // row
+                2: [5, 0], // row
+            },
+            3: { // index
+                0: [0, 36], // row
+                1: [38, null], // row
+                2: [null, 36], // row
+            },
+            4: { // index
+                0: [4, 32], // row
+                1: [null, 41], // row
+                2: [null, 36], // row
+            },
+            5: { // index
+                0: [50, 0], // row
+                2: [7, 37], // row
+            },
+            6: { // index
+                0: [null, 3], // row
+                1: [8, null], // row
+                2: [44, null], // row
+            },
+            7: { // index
+                0: [19, null], // row
+                1: [null, 6], // row
+            },
+            8: { // index
+                0: [44, 0], // row
+                1: [34, null], // row
+            },
+            9: { // index
+                0: [null, 32], // row
+                1: [null, 20], // row
+                2: [4, 0], // row
+            },
+            10: { // index
+                0: [null, 32], // row
+                1: [null, 6], // row
+            },
+            11: { // index
+                0: [27, null], // row
+                1: [null, 34], // row
+                2: [2, 2], // row
+            },
+            12: { // index
+                0: [null, 32], // row
+            },
+        },
+    },
+    4: { // type
+        1: { // level
+            1: { // index
+                0: [16, 16], // row
+                1: [26, null], // row
+            },
+            4: { // index
+                0: [null, 0], // row
+                1: [9, 41], // row
+                2: [0, null], // row
+            },
+            5: { // index
+                0: [null, 20], // row
+            },
+            6: { // index
+                0: [12, null], // row
+                1: [18, null], // row
+            },
+            10: { // index
+                2: [5, null], // row
+            },
+            11: { // index
+                1: [0, null], // row
+            },
+            12: { // index
+                0: [null, 0], // row
+                1: [16, null], // row
+            },
+            14: { // index
+                0: [null, 1], // row
+                1: [11, null], // row
+                2: [35, null], // row
+            },
+            15: { // index
+                1: [33, null], // row
+            },
+            16: { // index
+                1: [9, 42], // row
+            },
+            17: { // index
+                1: [null, 16], // row
+            },
+            18: { // index
+                1: [10, null], // row
+            },
+        },
+        2: { // level
+            1: { // index
+                2: [12, null], // row
+            },
+            2: { // index
+                1: [6, null], // row
+            },
+            3: { // index
+                0: [16, null], // row
+            },
+            4: { // index
+                1: [32, null], // row
+                2: [34, null], // row
+            },
+            5: { // index
+                0: [null, 5], // row
+                2: [41, null], // row
+            },
+            6: { // index
+                0: [null, 9], // row
+                1: [2, null], // row
+            },
+            7: { // index
+                0: [null, 28], // row
+                1: [null, 15], // row
+                2: [41, null], // row
+            },
+            8: { // index
+                1: [40, null], // row
+                2: [6, 6], // row
+            },
+            9: { // index
+                0: [null, 8], // row
+                1: [38, 4], // row
+                2: [42, null], // row
+            },
+            10: { // index
+                1: [21, null], // row
+                2: [40, null], // row
+            },
+            11: { // index
+                0: [null, 26], // row
+                1: [17, null], // row
+                2: [41, null], // row
+            },
+            12: { // index
+                1: [40, null], // row
+                2: [2, 2], // row
+            },
+        },
     },
 };
 
@@ -132,7 +498,7 @@ class CardsManager extends CardManager<Card> {
             frameDiv.classList.add('opened-right');
 
             if (!frame.left.length) {
-                width = 28;
+                width = 34;
             }
         }
         frameDiv.dataset.row = ''+row;
@@ -256,7 +622,7 @@ class CardsManager extends CardManager<Card> {
     private debugShowAllCards() {
         const TEMP = (this.game as any).gamedatas.TEMP;
 
-        document.getElementById(`table`).insertAdjacentHTML(`afterbegin`, `
+        /*document.getElementById(`table`).insertAdjacentHTML(`afterbegin`, `
             <div id="all-0" class="debug"></div>
         `);
         const tamarins = new LineStock<Card>(this, document.getElementById(`all-0`));
@@ -271,7 +637,7 @@ class CardsManager extends CardManager<Card> {
             } as Card;
             tamarins.addCard(card);
         });
-        document.getElementById(`all-0`).querySelectorAll('.frame').forEach(frame => frame.classList.add('remaining'));
+        document.getElementById(`all-0`).querySelectorAll('.frame').forEach(frame => frame.classList.add('remaining'));*/
 
         [1, 2, 3, 4].forEach(type => {
             [1, 2].forEach(level => {

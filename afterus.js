@@ -1893,6 +1893,372 @@ var FRAME_GROUP_FIX = {
                 1: [9, null], // row
             },
         },
+        2: {
+            1: {
+                0: [32, 13],
+                1: [31, null],
+                2: [41, null], // row
+            },
+            2: {
+                0: [-2, null],
+                1: [null, 15],
+                2: [-2, null], // row
+            },
+            3: {
+                0: [30, 1],
+                2: [0, 0], // row
+            },
+            4: {
+                1: [37, null],
+                2: [12, null], // row
+            },
+            5: {
+                0: [32, 5],
+                1: [33, null], // row
+            },
+            6: {
+                0: [30, null],
+                1: [25, null],
+                2: [39, null], // row
+            },
+            7: {
+                0: [33, null],
+                1: [42, null], // row
+            },
+            8: {
+                0: [8, 8],
+                2: [null, 33], // row
+            },
+            9: {
+                0: [31, null],
+                2: [13, null], // row
+            },
+            10: {
+                0: [28, null],
+                1: [10, null],
+                2: [37, null], // row
+            },
+            11: {
+                0: [58, null],
+                1: [36, null], // row
+            },
+            12: {
+                0: [8, 8],
+                1: [41, 41], // row
+            },
+        },
+    },
+    2: {
+        1: {
+            1: {
+                1: [35, null], // row
+            },
+            3: {
+                2: [17, null], // row
+            },
+            4: {
+                0: [9, null], // row
+            },
+            5: {
+                0: [11, 11], // row
+            },
+            6: {
+                0: [6, null], // row
+            },
+            7: {
+                1: [8, null], // row
+            },
+            8: {
+                0: [32, 4],
+                1: [null, 37], // row
+            },
+            9: {
+                0: [20, null],
+                1: [2, null],
+                2: [25, null], // row
+            },
+            10: {
+                0: [null, 12], // row
+            },
+            11: {
+                1: [null, 0], // row
+            },
+            12: {
+                1: [0, 68], // row
+            },
+            13: {
+                0: [null, 5], // row
+            },
+            14: {
+                0: [39, 0], // row
+            },
+            15: {
+                0: [8, null],
+                1: [41, null], // row
+            },
+            16: {
+                0: [null, 10],
+                2: [16, null], // row
+            },
+            17: {
+                0: [8, null],
+                1: [null, 8], // row
+            },
+            18: {
+                0: [null, 32], // row
+            },
+        },
+        2: {
+            1: {
+                0: [null, 24],
+                1: [32, null],
+                2: [10, null], // row
+            },
+            2: {
+                1: [4, 1],
+                2: [28, null], // row
+            },
+            3: {
+                0: [null, 20],
+                1: [40, null],
+                2: [41, null], // row
+            },
+            4: {
+                0: [null, 20],
+                1: [40, null],
+                2: [41, null], // row
+            },
+            5: {
+                0: [2, 32],
+                1: [22, null], // row
+            },
+            6: {
+                0: [40, 0],
+                1: [38, 2], // row
+            },
+            7: {
+                0: [32, 1],
+                1: [40, null], // row
+            },
+            8: {
+                0: [18, null],
+                1: [10, null], // row
+            },
+            10: {
+                0: [32, null],
+                1: [40, null], // row
+            },
+            11: {
+                1: [39, 2],
+                2: [39, null], // row
+            },
+            12: {
+                0: [null, 20],
+                1: [39, null],
+                2: [16, null], // row
+            },
+        },
+    },
+    3: {
+        1: {
+            2: {
+                2: [4, 58], // row
+            },
+            5: {
+                0: [8, null], // row
+            },
+            6: {
+                2: [15, null], // row
+            },
+            7: {
+                0: [13, 32], // row
+            },
+            8: {
+                0: [32, 2],
+                2: [47, 39], // row
+            },
+            9: {
+                0: [null, 21], // row
+            },
+            10: {
+                1: [0, 32], // row
+            },
+            11: {
+                1: [0, 48],
+                2: [6, null], // row
+            },
+            12: {
+                0: [12, 30],
+                1: [0, 46], // row
+            },
+            13: {
+                2: [0, 56], // row
+            },
+            15: {
+                0: [32, 2],
+                1: [0, 48], // row
+            },
+            16: {
+                1: [18, null], // row
+            },
+            17: {
+                1: [26, null], // row
+            },
+            18: {
+                1: [null, 14], // row
+            },
+        },
+        2: {
+            1: {
+                2: [null, 33], // row
+            },
+            2: {
+                0: [null, 24],
+                1: [28, null],
+                2: [5, 0], // row
+            },
+            3: {
+                0: [0, 36],
+                1: [38, null],
+                2: [null, 36], // row
+            },
+            4: {
+                0: [4, 32],
+                1: [null, 41],
+                2: [null, 36], // row
+            },
+            5: {
+                0: [50, 0],
+                2: [7, 37], // row
+            },
+            6: {
+                0: [null, 3],
+                1: [8, null],
+                2: [44, null], // row
+            },
+            7: {
+                0: [19, null],
+                1: [null, 6], // row
+            },
+            8: {
+                0: [44, 0],
+                1: [34, null], // row
+            },
+            9: {
+                0: [null, 32],
+                1: [null, 20],
+                2: [4, 0], // row
+            },
+            10: {
+                0: [null, 32],
+                1: [null, 6], // row
+            },
+            11: {
+                0: [27, null],
+                1: [null, 34],
+                2: [2, 2], // row
+            },
+            12: {
+                0: [null, 32], // row
+            },
+        },
+    },
+    4: {
+        1: {
+            1: {
+                0: [16, 16],
+                1: [26, null], // row
+            },
+            4: {
+                0: [null, 0],
+                1: [9, 41],
+                2: [0, null], // row
+            },
+            5: {
+                0: [null, 20], // row
+            },
+            6: {
+                0: [12, null],
+                1: [18, null], // row
+            },
+            10: {
+                2: [5, null], // row
+            },
+            11: {
+                1: [0, null], // row
+            },
+            12: {
+                0: [null, 0],
+                1: [16, null], // row
+            },
+            14: {
+                0: [null, 1],
+                1: [11, null],
+                2: [35, null], // row
+            },
+            15: {
+                1: [33, null], // row
+            },
+            16: {
+                1: [9, 42], // row
+            },
+            17: {
+                1: [null, 16], // row
+            },
+            18: {
+                1: [10, null], // row
+            },
+        },
+        2: {
+            1: {
+                2: [12, null], // row
+            },
+            2: {
+                1: [6, null], // row
+            },
+            3: {
+                0: [16, null], // row
+            },
+            4: {
+                1: [32, null],
+                2: [34, null], // row
+            },
+            5: {
+                0: [null, 5],
+                2: [41, null], // row
+            },
+            6: {
+                0: [null, 9],
+                1: [2, null], // row
+            },
+            7: {
+                0: [null, 28],
+                1: [null, 15],
+                2: [41, null], // row
+            },
+            8: {
+                1: [40, null],
+                2: [6, 6], // row
+            },
+            9: {
+                0: [null, 8],
+                1: [38, 4],
+                2: [42, null], // row
+            },
+            10: {
+                1: [21, null],
+                2: [40, null], // row
+            },
+            11: {
+                0: [null, 26],
+                1: [17, null],
+                2: [41, null], // row
+            },
+            12: {
+                1: [40, null],
+                2: [2, 2], // row
+            },
+        },
     },
 };
 var CardsManager = /** @class */ (function (_super) {
@@ -1949,7 +2315,7 @@ var CardsManager = /** @class */ (function (_super) {
         else if (frame.type == OPENED_RIGHT) {
             frameDiv.classList.add('opened-right');
             if (!frame.left.length) {
-                width = 28;
+                width = 34;
             }
         }
         frameDiv.dataset.row = '' + row;
@@ -2057,13 +2423,22 @@ var CardsManager = /** @class */ (function (_super) {
     CardsManager.prototype.debugShowAllCards = function () {
         var _this = this;
         var TEMP = this.game.gamedatas.TEMP;
-        document.getElementById("table").insertAdjacentHTML("afterbegin", "\n            <div id=\"all-0\" class=\"debug\"></div>\n        ");
-        var tamarins = new LineStock(this, document.getElementById("all-0"));
-        Object.entries(TEMP[0]).forEach(function (entry) {
-            var card = __assign(__assign({}, entry[1]), { id: 10000 + Number(entry[0]), level: 0, type: 0, subType: Number(entry[0]), playerId: 2343492 });
+        /*document.getElementById(`table`).insertAdjacentHTML(`afterbegin`, `
+            <div id="all-0" class="debug"></div>
+        `);
+        const tamarins = new LineStock<Card>(this, document.getElementById(`all-0`));
+        Object.entries(TEMP[0]).forEach((entry: any) => {
+            const card = {
+                ...entry[1],
+                id: 10000 + Number(entry[0]),
+                level: 0,
+                type: 0,
+                subType: Number(entry[0]),
+                playerId: 2343492,
+            } as Card;
             tamarins.addCard(card);
         });
-        document.getElementById("all-0").querySelectorAll('.frame').forEach(function (frame) { return frame.classList.add('remaining'); });
+        document.getElementById(`all-0`).querySelectorAll('.frame').forEach(frame => frame.classList.add('remaining'));*/
         [1, 2, 3, 4].forEach(function (type) {
             [1, 2].forEach(function (level) {
                 var typeAndLevel = type * 10 + level;
