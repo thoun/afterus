@@ -591,7 +591,7 @@ class AfterUs implements AfterUsGame {
             (this as any).addTooltipHtml(`fruit-counter-wrapper-${player.id}`, _("Fruits"));
             (this as any).addTooltipHtml(`grain-counter-wrapper-${player.id}`, _("Grains"));
             (this as any).addTooltipHtml(`energy-counter-wrapper-${player.id}`, _("Energy"));
-            (this as any).addTooltipHtml(`rage-counter-wrapper-${player.id}`, _("Rage"));
+            (this as any).addTooltipHtml(`rage-counter-wrapper-${player.id}`, `${_("Rage")}<br>${_("Click the button on the top-right corner of a card in your line to use Rage")}`);
 
             const flowerCounter = new ebg.counter();
             flowerCounter.create(`flower-counter-${player.id}`);

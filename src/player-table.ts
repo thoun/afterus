@@ -132,7 +132,7 @@ class PlayerTable {
         
         const button = document.createElement('button');
         button.id = `rage-button-${card.id}`;
-        button.classList.add('rage-button', 'bgabutton', 'bgabutton_red');
+        button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
         button.dataset.playerId = ''+this.playerId;
         button.innerHTML = formatTextIcons('[Rage]');
         div.appendChild(button);

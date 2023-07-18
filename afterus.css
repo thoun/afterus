@@ -1182,9 +1182,9 @@ body > .card {
   z-index: 1;
   position: absolute;
   right: 25px;
-  width: 24px;
-  top: 7px;
-  height: 24px;
+  width: 32px;
+  top: 3px;
+  height: 32px;
   display: flex;
   justify-content: center;
   align-items: center;

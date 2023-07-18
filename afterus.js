@@ -2741,7 +2741,7 @@ var PlayerTable = /** @class */ (function () {
         }
         var button = document.createElement('button');
         button.id = "rage-button-".concat(card.id);
-        button.classList.add('rage-button', 'bgabutton', 'bgabutton_red');
+        button.classList.add('rage-button', 'bgabutton', 'bgabutton_blue');
         button.dataset.playerId = '' + this.playerId;
         button.innerHTML = formatTextIcons('[Rage]');
         div.appendChild(button);
@@ -3430,7 +3430,7 @@ var AfterUs = /** @class */ (function () {
             _this.addTooltipHtml("fruit-counter-wrapper-".concat(player.id), _("Fruits"));
             _this.addTooltipHtml("grain-counter-wrapper-".concat(player.id), _("Grains"));
             _this.addTooltipHtml("energy-counter-wrapper-".concat(player.id), _("Energy"));
-            _this.addTooltipHtml("rage-counter-wrapper-".concat(player.id), _("Rage"));
+            _this.addTooltipHtml("rage-counter-wrapper-".concat(player.id), "".concat(_("Rage"), "<br>").concat(_("Click the button on the top-right corner of a card in your line to use Rage")));
             var flowerCounter = new ebg.counter();
             flowerCounter.create("flower-counter-".concat(player.id));
             flowerCounter.setValue(player.flowers);
