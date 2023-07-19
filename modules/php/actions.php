@@ -640,13 +640,16 @@ trait ActionTrait {
         $card = $this->getCardFromDb($this->cards->pickCardForLocation('pdeck'.$playerId, 'line'.$playerId, $currentCard->locationArg));
         $this->cardPickedFromDeck($playerId);
 
-        self::notifyAllPlayers('replaceLineCard', clienttranslate('${player_name} uses object ${object} to replace a card with a new card from the deck'), [
+        self::notifyAllPlayers('replaceLineCardDeck', clienttranslate('${player_name} uses object ${object} to replace a card with a new card from the deck'), [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
             'object' => $this->getObjectName(3),
             'i18n' => ['object'],
             'player' => $this->getPlayer($playerId),
-            'card' => $card,
+            'oldCard' => $currentCard,
+            'newCard' => $card,
+            'deckCount' => intval($this->cards->countCardInLocation('pdeck'.$playerId)),
+            'deckTopCard' => Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId))),
         ]);
 
         $this->cardAddedToDeck($playerId);

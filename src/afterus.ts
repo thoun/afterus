@@ -946,6 +946,7 @@ class AfterUs implements AfterUsGame {
             ['removedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
             ['replaceLineCard', ANIMATION_MS * 2],
+            ['replaceLineCardDeck', undefined],
             ['replaceTopDeck', ANIMATION_MS],
             ['refillDeck', ANIMATION_MS],
             ['lastTurn', 1],
@@ -1049,11 +1050,20 @@ class AfterUs implements AfterUsGame {
         this.notif_activatedEffect(args);
     }   
 
-    async notif_replaceLineCard(args: NotifReplaceLineCardArgs) {
+    async notif_replaceLineCard(args: NotifReplaceLineCardArgs): Promise<boolean> {
+        console.log(args)
         await this.tableCenter.addCardForReplaceLine(args.oldCard, false);
         await this.tableCenter.addCardForReplaceLine(args.newCard, true);
         this.tableCenter.replaceLineCardUpdateCounters(args.table, args.tableTopCards);
         await this.getPlayerTable(args.playerId).replaceLineCard(args.newCard);
+        this.notif_activatedEffect(args);
+        return true;
+    }  
+
+    async notif_replaceLineCardDeck(args: NotifReplaceLineCardArgs) {
+        const playerTable = this.getPlayerTable(args.playerId);
+        await playerTable.discardCard(args.oldCard);
+        await playerTable.replaceLineCard(args.newCard);
         this.notif_activatedEffect(args);
     } 
 

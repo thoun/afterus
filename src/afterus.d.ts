@@ -194,6 +194,12 @@ interface NotifReplaceLineCardArgs extends NotifActivatedEffectArgs {
     tableTopCards: { [type: number]: Card };
 }
 
+// replaceLineCardDeck
+interface NotifReplaceLineCardDeckArgs extends NotifReplaceLineCardArgs {
+    deckCount: number;
+    deckTopCard?: Card;
+}
+
 // replaceTopDeck
 interface NotifReplaceTopDeckArgs extends NotifActivatedEffectArgs {
     card: Card;

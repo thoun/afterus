@@ -2864,8 +2864,13 @@ var PlayerTable = /** @class */ (function () {
         }
         this.deck.setCardNumber(deckCount);
     };
+    PlayerTable.prototype.discardCard = function (card) {
+        return this.discard.addCard({ id: card.id });
+    };
     PlayerTable.prototype.replaceLineCard = function (card) {
-        return this.line.addCard(card);
+        var promise = this.line.addCard(card);
+        this.addRageButton(card);
+        return promise;
     };
     PlayerTable.prototype.replaceTopDeck = function (card) {
         this.deck.addCard(card, undefined, { autoUpdateCardNumber: true });
@@ -3706,6 +3711,7 @@ var AfterUs = /** @class */ (function () {
             ['removedCard', ANIMATION_MS],
             ['addCardToLine', ANIMATION_MS],
             ['replaceLineCard', ANIMATION_MS * 2],
+            ['replaceLineCardDeck', undefined],
             ['replaceTopDeck', ANIMATION_MS],
             ['refillDeck', ANIMATION_MS],
             ['lastTurn', 1],
@@ -3798,7 +3804,9 @@ var AfterUs = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.tableCenter.addCardForReplaceLine(args.oldCard, false)];
+                    case 0:
+                        console.log(args);
+                        return [4 /*yield*/, this.tableCenter.addCardForReplaceLine(args.oldCard, false)];
                     case 1:
                         _a.sent();
                         return [4 /*yield*/, this.tableCenter.addCardForReplaceLine(args.newCard, true)];
@@ -3807,6 +3815,25 @@ var AfterUs = /** @class */ (function () {
                         this.tableCenter.replaceLineCardUpdateCounters(args.table, args.tableTopCards);
                         return [4 /*yield*/, this.getPlayerTable(args.playerId).replaceLineCard(args.newCard)];
                     case 3:
+                        _a.sent();
+                        this.notif_activatedEffect(args);
+                        return [2 /*return*/, true];
+                }
+            });
+        });
+    };
+    AfterUs.prototype.notif_replaceLineCardDeck = function (args) {
+        return __awaiter(this, void 0, void 0, function () {
+            var playerTable;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        playerTable = this.getPlayerTable(args.playerId);
+                        return [4 /*yield*/, playerTable.discardCard(args.oldCard)];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, playerTable.replaceLineCard(args.newCard)];
+                    case 2:
                         _a.sent();
                         this.notif_activatedEffect(args);
                         return [2 /*return*/];

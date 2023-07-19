@@ -264,9 +264,16 @@ class PlayerTable {
         }
         this.deck.setCardNumber(deckCount);
     }
+
+    public discardCard(card: Card): Promise<any> {
+        return this.discard.addCard({id: card.id} as Card);
+    }
     
     public replaceLineCard(card: Card): Promise<any> {
-        return this.line.addCard(card);
+        const promise = this.line.addCard(card);
+        this.addRageButton(card);
+
+        return promise;
     }
 
     public replaceTopDeck(card: Card) {
