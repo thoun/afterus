@@ -3612,7 +3612,7 @@ var AfterUs = /** @class */ (function () {
         }, true);
     };
     AfterUs.prototype.useRage = function (id) {
-        this.takeNoLockAction('useRage', {
+        this.takeAction('useRage', {
             id: id,
         });
     };
@@ -3677,7 +3677,7 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.takeNoLockAction = function (action, data, invisible) {
         if (invisible === void 0) { invisible = false; }
-        if (!invisible) {
+        if (!invisible && this.isCurrentPlayerActive()) {
             $("gameaction_status").innerHTML = __("lang_mainsite", "Updating game situation ...");
             dojo.style("pagemaintitle_wrap", "display", "none");
             dojo.style("gameaction_status_wrap", "display", "block");

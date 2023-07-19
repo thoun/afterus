@@ -832,7 +832,7 @@ class AfterUs implements AfterUsGame {
     }
 
     public useRage(id: number): void {
-        this.takeNoLockAction('useRage', {
+        this.takeAction('useRage', {
             id,
         });
     }
@@ -910,7 +910,7 @@ class AfterUs implements AfterUsGame {
         (this as any).ajaxcall(`/afterus/afterus/${action}.html`, data, this, () => {});
     }
     public takeNoLockAction(action: string, data?: any, invisible: boolean = false) {
-        if (!invisible) {   
+        if (!invisible && (this as any).isCurrentPlayerActive()) {   
             $("gameaction_status").innerHTML = __("lang_mainsite", "Updating game situation ...");
             dojo.style("pagemaintitle_wrap", "display", "none");
             dojo.style("gameaction_status_wrap", "display", "block");
