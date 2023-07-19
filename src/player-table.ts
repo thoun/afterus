@@ -168,7 +168,11 @@ class PlayerTable {
     }
     
     public switchCards(switchedCards: Card[]) {
+        /*try {*/
         this.line.swapCards(switchedCards);
+        /*} catch (e) {
+            console.error('error during switchCards', e, JSON.stringify(switchedCards));
+        }*/
         switchedCards.forEach(card => this.addRageButton(card));
     }
 
@@ -254,13 +258,6 @@ class PlayerTable {
 
     public addCardToLine(card: Card, line: Card[], deckCount: number, deckTopCard?: Card) {
         this.deck.addCard(card);
-        /*if (card.locationArg > this.line.getSlotsIds().length) {
-            this.line.setSlotsIds() = new CardLine(this.game.cardsManager, handDiv, {
-                gap: '0',
-                slotsIds: [0, 1, 2, 3],
-                mapCardToSlot: card => card.locationArg,
-            });
-        }*/
         this.resetLine(line, false);
         if (deckTopCard) {
             this.deck.addCard(deckTopCard);
@@ -305,10 +302,6 @@ class PlayerTable {
         slots.forEach(slot => slot.querySelectorAll('button.remove').forEach(btn => btn.remove()));
     }
 
-    private setDeckCount(count: number) {
-        this.deck.setCardNumber(count);
-    }
-
     public refillDeck(deckCount: number, deckTopCard?: Card) {
         if (deckTopCard) {
             this.deck.addCard(deckTopCard, { fromStock: this.discard, });
@@ -326,6 +319,7 @@ class PlayerTable {
     public setLine(line: Card[]) {
         this.line.removeAll();
         this.line.addCards(line);
+        line.forEach(card => this.addRageButton(card));
     }
     
     public deckTopCard(card: Card | null) {

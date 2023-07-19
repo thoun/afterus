@@ -1525,7 +1525,7 @@ var SlotStock = /** @class */ (function (_super) {
             throw new Error('You need to define SlotStock.mapCardToSlot to use SlotStock.swapCards');
         }
         var promises = [];
-        var elements = cards.map(function (card) { return _this.manager.getCardElement(card); });
+        var elements = cards.map(function (card) { return _this.manager.getCardElement(__assign(__assign({}, card), { id: -1 })); });
         var elementsRects = elements.map(function (element) { return element.getBoundingClientRect(); });
         var cssPositions = elements.map(function (element) { return element.style.position; });
         // we set to absolute so it doesn't mess with slide coordinates when 2 div are at the same place
@@ -2773,7 +2773,11 @@ var PlayerTable = /** @class */ (function () {
     };
     PlayerTable.prototype.switchCards = function (switchedCards) {
         var _this = this;
+        /*try {*/
         this.line.swapCards(switchedCards);
+        /*} catch (e) {
+            console.error('error during switchCards', e, JSON.stringify(switchedCards));
+        }*/
         switchedCards.forEach(function (card) { return _this.addRageButton(card); });
     };
     PlayerTable.prototype.getFrames = function (effect) {
@@ -2854,13 +2858,6 @@ var PlayerTable = /** @class */ (function () {
     };
     PlayerTable.prototype.addCardToLine = function (card, line, deckCount, deckTopCard) {
         this.deck.addCard(card);
-        /*if (card.locationArg > this.line.getSlotsIds().length) {
-            this.line.setSlotsIds() = new CardLine(this.game.cardsManager, handDiv, {
-                gap: '0',
-                slotsIds: [0, 1, 2, 3],
-                mapCardToSlot: card => card.locationArg,
-            });
-        }*/
         this.resetLine(line, false);
         if (deckTopCard) {
             this.deck.addCard(deckTopCard);
@@ -2897,9 +2894,6 @@ var PlayerTable = /** @class */ (function () {
         var slots = document.getElementById("player-table-".concat(this.playerId)).querySelectorAll(".slot");
         slots.forEach(function (slot) { return slot.querySelectorAll('button.remove').forEach(function (btn) { return btn.remove(); }); });
     };
-    PlayerTable.prototype.setDeckCount = function (count) {
-        this.deck.setCardNumber(count);
-    };
     PlayerTable.prototype.refillDeck = function (deckCount, deckTopCard) {
         if (deckTopCard) {
             this.deck.addCard(deckTopCard, { fromStock: this.discard, });
@@ -2912,8 +2906,10 @@ var PlayerTable = /** @class */ (function () {
         this.deck.addCard(card, undefined, { autoUpdateCardNumber: true });
     };
     PlayerTable.prototype.setLine = function (line) {
+        var _this = this;
         this.line.removeAll();
         this.line.addCards(line);
+        line.forEach(function (card) { return _this.addRageButton(card); });
     };
     PlayerTable.prototype.deckTopCard = function (card) {
         var html = undefined;

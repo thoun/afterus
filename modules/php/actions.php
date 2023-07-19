@@ -704,7 +704,7 @@ trait ActionTrait {
         $this->giveResource($playerId, $left);
 
         $this->refillPlayerDeckIfEmpty($playerId);
-        $card = $this->getCardFromDb($this->cards->pickCardForLocation('pdeck'.$playerId, 'line'.$playerId, intval($this->cards->countCardInLocation('pdeck'.$playerId))));
+        $card = $this->getCardFromDb($this->cards->pickCardForLocation('pdeck'.$playerId, 'line'.$playerId, intval($this->cards->countCardInLocation('line'.$playerId))));
         $this->cardPickedFromDeck($playerId);
 
         self::notifyAllPlayers('addCardToLine', clienttranslate('${player_name} uses object ${object} to add a 5th card'), [
