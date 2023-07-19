@@ -1075,7 +1075,7 @@ body > .card {
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: help;
+  cursor: pointer;
 }
 .player-table .decks .deck .see-top-card[data-visible=false] {
   display: none;

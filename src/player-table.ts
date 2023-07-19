@@ -43,6 +43,7 @@ class PlayerTable {
     private discard: Deck<Card>;
 
     private currentPlayer: boolean;
+    private visibleTopCard: Card | null;
 
     constructor(private game: AfterUsGame, player: AfterUsPlayer) {
         this.playerId = Number(player.id);
@@ -64,6 +65,18 @@ class PlayerTable {
         </div>
         `;
         dojo.place(html, document.getElementById(this.currentPlayer ? 'current-player-table' : 'tables'));
+
+        if (this.currentPlayer) {
+            const seeTopCardBtn = document.getElementById(`player-table-${this.playerId}-see-top-card`);
+            seeTopCardBtn.addEventListener('click', () => {
+                if (seeTopCardBtn.dataset.visible == 'true') {
+                    this.showVisibleTopCard();
+                }
+            });
+
+            this.visibleTopCard = player.visibleTopCard;
+            this.deckTopCard(player.visibleTopCard);
+        }
 
         this.line = new CardLine(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-line`), {
             wrap: 'nowrap',
@@ -108,8 +121,6 @@ class PlayerTable {
                 position: 'top',
             },
         });
-
-        this.deckTopCard(player.visibleTopCard);
     }
 
     private onRemoveCardClick(card: Card) {
@@ -330,24 +341,32 @@ class PlayerTable {
     }
     
     public deckTopCard(card: Card | null) {
-        let html = undefined;
-        if (card && this.currentPlayer) {
-            html = `<div>${_("Card on top of your deck:")}</div>
-            <div id="card-deck-top" data-side="front" class="card">
-                <div class="card-sides">
-                    <div class="card-side front" data-level="${card.level}" data-type="${card.type}" data-sub-type="${card.subType}" data-player-color="${this.game.getPlayerColor(this.playerId)}"></div>
-                </div>
-            </div>`;
-        }
-
+        this.visibleTopCard = card;
         if (this.currentPlayer) {
             const seeTopCardId = `player-table-${this.playerId}-see-top-card`;
-            document.getElementById(seeTopCardId).dataset.visible = Boolean(html).toString();
-            if (html) {
-                this.game.setTooltip(seeTopCardId, html);
-            } else {
-                (this.game as any).removeTooltip(seeTopCardId);
-            }
+            document.getElementById(seeTopCardId).dataset.visible = Boolean(card).toString();
         }
+    }
+
+    private showVisibleTopCard() {
+        if (!this.visibleTopCard) {
+            return;
+        }
+
+        const visibleTopCardDialog = new ebg.popindialog();
+        visibleTopCardDialog.create('visibleTopCardDialog');
+        visibleTopCardDialog.setTitle('');
+        
+        let html = `<div id="visible-top-card-popin">
+            <h1>${_("See top card")}</h1>
+            <div id="visible-top-card"></div>
+        </div>`;
+        
+        // Show the dialog
+        visibleTopCardDialog.setContent(html);
+
+        visibleTopCardDialog.show();
+
+        this.game.cardsManager.setForHelp(this.visibleTopCard, `visible-top-card`);
     }
 }

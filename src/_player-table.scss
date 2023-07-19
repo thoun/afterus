@@ -27,7 +27,7 @@
         justify-content: center;
         align-items: center;
         //box-shadow: 0 0 3px 1px black;
-        cursor: help;
+        cursor: pointer;
 
         &[data-visible="false"] {
           display: none;

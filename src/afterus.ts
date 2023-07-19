@@ -641,8 +641,6 @@ class AfterUs implements AfterUsGame {
             if (player.fullDeck) {
                 this.addShowFullDeckButton(playerId);
             }
-
-            
         });
     }
     

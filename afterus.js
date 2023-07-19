@@ -2683,11 +2683,22 @@ var CardLine = /** @class */ (function (_super) {
 }(SlotStock));
 var PlayerTable = /** @class */ (function () {
     function PlayerTable(game, player) {
+        var _this = this;
         this.game = game;
         this.playerId = Number(player.id);
         this.currentPlayer = this.playerId == this.game.getPlayerId();
         var html = "\n        <div id=\"player-table-".concat(this.playerId, "\" class=\"player-table ").concat(this.currentPlayer ? 'current-player' : '', "\" style=\"--player-color: #").concat(player.color, ";\">\n            <div class=\"decks\">\n                <div id=\"player-table-").concat(this.playerId, "-deck\" class=\"deck-stock\">\n                    ").concat(this.currentPlayer ? "<div id=\"player-table-".concat(this.playerId, "-see-top-card\" class=\"see-top-card\" data-visible=\"false\">").concat(_("See top card"), "</div>") : '', "\n                </div>\n                <div class=\"name-and-tokens\">\n                    <div class=\"name-wrapper\">").concat(player.name, "</div>\n                    <div id=\"player-table-").concat(this.playerId, "-tokens\" class=\"tokens\"></div>\n                </div>\n                <div id=\"player-table-").concat(this.playerId, "-discard\" class=\"discard-stock\"></div>\n            </div>\n            <div id=\"player-table-").concat(this.playerId, "-line\"></div>        \n        </div>\n        ");
         dojo.place(html, document.getElementById(this.currentPlayer ? 'current-player-table' : 'tables'));
+        if (this.currentPlayer) {
+            var seeTopCardBtn_1 = document.getElementById("player-table-".concat(this.playerId, "-see-top-card"));
+            seeTopCardBtn_1.addEventListener('click', function () {
+                if (seeTopCardBtn_1.dataset.visible == 'true') {
+                    _this.showVisibleTopCard();
+                }
+            });
+            this.visibleTopCard = player.visibleTopCard;
+            this.deckTopCard(player.visibleTopCard);
+        }
         this.line = new CardLine(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-line")), {
             wrap: 'nowrap',
             gap: '0',
@@ -2720,7 +2731,6 @@ var PlayerTable = /** @class */ (function () {
                 position: 'top',
             },
         });
-        this.deckTopCard(player.visibleTopCard);
     }
     PlayerTable.prototype.onRemoveCardClick = function (card) {
         var _this = this;
@@ -2917,20 +2927,24 @@ var PlayerTable = /** @class */ (function () {
         line.forEach(function (card) { return _this.addRageButton(card); });
     };
     PlayerTable.prototype.deckTopCard = function (card) {
-        var html = undefined;
-        if (card && this.currentPlayer) {
-            html = "<div>".concat(_("Card on top of your deck:"), "</div>\n            <div id=\"card-deck-top\" data-side=\"front\" class=\"card\">\n                <div class=\"card-sides\">\n                    <div class=\"card-side front\" data-level=\"").concat(card.level, "\" data-type=\"").concat(card.type, "\" data-sub-type=\"").concat(card.subType, "\" data-player-color=\"").concat(this.game.getPlayerColor(this.playerId), "\"></div>\n                </div>\n            </div>");
-        }
+        this.visibleTopCard = card;
         if (this.currentPlayer) {
             var seeTopCardId = "player-table-".concat(this.playerId, "-see-top-card");
-            document.getElementById(seeTopCardId).dataset.visible = Boolean(html).toString();
-            if (html) {
-                this.game.setTooltip(seeTopCardId, html);
-            }
-            else {
-                this.game.removeTooltip(seeTopCardId);
-            }
+            document.getElementById(seeTopCardId).dataset.visible = Boolean(card).toString();
         }
+    };
+    PlayerTable.prototype.showVisibleTopCard = function () {
+        if (!this.visibleTopCard) {
+            return;
+        }
+        var visibleTopCardDialog = new ebg.popindialog();
+        visibleTopCardDialog.create('visibleTopCardDialog');
+        visibleTopCardDialog.setTitle('');
+        var html = "<div id=\"visible-top-card-popin\">\n            <h1>".concat(_("See top card"), "</h1>\n            <div id=\"visible-top-card\"></div>\n        </div>");
+        // Show the dialog
+        visibleTopCardDialog.setContent(html);
+        visibleTopCardDialog.show();
+        this.game.cardsManager.setForHelp(this.visibleTopCard, "visible-top-card");
     };
     return PlayerTable;
 }());
