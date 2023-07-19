@@ -3264,8 +3264,11 @@ var AfterUs = /** @class */ (function () {
                     });
                 }
                 if (buyCardArgs_1.canUseNeighborToken) {
-                    buyCardArgs_1.neighborTokens.forEach(function (type) {
-                        var label = _("Use effect of ${type}").replace('${type}', "<div class=\"action-token\" data-type=\"".concat(type, "\"></div>"));
+                    Object.entries(buyCardArgs_1.neighborTokens).forEach(function (entry) {
+                        var type = Number(entry[0]);
+                        var playersIds = entry[1];
+                        var players = playersIds.map(function (playerId) { return _this.getPlayer(playerId); }).map(function (player) { return "<span style=\"color: #".concat(player.color, ";\">").concat(player.name, "</span>"); }).join('/');
+                        var label = _("Use effect of ${player} token ${type}").replace('${type}', "<div class=\"action-token\" data-type=\"".concat(type, "\"></div>")).replace('${player}', players);
                         _this.addActionButton("neighborEffect".concat(type, "-button"), label, function () { return _this.neighborEffect(type); }, null, null, 'gray');
                     });
                 }

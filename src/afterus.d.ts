@@ -105,7 +105,7 @@ interface EnteringChoseTokenArgs {
 }
 
 interface EnteringBuyCardArgs {
-    neighborTokens: number[];
+    neighborTokens: { [type: number]: number[] /* playersIds */ };
     canUseNeighborToken: boolean;
     buyCardCost: { [level: number]: { [type: number]: boolean }; };
     canBuyCard: boolean;

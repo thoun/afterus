@@ -376,8 +376,11 @@ class AfterUs implements AfterUsGame {
                 }
 
                 if (buyCardArgs.canUseNeighborToken) {
-                    buyCardArgs.neighborTokens.forEach(type => {
-                        const label = _("Use effect of ${type}").replace('${type}', `<div class="action-token" data-type="${type}"></div>`);
+                    Object.entries(buyCardArgs.neighborTokens).forEach(entry => {
+                        const type = Number(entry[0]);
+                        const playersIds = entry[1];
+                        const players = playersIds.map(playerId => this.getPlayer(playerId)).map(player => `<span style="color: #${player.color};">${player.name}</span>`).join('/');
+                        const label = _("Use effect of ${player} token ${type}").replace('${type}', `<div class="action-token" data-type="${type}"></div>`).replace('${player}', players);
                         (this as any).addActionButton(`neighborEffect${type}-button`, label, () => this.neighborEffect(type), null, null, 'gray');
                     });
                 }

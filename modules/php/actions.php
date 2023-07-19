@@ -261,7 +261,7 @@ trait ActionTrait {
         $playerId = intval($this->getCurrentPlayerId());
 
         $args = $this->argBuyCard($playerId);
-        if (!in_array($type, $args['neighborTokens'])) {
+        if (!in_array($type, array_keys($args['neighborTokens']))) {
             throw new BgaUserException("You can't copy this token");
         }
 

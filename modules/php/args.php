@@ -95,11 +95,14 @@ trait ArgsTrait {
             $leftNeighbor = $this->getPlayerAfter($playerId);
             $rightNeighbor = $this->getPlayerBefore($playerId);
 
-            $neighborTokens[] = $this->getPlayer($leftNeighbor)->chosenToken;
+            $leftToken = $this->getPlayer($leftNeighbor)->chosenToken;
+            $neighborTokens[$leftToken] = [$leftNeighbor];
             if ($leftNeighbor != $rightNeighbor) {
-                $otherToken = $this->getPlayer($rightNeighbor)->chosenToken;
-                if ($otherToken != $neighborTokens[0]) {
-                    $neighborTokens[] = $otherToken;
+                $rightToken = $this->getPlayer($rightNeighbor)->chosenToken;
+                if ($rightToken == $leftToken) {
+                    $neighborTokens[$leftToken][] = $rightNeighbor;
+                } else {
+                    $neighborTokens[$rightToken] = [$rightNeighbor];
                 }
             }
         }
