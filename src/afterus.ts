@@ -845,9 +845,9 @@ class AfterUs implements AfterUsGame {
     }
 
     public cancelObject(): void {
-        if(!(this as any).checkAction('cancelObject')) {
+        /*if(!(this as any).checkAction('cancelObject')) {
             return;
-        }
+        }*/
 
         this.takeNoLockAction('cancelObject');
     }
@@ -895,10 +895,6 @@ class AfterUs implements AfterUsGame {
     }
 
     public useMoped(type: number, level: number): void {
-        if(!(this as any).checkAction('useMoped')) {
-            return;
-        }
-
         this.takeNoLockAction('useMoped', {
             type,
             level,

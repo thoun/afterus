@@ -3640,9 +3640,9 @@ var AfterUs = /** @class */ (function () {
         });
     };
     AfterUs.prototype.cancelObject = function () {
-        if (!this.checkAction('cancelObject')) {
+        /*if(!(this as any).checkAction('cancelObject')) {
             return;
-        }
+        }*/
         this.takeNoLockAction('cancelObject');
     };
     AfterUs.prototype.useMobilePhone = function (id, type) {
@@ -3680,9 +3680,6 @@ var AfterUs = /** @class */ (function () {
         });
     };
     AfterUs.prototype.useMoped = function (type, level) {
-        if (!this.checkAction('useMoped')) {
-            return;
-        }
         this.takeNoLockAction('useMoped', {
             type: type,
             level: level,

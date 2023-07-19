@@ -486,6 +486,12 @@ trait ActionTrait {
         if (in_array($number, [1, 3, 5]) && $privateStateId !== ST_PRIVATE_ORDER_CARDS) {
             throw new BgaUserException("You can only activate this object when assembling");
         }
+
+        $mainStateId = intval($this->gamestate->state_id());
+        if (($number == 4 && $mainStateId < ST_MULTIPLAYER_PHASE2) || ($number == 7 && $mainStateId < ST_MULTIPLAYER_CHOOSE_TOKEN)) {
+            throw new BgaUserException("You can only activate this object at phase 2");
+        }
+
         
         switch ($number) {
             case 1:
@@ -512,12 +518,15 @@ trait ActionTrait {
             $this->savePrivateStateBeforeObject($playerId, 0);
             $this->gamestate->setPrivateState($playerId, $stateBefore);
         } else {
+            if (!$this->gamestate->isPlayerActive($playerId)) {
+                $this->gamestate->setPlayersMultiactive([$playerId], 'next');
+            }
             $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
         }
     }
 
     function cancelObject() {
-        self::checkAction('cancelObject');
+        //self::checkAction('cancelObject');
 
         $playerId = intval($this->getCurrentPlayerId());
         $this->applyCancelObject($playerId);
@@ -769,7 +778,7 @@ trait ActionTrait {
     }
 
     function useMoped(int $type, int $level) {
-        self::checkAction('useMoped');
+        //self::checkAction('useMoped');
 
         $playerId = intval($this->getCurrentPlayerId());
 
