@@ -456,6 +456,10 @@ trait ActionTrait {
         if ($number < 1 || $number > 7) {
             throw new BgaUserException("Invalid card number");
         }
+        $objects = $this->getGlobalVariable(OBJECTS, true) ?? [];
+        if (!in_array($number, $objects)) {
+            throw new BgaUserException("This object is not on the table");
+        }
 
         $playerId = intval($this->getCurrentPlayerId());
         $usedObjects =  $this->getUsedObjects($playerId);
@@ -463,8 +467,8 @@ trait ActionTrait {
             throw new BgaUserException("You already used this object in the round");
         }
 
-        $stateId = $this->getPlayerPrivateState($playerId);
-        if ($stateId >= 80 && $stateId < 90) {
+        $privateStateId = $this->getPlayerPrivateState($playerId);
+        if ($privateStateId >= 80 && $privateStateId < 90) {
             throw new BgaUserException("You're already activating an object");
         }
 
@@ -478,6 +482,10 @@ trait ActionTrait {
                 throw new BgaUserException("There is no level 1/2 card on your line");
             }
         }
+
+        if (in_array($number, [1, 3, 5]) && $privateStateId !== ST_PRIVATE_ORDER_CARDS) {
+            throw new BgaUserException("You can only activate this object when assembling");
+        }
         
         switch ($number) {
             case 1:
@@ -485,7 +493,7 @@ trait ActionTrait {
             case 3:
             case 4:
             case 7:
-                $this->savePrivateStateBeforeObject($playerId, $stateId);
+                $this->savePrivateStateBeforeObject($playerId, $privateStateId);
                 $this->gamestate->setPrivateState($playerId, 80 + $number);
                 break;
             case 5:
