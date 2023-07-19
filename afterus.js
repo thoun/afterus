@@ -1525,7 +1525,7 @@ var SlotStock = /** @class */ (function (_super) {
             throw new Error('You need to define SlotStock.mapCardToSlot to use SlotStock.swapCards');
         }
         var promises = [];
-        var elements = cards.map(function (card) { return _this.manager.getCardElement(__assign(__assign({}, card), { id: -1 })); });
+        var elements = cards.map(function (card) { return _this.manager.getCardElement(card); });
         var elementsRects = elements.map(function (element) { return element.getBoundingClientRect(); });
         var cssPositions = elements.map(function (element) { return element.style.position; });
         // we set to absolute so it doesn't mess with slide coordinates when 2 div are at the same place
