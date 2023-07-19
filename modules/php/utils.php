@@ -506,8 +506,12 @@ trait UtilTrait {
             $lineIds[$card->locationArg] = $card->id;
         }
 
+        $privateStateId = $this->getPlayerPrivateState($playerId);
+        if ($privateStateId >= 80 && $privateStateId < 90) {
+            $privateStateId = $player->privateStateBeforeObject;
+        }
         $undo = new Undo(
-            $this->getPlayerPrivateState($playerId),
+            $privateStateId,
             $lineIds,
             $player,
             $appliedEffects,
