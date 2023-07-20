@@ -261,7 +261,7 @@ trait UtilTrait {
 
         $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
         if ($tamarins == 0) {
-            $possibleEffects = array_values(array_filter($allEffects, fn($effect) => 
+            $possibleEffects = array_values(array_filter($possibleEffects, fn($effect) => 
                 count($effect->left) != 1 || 
                 !$this->array_some($effect->left, fn($condition) => $condition[1] == PER_TAMARINS)
             ));

@@ -46,6 +46,11 @@ trait StateTrait {
     }
 
     function stEndPhase1() {
+        $playersIds = $this->getPlayersIds();
+        foreach ($playersIds as $playerId) {
+            $this->giveExtraTime($playerId);
+        }
+
         $endScoreReached = $this->isEndScoreReached();
 
         if ($endScoreReached) {
@@ -66,6 +71,7 @@ trait StateTrait {
         $playersIdsWithReactivate = [];
 
         foreach ($playersIds as $playerId) {
+            $this->giveExtraTime($playerId);
             $token = $this->getPlayer($playerId)->chosenToken;
             $tokens[$playerId] = $token;
 
@@ -116,10 +122,10 @@ trait StateTrait {
 
     function stEndRound() {
         $this->incStat(1, 'roundNumber');
-
         
         $playersIds = $this->getPlayersIds();
         foreach ($playersIds as $playerId) {
+            $this->giveExtraTime($playerId);
             $this->cards->moveAllCardsInLocation('line'.$playerId, 'discard'.$playerId);
 
             self::notifyAllPlayers('endRound', '', [
