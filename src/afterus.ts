@@ -585,7 +585,7 @@ class AfterUs implements AfterUsGame {
             <div class="counters">
                 <div id="rage-counter-wrapper-${player.id}" class="counter">
                     <div class="icon rage"></div> 
-                    <span id="rage-counter-${player.id}"></span>
+                    <span id="rage-counter-${player.id}"></span> / 12
                 </div>
             </div>`;
             dojo.place(html, `player_board_${player.id}`);

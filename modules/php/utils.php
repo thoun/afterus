@@ -375,7 +375,11 @@ trait UtilTrait {
                 $this->DbQuery("UPDATE `player` SET `player_score` = `player_score` + $quantity WHERE `player_id` = $playerId");
                 $this->checkLastTurn();
                 break;
-            case RAGE: $this->DbQuery("UPDATE `player` SET `player_rage` = `player_rage` + $quantity WHERE `player_id` = $playerId"); break;
+            case RAGE: 
+                $currentRage = $this->getPlayer($playerId)->rage;
+                $rage = min($currentRage + $quantity, 12);
+                $this->DbQuery("UPDATE `player` SET `player_rage` = $rage WHERE `player_id` = $playerId");
+                break;
             case PER_TAMARINS: 
                 $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
                 $newResource = $resource[0];
