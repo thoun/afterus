@@ -100,15 +100,30 @@ class AfterUs extends Table {
         
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
+        
+    
+    // Statistics existing for each player
         $this->initStat('table', 'roundNumber', 0);
-        foreach(['table', 'player'] as $type) {
-            foreach([
-                "playedCards",
-                "cardPoints", "scoreCardPoints",
-            ] as $name) {
-                $this->initStat($type, $name, 0);
-            }
+        foreach([
+            // 30+ : effects
+            "activatedEffects", "activatedEffectsFree", "activatedEffectsCost", "activatedEffectsToken", "skippedEffects",
+            // 40+ : resources
+            "resourcesGained", "resourcesGained".FLOWER, "resourcesGained".FRUIT, "resourcesGained".GRAIN, "resourcesGained".ENERGY, "resourcesGained".POINT, "resourcesGained".RAGE,
+            "resourcesSpent", "resourcesSpent".FLOWER, "resourcesSpent".FRUIT, "resourcesSpent".GRAIN, "resourcesSpent".ENERGY,    
+            // 60+ : tokens
+            "activatedTokens", "activatedTokens".MANDRILLS, "activatedTokens".ORANGUTANS, "activatedTokens".GORILLAS, "activatedTokens".CHIMPANZEES,
+            // 70+ : cards
+            "cardsBought1", "cardsBought2",
+            "addedCards", "finalCardCount",
+            // 80+ : rage
+            "removedCards", "removedCards0", "removedCards1", "removedCards2",
+            "rageGain", "rageGain".FLOWER, "rageGain".FRUIT, "rageGain".GRAIN, "rageGain".ENERGY, "rageGain".POINT,
+            // 100+ : objects
+            "usedObjects"
+        ] as $name) {
+            $this->initStat('player', $name, 0);
         }
+        // TODO $this->incStat(1, 'activatedEffects', $playerId);
 
         // setup the initial game situation here
         $this->setupCards(array_keys($players));

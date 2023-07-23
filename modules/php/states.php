@@ -94,7 +94,10 @@ trait StateTrait {
                     'player' => $this->getPlayer($playerId),
                     'resources' => $this->getResourcesStr([$resource]),
                 ]);
-            }
+            } 
+
+            $this->incStat(1, 'activatedTokens', $playerId);
+            $this->incStat(1, 'activatedTokens'.$token, $playerId);
         }
         
         self::notifyAllPlayers('revealTokens', '', [
@@ -142,7 +145,7 @@ trait StateTrait {
         $playersIds = $this->getPlayersIds();
 
         foreach($playersIds as $playerId) {
-            // TODO stats?
+            $this->setStat(count($this->getFullDeck($playerId)), 'finalCardCount', $playerId);
         }
 
         $this->gamestate->nextState('endGame');

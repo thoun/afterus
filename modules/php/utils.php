@@ -330,9 +330,15 @@ trait UtilTrait {
     }
     
     private function giveResource(int $playerId, array $resource) {
+        $type = $resource[1];
         $quantity = $resource[0];
 
-        switch ($resource[1]) {
+        if ($type <= ENERGY) {
+            $this->incStat($quantity, 'resourcesSpent', $playerId);
+            $this->incStat($quantity, 'resourcesSpent'.$type, $playerId);
+        }
+
+        switch ($type) {
             case FLOWER: $this->DbQuery("UPDATE `player` SET `player_flower` = `player_flower` - $quantity WHERE `player_id` = $playerId"); break;
             case FRUIT: $this->DbQuery("UPDATE `player` SET `player_fruit` = `player_fruit` - $quantity WHERE `player_id` = $playerId"); break;
             case GRAIN: $this->DbQuery("UPDATE `player` SET `player_grain` = `player_grain` - $quantity WHERE `player_id` = $playerId"); break;
@@ -352,9 +358,15 @@ trait UtilTrait {
     }
 
     private function gainResource(int $playerId, array $resource, array $line) {
+        $type = $resource[1];
         $quantity = $resource[0];
 
-        switch ($resource[1]) {
+        if ($type <= RAGE) {
+            $this->incStat($quantity, 'resourcesGained', $playerId);
+            $this->incStat($quantity, 'resourcesGained'.$type, $playerId);
+        }
+
+        switch ($type) {
             case FLOWER: $this->DbQuery("UPDATE `player` SET `player_flower` = `player_flower` + $quantity WHERE `player_id` = $playerId"); break;
             case FRUIT: $this->DbQuery("UPDATE `player` SET `player_fruit` = `player_fruit` + $quantity WHERE `player_id` = $playerId"); break;
             case GRAIN: $this->DbQuery("UPDATE `player` SET `player_grain` = `player_grain` + $quantity WHERE `player_id` = $playerId"); break;
@@ -489,6 +501,8 @@ trait UtilTrait {
             'playerId' => $playerId,
             'object' => $object,
         ]);
+
+        $this->incStat(1, 'usedObjects', $playerId);
     }
 
     function saveForUndo(int $playerId, bool $erasePrevious, bool $logUndoPoint) {
@@ -496,6 +510,7 @@ trait UtilTrait {
         $player = $this->getPlayer($playerId);
         $appliedEffects = $this->getAppliedEffects($playerId);
         $usedObjects = $this->getUsedObjects($playerId);
+        $stats = $this->getCollectionFromDb("SELECT stats_id, stats_value FROM `stats` WHERE stats_player_id = $playerId", true);
 
         if ($logUndoPoint) {
             self::notifyPlayer($playerId, 'log', clienttranslate('As you revealed a hidden element, Cancel last moves will only allow to come back to this point'), []);
@@ -516,6 +531,7 @@ trait UtilTrait {
             $player,
             $appliedEffects,
             $usedObjects,
+            $stats,
         );
 
         $jsonObj = json_encode([$undo]);

@@ -178,7 +178,12 @@ trait ActionTrait {
 
         $this->markedPlayedEffect($playerId, $currentEffect);
 
-        $this->notifAppliedEffect($playerId, $appliedEffect);
+        $this->notifAppliedEffect($playerId, $appliedEffect);    
+        
+        $free = !$appliedEffect->convertSign || (count($appliedEffect->left) == 1 && in_array($appliedEffect->left[0][1], [DIFFERENT, PER_TAMARINS]));
+        
+        $this->incStat(1, 'activatedEffects', $playerId);
+        $this->incStat(1, $free ? 'activatedEffectsFree' : 'activatedEffectsCost', $playerId);
     }
 
     public function activateEffectToken(int $row, int $cardIndex, int $index) {
@@ -193,6 +198,12 @@ trait ActionTrait {
         $this->applyEffect($playerId, $appliedEffect, $line);
 
         $this->notifAppliedEffect($playerId, $appliedEffect);
+        
+        $free = count($appliedEffect->left) == 0 || (count($appliedEffect->left) == 1 && in_array($appliedEffect->left[0][1], [DIFFERENT, PER_TAMARINS]));
+        
+        $this->incStat(1, 'activatedEffects', $playerId);
+        $this->incStat(1, $free ? 'activatedEffectsFree' : 'activatedEffectsCost', $playerId);
+        $this->incStat(1, 'activatedEffectsToken', $playerId);
 
         $this->gamestate->nextPrivateState($playerId, 'next');
     }
@@ -208,6 +219,7 @@ trait ActionTrait {
         $effect = $args['currentEffect'];
 
         $this->markedPlayedEffect($playerId, $effect);
+        $this->incStat(1, 'skippedEffects', $playerId);
 
         // TODO notif ?
 
@@ -310,6 +322,9 @@ trait ActionTrait {
             'right' => $reactivate ? [] : $this->getResourcesStr([$resource]),
         ]);
 
+        $this->incStat(1, 'activatedTokens', $playerId);
+        $this->incStat(1, 'activatedTokens'.$args['copiedType'], $playerId);
+
         if ($reactivate) {
             $this->gamestate->nextPrivateState($playerId, 'activateEffect');
             return;
@@ -351,6 +366,7 @@ trait ActionTrait {
             'deckTopCard' => Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop("deck-$type-$level"))),
             'resources' => $this->getResourcesStr([$cost]),
         ]);
+        $this->incStat(1, 'addedCards', $playerId);
 
         $this->cardAddedToDeck($playerId);
     }
@@ -367,6 +383,8 @@ trait ActionTrait {
 
         $this->DbQuery("UPDATE `player` SET `phase2_card_bought` = TRUE WHERE `player_id` = $playerId");
         $this->takeCard($playerId, $level, $args['token'], [3 * $level, $type]);
+
+        $this->incStat(1, 'cardsBought'.$level, $playerId);
 
         //if ($args['canUseNeighborToken']) {
             $this->gamestate->nextPrivateState($playerId, 'stay');
@@ -444,6 +462,11 @@ trait ActionTrait {
             'card' => $card,
             'line' => $line,
         ]);
+
+        $this->incStat(1, 'removedCards', $playerId);
+        $this->incStat(1, 'removedCards'.$card->level, $playerId);
+        $this->incStat($resource[0], 'rageGain', $playerId);
+        $this->incStat($resource[0], 'rageGain'.$resource[1], $playerId);
 
         if ($privateState == ST_PRIVATE_ACTIVATE_EFFECT && $this->argActivateEffect($playerId)['currentEffect'] == null) {
             $this->gamestate->nextPrivateState($playerId, 'next');
@@ -796,6 +819,12 @@ trait ActionTrait {
         $this->applyCancelObject($playerId);
     }
 
+    private function restoreStats(int $playerId, array $stats) {
+        foreach ($stats as $key => $value) {
+            $this->DbQuery("UPDATE `stats` SET `stats_value` = $value WHERE `stats_player_id` = $playerId AND `stats_id` = $key");
+        }
+    }
+
     public function cancelLastMove() {
         self::checkAction('cancelLastMove');
 
@@ -821,6 +850,7 @@ trait ActionTrait {
         $undosJson = json_encode(array_slice($undos, 0, count($undos) - 1));
 
         $this->DbQuery("UPDATE `player` SET `player_flower` = $player->flowers, `player_fruit` = $player->fruits, `player_grain` = $player->grains, `player_energy` = $player->energy, `player_score` = $player->score, `player_rage` = $player->rage, `applied_effects` = '$appliedEffectsJsonObj', `used_objects` = '$usedObjectsJsonObj', `undo` = '$undosJson' WHERE `player_id` = $playerId");
+        $this->restoreStats($playerId, (array)$undo->stats);
 
         self::notifyAllPlayers('cancelLastMoves', clienttranslate('${player_name} cancels their last move'), [
             'playerId' => $playerId,
@@ -853,6 +883,7 @@ trait ActionTrait {
         $undosJson = json_encode([$undo]);
 
         $this->DbQuery("UPDATE `player` SET `player_flower` = $player->flowers, `player_fruit` = $player->fruits, `player_grain` = $player->grains, `player_energy` = $player->energy, `player_score` = $player->score, `player_rage` = $player->rage, `applied_effects` = '$appliedEffectsJsonObj', `used_objects` = '$usedObjectsJsonObj', `undo` = '$undosJson' WHERE `player_id` = $playerId");
+        $this->restoreStats($playerId, (array)$undo->stats);
 
         self::notifyAllPlayers('cancelLastMoves', clienttranslate('${player_name} cancels their last moves'), [
             'playerId' => $playerId,
