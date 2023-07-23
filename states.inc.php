@@ -124,7 +124,7 @@ $playerActionsGameStates = [
 
     ST_MULTIPLAYER_CHOOSE_TOKEN => [
         "name" => "chooseToken",
-        "description" => clienttranslate('Waiting for other players'),
+        "description" => clienttranslate('Phase 2 : Waiting for other players'),
         "descriptionmyturn" => '',
         "type" => "multipleactiveplayer",
         "initialprivate" => ST_PRIVATE_CHOOSE_TOKEN,
@@ -151,7 +151,7 @@ $playerActionsGameStates = [
 
     ST_MULTIPLAYER_TOKEN_SELECT_REACTIVATE => [
         "name" => "tokenSelectReactivate",
-        "description" => clienttranslate('Waiting for other players'),
+        "description" => clienttranslate('Phase 2 : Waiting for other players'),
         "descriptionmyturn" => '',
         "type" => "multipleactiveplayer",
         "action" => "stTokenSelectReactivate",
@@ -259,7 +259,7 @@ $playerActionsGameStates = [
 
     ST_PRIVATE_GAME_CONSOLE => [
         "name" => "gameConsole",
-        "descriptionmyturn" => clienttranslate('You can select cards to place on top of your draw pile'),
+        "descriptionmyturn" => clienttranslate('You can select a card to place on top of your draw pile'),
         "type" => "private",
         "possibleactions" => [ "useGameConsole", "cancelObject" ],
         "transitions" => [

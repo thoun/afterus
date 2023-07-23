@@ -420,7 +420,7 @@ trait ActionTrait {
 
         $message = $card->type == TAMARINS ?
             _('${player_name} gains ${resources} by removing a tamarin') :
-            _('${player_name} gains ${resources} by removing a ${level} ${type}');
+            _('${player_name} gains ${resources} by removing a level ${level} ${type}');
 
         $line = null;
         $privateState = $this->getPlayerPrivateState($playerId);
