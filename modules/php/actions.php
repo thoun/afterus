@@ -338,7 +338,7 @@ trait ActionTrait {
         $locationArg = intval($this->getUniqueValueFromDB("SELECT max(`card_location_arg`) FROM `card` WHERE `card_location` = 'pdeck$playerId'")) + 1;
         $card = $this->getCardFromDb($this->cards->pickCardForLocation("deck-$type-$level", 'pdeck'.$playerId, $locationArg));
 
-        self::notifyAllPlayers('buyCard', _('${player_name} buy a level ${level} ${type} card with ${resources}'), [
+        self::notifyAllPlayers('buyCard', _('${player_name} buys a level ${level} ${type} card with ${resources}'), [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
             'player' => $this->getPlayer($playerId),
