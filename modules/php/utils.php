@@ -481,7 +481,7 @@ trait UtilTrait {
             $this->cards->moveAllCardsInLocation('discard'.$playerId, 'pdeck'.$playerId);
             $this->cards->shuffle('pdeck'.$playerId);
 
-            self::notifyAllPlayers('refillDeck', _('${player_name} shuffles discarded cards back to form a new deck (deck was empty)'), [
+            self::notifyAllPlayers('refillDeck', clienttranslate('${player_name} shuffles discarded cards back to form a new deck (deck was empty)'), [
                 'playerId' => $playerId,
                 'player_name' => $this->getPlayerName($playerId),
                 'deckCount' => intval($this->cards->countCardInLocation('pdeck'.$playerId)),

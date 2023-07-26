@@ -88,7 +88,7 @@ trait StateTrait {
             } else {
                 $this->gainResource($playerId, $resource, []);
                 
-                self::notifyAllPlayers('activatedEffect', _('${player_name} gains ${resources} with chosen token'), [
+                self::notifyAllPlayers('activatedEffect', clienttranslate('${player_name} gains ${resources} with chosen token'), [
                     'playerId' => $playerId,
                     'player_name' => $this->getPlayerName($playerId),
                     'player' => $this->getPlayer($playerId),

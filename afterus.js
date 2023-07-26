@@ -2702,7 +2702,7 @@ var PlayerTable = /** @class */ (function () {
         this.line = new CardLine(this.game.cardsManager, document.getElementById("player-table-".concat(this.playerId, "-line")), {
             wrap: 'nowrap',
             gap: '0',
-            slotsIds: Array.from(Array(Math.max.apply(Math, player.line.map(function (card) { return card.locationArg; })) + 1).keys()),
+            slotsIds: this.getSlotsIds(player.line),
             mapCardToSlot: function (card) { return card.locationArg; }
         }, game, this.currentPlayer);
         this.resetLine(player.line, false);
@@ -2732,6 +2732,10 @@ var PlayerTable = /** @class */ (function () {
             },
         });
     }
+    PlayerTable.prototype.getSlotsIds = function (line) {
+        var maxLocationArg = Math.max.apply(Math, __spreadArray([3], line.map(function (card) { return card.locationArg; }), false));
+        return Array.from(Array(maxLocationArg + 1).keys());
+    };
     PlayerTable.prototype.onRemoveCardClick = function (card) {
         var _this = this;
         var _a;
@@ -2769,7 +2773,7 @@ var PlayerTable = /** @class */ (function () {
     PlayerTable.prototype.resetLine = function (cards, fromDeck) {
         var _this = this;
         this.line.removeAll();
-        this.line.setSlotsIds(Array.from(Array(Math.max.apply(Math, cards.map(function (card) { return card.locationArg; })) + 1).keys()));
+        this.line.setSlotsIds(this.getSlotsIds(cards));
         if (fromDeck) {
             cards.forEach(function (card) { return _this.game.cardsManager.updateCardInformations(card); });
             this.deck.addCards(cards);

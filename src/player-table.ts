@@ -81,7 +81,7 @@ class PlayerTable {
         this.line = new CardLine(this.game.cardsManager, document.getElementById(`player-table-${this.playerId}-line`), {
             wrap: 'nowrap',
             gap: '0',
-            slotsIds: Array.from(Array(Math.max(...player.line.map(card => card.locationArg)) + 1).keys()),
+            slotsIds: this.getSlotsIds(player.line),
             mapCardToSlot: card => card.locationArg
         }, game, this.currentPlayer);
             
@@ -121,6 +121,11 @@ class PlayerTable {
                 position: 'top',
             },
         });
+    }
+
+    private getSlotsIds(line: Card[]): SlotId[] {
+        const maxLocationArg = Math.max(3, ...line.map(card => card.locationArg));
+        return Array.from(Array(maxLocationArg + 1).keys());
     }
 
     private onRemoveCardClick(card: Card) {
@@ -163,7 +168,7 @@ class PlayerTable {
     
     public resetLine(cards: Card[], fromDeck: boolean) {         
         this.line.removeAll();
-        this.line.setSlotsIds(Array.from(Array(Math.max(...cards.map(card => card.locationArg)) + 1).keys()));
+        this.line.setSlotsIds(this.getSlotsIds(cards));
 
         if (fromDeck) {
             cards.forEach(card => this.game.cardsManager.updateCardInformations(card));

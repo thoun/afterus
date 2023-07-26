@@ -100,10 +100,9 @@ class AfterUs extends Table {
         
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
-        
-    
-    // Statistics existing for each player
+
         $this->initStat('table', 'roundNumber', 0);
+        // Statistics existing for each player
         foreach([
             // 30+ : effects
             "activatedEffects", "activatedEffectsFree", "activatedEffectsCost", "activatedEffectsToken", "skippedEffects",
@@ -123,7 +122,6 @@ class AfterUs extends Table {
         ] as $name) {
             $this->initStat('player', $name, 0);
         }
-        // TODO $this->incStat(1, 'activatedEffects', $playerId);
 
         // setup the initial game situation here
         $this->setupCards(array_keys($players));

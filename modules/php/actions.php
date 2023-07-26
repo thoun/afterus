@@ -113,9 +113,9 @@ trait ActionTrait {
     private function notifAppliedEffect(int $playerId, Effect $appliedEffect) {
         $message = '';
         if (!$appliedEffect->convertSign || count($appliedEffect->left) == 0) {
-            $message = _('${player_name} gains ${resources} with activated effect');
+            $message = clienttranslate('${player_name} gains ${resources} with activated effect');
         } else {
-            $message = _('${player_name} spends ${left} to gain ${right} with activated effect');
+            $message = clienttranslate('${player_name} spends ${left} to gain ${right} with activated effect');
         }
         
         self::notifyAllPlayers('activatedEffect', $message, [
@@ -311,8 +311,8 @@ trait ActionTrait {
         }
 
         $message = $reactivate ? 
-            _('${player_name} spends ${left} to reactivate an effect') : 
-            _('${player_name} spends ${left} to gain ${right} with activated effect');
+            clienttranslate('${player_name} spends ${left} to reactivate an effect') : 
+            clienttranslate('${player_name} spends ${left} to gain ${right} with activated effect');
 
         self::notifyAllPlayers('activatedEffect', $message, [
             'playerId' => $playerId,
@@ -353,7 +353,7 @@ trait ActionTrait {
         $locationArg = intval($this->getUniqueValueFromDB("SELECT max(`card_location_arg`) FROM `card` WHERE `card_location` = 'pdeck$playerId'")) + 1;
         $card = $this->getCardFromDb($this->cards->pickCardForLocation("deck-$type-$level", 'pdeck'.$playerId, $locationArg));
 
-        self::notifyAllPlayers('buyCard', _('${player_name} buys a level ${level} ${type} card with ${resources}'), [
+        self::notifyAllPlayers('buyCard', clienttranslate('${player_name} buys a level ${level} ${type} card with ${resources}'), [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
             'player' => $this->getPlayer($playerId),
@@ -437,8 +437,8 @@ trait ActionTrait {
         $this->gainResource($playerId, $resource, []);
 
         $message = $card->type == TAMARINS ?
-            _('${player_name} gains ${resources} by removing a tamarin') :
-            _('${player_name} gains ${resources} by removing a level ${level} ${type}');
+            clienttranslate('${player_name} gains ${resources} by removing a tamarin') :
+            clienttranslate('${player_name} gains ${resources} by removing a level ${level} ${type}');
 
         $line = null;
         $privateState = $this->getPlayerPrivateState($playerId);
