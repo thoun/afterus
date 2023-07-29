@@ -117,7 +117,8 @@ $playerActionsGameStates = [
         "args" => "argActivateEffect",
         "possibleactions" => [ "confirmActivations", "cancelLastMove", "cancelLastMoves" ],
         "transitions" => [
-            'stay' => ST_PRIVATE_CONFIRM_ACTIVATIONS,
+          'stay' => ST_PRIVATE_CONFIRM_ACTIVATIONS,
+          'back' => ST_PRIVATE_ACTIVATE_EFFECT,
           'next' => ST_PRIVATE_ACTIVATE_EFFECT,
         ],
     ],

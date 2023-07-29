@@ -470,6 +470,8 @@ trait ActionTrait {
 
         if ($privateState == ST_PRIVATE_ACTIVATE_EFFECT && $this->argActivateEffect($playerId)['currentEffect'] == null) {
             $this->gamestate->nextPrivateState($playerId, 'next');
+        } else if ($privateState == ST_PRIVATE_CONFIRM_ACTIVATIONS && $this->argActivateEffect($playerId)['currentEffect'] != null) {
+            $this->gamestate->nextPrivateState($playerId, 'back');
         } else if ($this->gamestate->isPlayerActive($playerId)) {
             $this->gamestate->nextPrivateState($playerId, 'stay');
         }
@@ -658,6 +660,11 @@ trait ActionTrait {
         ]);
 
         $this->applyCancelObject($playerId);
+
+        $privateState = $this->getPlayerPrivateState($playerId);
+        if ($privateState == ST_PRIVATE_CONFIRM_ACTIVATIONS && $this->argActivateEffect($playerId)['currentEffect'] != null) {
+            $this->gamestate->nextPrivateState($playerId, 'back');
+        }
     }
 
     public function useGhettoBlaster(int $id) {
