@@ -76,6 +76,14 @@
         self::ajaxResponse();
     }
 
+    public function skipEffectToken() {
+        self::setAjaxMode();     
+
+        $this->game->skipEffectToken();
+
+        self::ajaxResponse();
+    }
+
     public function confirmActivations() {
         self::setAjaxMode();     
 

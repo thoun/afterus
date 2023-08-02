@@ -228,6 +228,14 @@ trait ActionTrait {
         $this->gamestate->nextPrivateState($playerId, $remaining ? 'stay' : 'next');
     }
 
+    public function skipEffectToken() {
+        self::checkAction('skipEffectToken');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $this->gamestate->nextPrivateState($playerId, 'next');
+    }
+
     public function confirmActivations() {
         self::checkAction('confirmActivations');
 

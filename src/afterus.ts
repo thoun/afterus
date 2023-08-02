@@ -347,7 +347,11 @@ class AfterUs implements AfterUsGame {
                 [1, 2, 3, 4].forEach(type => this.createChooseTokenButton(type));
                 break;
             case 'activateEffectToken':
-                this.createFakeButtonForReactivate([]);
+                if (args.possibleEffects.length) {
+                    this.createFakeButtonForReactivate([]);
+                } else {
+                    (this as any).addActionButton(`skipEffectToken-button`, _("Skip"), () => this.skipEffectToken());
+                }
                 break;
             case 'buyCard':
                 const buyCardArgs = args as EnteringBuyCardArgs;
@@ -735,6 +739,14 @@ class AfterUs implements AfterUsGame {
         }
 
         this.takeNoLockAction('skipEffect');
+    }
+  	
+    public skipEffectToken() {
+        if(!(this as any).checkAction('skipEffectToken')) {
+            return;
+        }
+
+        this.takeNoLockAction('skipEffectToken');
     }
   	
     public confirmActivations() {

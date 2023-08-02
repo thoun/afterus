@@ -3256,7 +3256,12 @@ var AfterUs = /** @class */ (function () {
                 [1, 2, 3, 4].forEach(function (type) { return _this.createChooseTokenButton(type); });
                 break;
             case 'activateEffectToken':
-                this.createFakeButtonForReactivate([]);
+                if (args.possibleEffects.length) {
+                    this.createFakeButtonForReactivate([]);
+                }
+                else {
+                    this.addActionButton("skipEffectToken-button", _("Skip"), function () { return _this.skipEffectToken(); });
+                }
                 break;
             case 'buyCard':
                 var buyCardArgs_1 = args;
@@ -3558,6 +3563,12 @@ var AfterUs = /** @class */ (function () {
             return;
         }
         this.takeNoLockAction('skipEffect');
+    };
+    AfterUs.prototype.skipEffectToken = function () {
+        if (!this.checkAction('skipEffectToken')) {
+            return;
+        }
+        this.takeNoLockAction('skipEffectToken');
     };
     AfterUs.prototype.confirmActivations = function () {
         if (!this.checkAction('confirmActivations')) {
