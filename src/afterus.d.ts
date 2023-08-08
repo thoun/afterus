@@ -214,6 +214,7 @@ interface NotifRefillDeckArgs {
 // cancelLastMoves
 interface NotifCancelLastMovesArgs extends NotifActivatedEffectArgs {
     line: Card[];
+    removeLastTurn: boolean;
 }
 
 // deckTopCard

@@ -3881,8 +3881,12 @@ var AfterUs = /** @class */ (function () {
         this.getPlayerTable(args.playerId).refillDeck(args.deckCount);
     };
     AfterUs.prototype.notif_cancelLastMoves = function (args) {
+        var _a;
         this.getPlayerTable(args.playerId).setLine(args.line);
         this.notif_activatedEffect(args);
+        if (args.removeLastTurn) {
+            (_a = document.getElementById('last-round')) === null || _a === void 0 ? void 0 : _a.remove();
+        }
     };
     AfterUs.prototype.notif_deckTopCard = function (args) {
         this.getPlayerTable(args.playerId).deckTopCard(args.card);

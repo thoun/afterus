@@ -889,11 +889,18 @@ trait ActionTrait {
         $this->DbQuery("UPDATE `player` SET `player_flower` = $player->flowers, `player_fruit` = $player->fruits, `player_grain` = $player->grains, `player_energy` = $player->energy, `player_score` = $player->score, `player_rage` = $player->rage, `applied_effects` = '$appliedEffectsJsonObj', `used_objects` = '$usedObjectsJsonObj', `undo` = '$undosJson' WHERE `player_id` = $playerId");
         $this->restoreStats($playerId, (array)$undo->stats);
 
+        $removeLastTurn = false;
+        if (boolval($this->getGameStateValue(LAST_TURN)) && intval($this->getUniqueValueFromDB("SELECT count(*) FROM player where `player_score` >= 80")) == 0) {
+            $this->setGameStateValue(LAST_TURN, 0);
+            $removeLastTurn = true;
+        }
+
         self::notifyAllPlayers('cancelLastMoves', $message, [
             'playerId' => $playerId,
             'player_name' => $this->getPlayerName($playerId),
             'line' => $line,
             'player' => $this->getPlayer($playerId),
+            'removeLastTurn' => $removeLastTurn,
         ]);
 
 

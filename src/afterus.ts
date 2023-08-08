@@ -1092,6 +1092,10 @@ class AfterUs implements AfterUsGame {
     notif_cancelLastMoves(args: NotifCancelLastMovesArgs) {
         this.getPlayerTable(args.playerId).setLine(args.line);
         this.notif_activatedEffect(args);
+
+        if (args.removeLastTurn) {
+            document.getElementById('last-round')?.remove();
+        }
     }
 
     notif_deckTopCard(args: NotifDeckTopCardArgs) {
