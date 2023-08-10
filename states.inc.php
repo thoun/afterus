@@ -183,7 +183,7 @@ $playerActionsGameStates = [
         "args" => "argActivateEffect",
         "possibleactions" => [ "confirmActivations", "cancelLastMoves" ],
         "transitions" => [
-          'stay' => ST_PRIVATE_CONFIRM_ACTIVATIONS,
+          'stay' => ST_PRIVATE_CONFIRM_ACTIVATIONS_PHASE2,
           'next' => ST_PRIVATE_BUY_CARD,
         ],
     ],
