@@ -277,6 +277,29 @@ $playerActionsGameStates = [
             'stay' => ST_PRIVATE_MOPED,
         ],
     ],
+
+    ST_MULTIPLAYER_BEFORE_END_GAME => [
+        "name" => "beforeEndGame",
+        "description" => clienttranslate('End game : Waiting for other players'),
+        "descriptionmyturn" => '',
+        "type" => "multipleactiveplayer",
+        "initialprivate" => ST_PRIVATE_BEFORE_END_GAME,
+        "action" => "stBeforeEndGame",
+        "possibleactions" => [],
+        "transitions" => [
+            "next" => ST_END_SCORE,
+        ],
+    ],
+
+    ST_PRIVATE_BEFORE_END_GAME => [
+        "name" => "privateBeforeEndGame",
+        "descriptionmyturn" => clienttranslate('End game : ${you} can use remaining rage'),
+        "type" => "private",
+        "possibleactions" => [ "endGame" ],
+        "transitions" => [
+          'stay' => ST_PRIVATE_BEFORE_END_GAME,
+        ],
+    ],
 ];
 
 $gameGameStates = [
@@ -299,7 +322,7 @@ $gameGameStates = [
         "updateGameProgression" => true,
         "transitions" => [
             "next" => ST_MULTIPLAYER_CHOOSE_TOKEN,
-            "endGame" => ST_END_SCORE
+            "endGame" => ST_MULTIPLAYER_BEFORE_END_GAME
         ],
     ],
 
@@ -322,7 +345,7 @@ $gameGameStates = [
         "updateGameProgression" => true,
         "transitions" => [
             "newRound" => ST_NEW_ROUND,
-            "endScore" => ST_END_SCORE,
+            "endScore" => ST_MULTIPLAYER_BEFORE_END_GAME,
         ],
     ],
 

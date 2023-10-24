@@ -420,6 +420,14 @@ trait ActionTrait {
         $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
     } 
 
+    public function endGame() {
+        self::checkAction('endGame');
+
+        $playerId = intval($this->getCurrentPlayerId());
+
+        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+    } 
+
     function setAutoGain(bool $autoGain) {
         $playerId = intval($this->getCurrentPlayerId());
 
@@ -430,6 +438,10 @@ trait ActionTrait {
     }
 
     function useRage(int $id) {
+        if (intval($this->gamestate->state_id()) >= ST_END_SCORE) {
+            throw new BgaUserException("You can't do actions after game end");
+        }
+
         $playerId = intval($this->getCurrentPlayerId());
 
         $card = $this->getCardFromDb($this->cards->getCard($id));
@@ -497,6 +509,10 @@ trait ActionTrait {
     }  
 
     function useObject(int $number) {
+        if (intval($this->gamestate->state_id()) >= ST_END_SCORE) {
+            throw new BgaUserException("You can't do actions after game end");
+        }
+        
         if ($number < 1 || $number > 7) {
             throw new BgaUserException("Invalid card number");
         }

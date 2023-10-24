@@ -141,6 +141,23 @@ trait StateTrait {
         $this->gamestate->nextState($endScoreReached ? 'endScore' : 'newRound');
     }
 
+    function stBeforeEndGame() {
+        $playersIds = $this->getPlayersIds();
+        $playersWithRage = [];
+        foreach ($playersIds as $playerId) {
+            if ($this->getPlayer($playerId)->rage >= 4) {
+                $playersWithRage[] = $playerId;
+            }
+        }
+
+        if (count($playersWithRage) > 0) {
+            $this->gamestate->setPlayersMultiactive($playersWithRage, 'next', true);
+            $this->gamestate->initializePrivateStateForAllActivePlayers(); 
+        } else {
+            $this->gamestate->nextState('next');
+        }
+    }
+
     function stEndScore() {
         $playersIds = $this->getPlayersIds();
 

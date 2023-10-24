@@ -413,6 +413,9 @@ class AfterUs implements AfterUsGame {
                 });
                 (this as any).addActionButton(`cancelNeighborEffect-button`, _("Cancel"), () => this.cancelNeighborEffect(), null, null, 'gray');
                 break;
+            case 'privateBeforeEndGame':
+                (this as any).addActionButton(`endGame-button`, _("End game"), () => this.endGame(), null, null, 'red');
+                break;
 
             case 'mobilePhone':
             case 'ghettoBlaster':
@@ -836,6 +839,14 @@ class AfterUs implements AfterUsGame {
         }
 
         this.takeAction('endTurn');
+    }
+  	
+    public endGame() {
+        if(!(this as any).checkAction('endGame')) {
+            return;
+        }
+
+        this.takeAction('endGame');
     }
 
     public setAutoGain(autoGain: boolean) {

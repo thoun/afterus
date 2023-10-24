@@ -3319,6 +3319,9 @@ var AfterUs = /** @class */ (function () {
                 });
                 this.addActionButton("cancelNeighborEffect-button", _("Cancel"), function () { return _this.cancelNeighborEffect(); }, null, null, 'gray');
                 break;
+            case 'privateBeforeEndGame':
+                this.addActionButton("endGame-button", _("End game"), function () { return _this.endGame(); }, null, null, 'red');
+                break;
             case 'mobilePhone':
             case 'ghettoBlaster':
             case 'gameConsole':
@@ -3638,6 +3641,12 @@ var AfterUs = /** @class */ (function () {
             return;
         }
         this.takeAction('endTurn');
+    };
+    AfterUs.prototype.endGame = function () {
+        if (!this.checkAction('endGame')) {
+            return;
+        }
+        this.takeAction('endGame');
     };
     AfterUs.prototype.setAutoGain = function (autoGain) {
         this.takeNoLockAction('setAutoGain', {

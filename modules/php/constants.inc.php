@@ -55,6 +55,9 @@ define('ST_PRIVATE_MOPED', 87);
 
 define('ST_END_ROUND', 95);
 
+const ST_MULTIPLAYER_BEFORE_END_GAME = 96;
+const ST_PRIVATE_BEFORE_END_GAME = 97;
+
 define('ST_END_SCORE', 98);
 
 define('ST_END_GAME', 99);

@@ -163,6 +163,14 @@
 
         self::ajaxResponse();
     } 
+
+    public function endGame() {
+        self::setAjaxMode();     
+
+        $this->game->endGame();
+
+        self::ajaxResponse();
+    } 
   	
     public function setAutoGain() {
         self::setAjaxMode();
