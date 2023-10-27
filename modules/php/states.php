@@ -145,7 +145,7 @@ trait StateTrait {
         $playersIds = $this->getPlayersIds();
         $playersWithRage = [];
         foreach ($playersIds as $playerId) {
-            if ($this->getPlayer($playerId)->rage >= 4) {
+            if ($this->getPlayer($playerId)->rage >= 4 && count($this->getCardsByLocation('line'.$playerId)) > 0) {
                 $playersWithRage[] = $playerId;
             }
         }

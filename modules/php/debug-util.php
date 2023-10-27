@@ -11,7 +11,7 @@ trait DebugUtilTrait {
             return;
         } 
 
-		//$this->debugSetRage(10);
+		$this->debugSetRage(10);
 		$this->debugSetEnergy(10);
 		$this->debugSet('score', 78);
         //$this->debugSetLastTurn();
