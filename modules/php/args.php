@@ -135,7 +135,7 @@ trait ArgsTrait {
             'buyCardCost' => $buyCardCost,
             'canBuyCard' => $canBuyCard,
             'canUseGameConsole' => $canUseGameConsole,
-            'type' => $this->getMonkeyType($token), // for logs
+            'type' => $token != null ? $this->getMonkeyType($token) : null, // for logs
             'i18n' => ['type'],
         ];
     }

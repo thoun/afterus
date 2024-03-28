@@ -166,6 +166,10 @@ trait ActionTrait {
             }
         }
 
+        if (!$appliedEffect) {
+            throw new BgaUserException(self::_('Unknown effect, please report a bug'));
+        }
+
         $this->applyActivateEffect($playerId, $appliedEffect, $currentEffect, $line);
 
         $remaining = $this->applyAutoGainEffects($playerId);
