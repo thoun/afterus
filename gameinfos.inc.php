@@ -13,16 +13,7 @@
 $gameinfos = [ 
 
 // Name of the game in English (will serve as the basis for translation) 
-'game_name' => "After Us",
-
-// Game designer (or game designers, separated by commas)
-'designer' => 'Florian Sirieix',       
-
-// Game artist (or game artists, separated by commas)
-'artist' => 'Vincent Dutrait',         
-
-// Year of FIRST publication of this game. Can be negative.
-'year' => 2023,                 
+'game_name' => "After Us",                
 
 // Game publisher (use empty string if there is no publisher)
 'publisher' => 'Catch Up Games',
@@ -85,19 +76,7 @@ $gameinfos = [
 // Language dependency. If false or not set, there is no language dependency. If true, all players at the table must speak the same language.
 // If an array of shortcode languages such as array( 1 => 'en', 2 => 'fr', 3 => 'it' ) then all players at the table must speak the same language, and this language must be one of the listed languages.
 // NB: the default will be the first language in this list spoken by the player, so you should list them by popularity/preference.
-'language_dependency' => false,
-
-// Complexity of the game, from 0 (extremely simple) to 5 (extremely complex)
-'complexity' => 3,    
-
-// Luck of the game, from 0 (absolutely no luck in this game) to 5 (totally luck driven)
-'luck' => 2,    
-
-// Strategy of the game, from 0 (no strategy can be setup) to 5 (totally based on strategy)
-'strategy' => 3,    
-
-// Diplomacy of the game, from 0 (no interaction in this game) to 5 (totally based on interaction and discussion between players)
-'diplomacy' => 1,    
+'language_dependency' => false,  
 
 // Colors attributed to players
   'player_colors' => [
@@ -133,15 +112,6 @@ $gameinfos = [
     //  minimum possible value: 740
     'max' => null
   ],
-
-// Game presentation
-// Short game presentation text that will appear on the game description page, structured as an array of paragraphs.
-// Each paragraph must be wrapped with totranslate() for translation and should not contain html (plain text without formatting).
-// A good length for this text is between 100 and 150 words (about 6 to 9 lines on a standard display)
-'presentation' => [
-    totranslate("2083. Humankind died out decades ago, leaving behind mere vestiges of its time on Earth. As time went by, nature reclaimed land all over. In this resurgent world, apes have kept evolving. They've been gathering in tribes, growing, mastering human items, and advancing in their quest for knowledge. As the leader of such a tribe, you need to guide it towards collective intelligence."),
-    totranslate("After Us is a deck-building and resource management game featuring an original and intuitive combo system in which players are each leading a tribe of apes. Starting only with tamarins, they combine their cards each turn to collect resources and gather victory points, attracting new apes into their tribe along the way: powerful gorillas, resourceful orangutans, versatile chimpanzees, and wise mandrills. The first player to obtain 80 points prevails in the race to collective intelligence — and wins the game."),
-],
 
 //////// BGA SANDBOX ONLY PARAMETERS (DO NOT MODIFY)
 
