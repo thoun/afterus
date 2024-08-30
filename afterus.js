@@ -1,4 +1,69 @@
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 var DEFAULT_ZOOM_LEVELS = [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1];
+function throttle(callback, delay) {
+    var last;
+    var timer;
+    return function () {
+        var context = this;
+        var now = +new Date();
+        var args = arguments;
+        if (last && now < last + delay) {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                last = now;
+                callback.apply(context, args);
+            }, delay);
+        }
+        else {
+            last = now;
+            callback.apply(context, args);
+        }
+    };
+}
+var advThrottle = function (func, delay, options) {
+    if (options === void 0) { options = { leading: true, trailing: false }; }
+    var timer = null, lastRan = null, trailingArgs = null;
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        if (timer) { //called within cooldown period
+            lastRan = this; //update context
+            trailingArgs = args; //save for later
+            return;
+        }
+        if (options.leading) { // if leading
+            func.call.apply(// if leading
+            func, __spreadArray([this], args, false)); //call the 1st instance
+        }
+        else { // else it's trailing
+            lastRan = this; //update context
+            trailingArgs = args; //save for later
+        }
+        var coolDownPeriodComplete = function () {
+            if (options.trailing && trailingArgs) { // if trailing and the trailing args exist
+                func.call.apply(// if trailing and the trailing args exist
+                func, __spreadArray([lastRan], trailingArgs, false)); //invoke the instance with stored context "lastRan"
+                lastRan = null; //reset the status of lastRan
+                trailingArgs = null; //reset trailing arguments
+                timer = setTimeout(coolDownPeriodComplete, delay); //clear the timout
+            }
+            else {
+                timer = null; // reset timer
+            }
+        };
+        timer = setTimeout(coolDownPeriodComplete, delay);
+    };
+};
 var ZoomManager = /** @class */ (function () {
     /**
      * Place the settings.element in a zoom wrapper and init zoomControls.
@@ -7,12 +72,12 @@ var ZoomManager = /** @class */ (function () {
      */
     function ZoomManager(settings) {
         var _this = this;
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         this.settings = settings;
         if (!settings.element) {
             throw new DOMException('You need to set the element to wrap in the zoom element');
         }
-        this.zoomLevels = (_a = settings.zoomLevels) !== null && _a !== void 0 ? _a : DEFAULT_ZOOM_LEVELS;
+        this._zoomLevels = (_a = settings.zoomLevels) !== null && _a !== void 0 ? _a : DEFAULT_ZOOM_LEVELS;
         this._zoom = this.settings.defaultZoom || 1;
         if (this.settings.localStorageZoomKey) {
             var zoomStr = localStorage.getItem(this.settings.localStorageZoomKey);
@@ -27,7 +92,7 @@ var ZoomManager = /** @class */ (function () {
         settings.element.classList.add('bga-zoom-inner');
         if ((_b = settings.smooth) !== null && _b !== void 0 ? _b : true) {
             settings.element.dataset.smooth = 'true';
-            settings.element.addEventListener('transitionend', function () { return _this.zoomOrDimensionChanged(); });
+            settings.element.addEventListener('transitionend', advThrottle(function () { return _this.zoomOrDimensionChanged(); }, this.throttleTime, { leading: true, trailing: true, }));
         }
         if ((_d = (_c = settings.zoomControls) === null || _c === void 0 ? void 0 : _c.visible) !== null && _d !== void 0 ? _d : true) {
             this.initZoomControls(settings);
@@ -35,17 +100,18 @@ var ZoomManager = /** @class */ (function () {
         if (this._zoom !== 1) {
             this.setZoom(this._zoom);
         }
-        window.addEventListener('resize', function () {
+        this.throttleTime = (_e = settings.throttleTime) !== null && _e !== void 0 ? _e : 100;
+        window.addEventListener('resize', advThrottle(function () {
             var _a;
             _this.zoomOrDimensionChanged();
             if ((_a = _this.settings.autoZoom) === null || _a === void 0 ? void 0 : _a.expectedWidth) {
                 _this.setAutoZoom();
             }
-        });
+        }, this.throttleTime, { leading: true, trailing: true, }));
         if (window.ResizeObserver) {
-            new ResizeObserver(function () { return _this.zoomOrDimensionChanged(); }).observe(settings.element);
+            new ResizeObserver(advThrottle(function () { return _this.zoomOrDimensionChanged(); }, this.throttleTime, { leading: true, trailing: true, })).observe(settings.element);
         }
-        if ((_e = this.settings.autoZoom) === null || _e === void 0 ? void 0 : _e.expectedWidth) {
+        if ((_f = this.settings.autoZoom) === null || _f === void 0 ? void 0 : _f.expectedWidth) {
             this.setAutoZoom();
         }
     }
@@ -55,6 +121,16 @@ var ZoomManager = /** @class */ (function () {
          */
         get: function () {
             return this._zoom;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ZoomManager.prototype, "zoomLevels", {
+        /**
+         * Returns the zoom levels
+         */
+        get: function () {
+            return this._zoomLevels;
         },
         enumerable: false,
         configurable: true
@@ -69,8 +145,8 @@ var ZoomManager = /** @class */ (function () {
         }
         var expectedWidth = (_a = this.settings.autoZoom) === null || _a === void 0 ? void 0 : _a.expectedWidth;
         var newZoom = this.zoom;
-        while (newZoom > this.zoomLevels[0] && newZoom > ((_c = (_b = this.settings.autoZoom) === null || _b === void 0 ? void 0 : _b.minZoomLevel) !== null && _c !== void 0 ? _c : 0) && zoomWrapperWidth / newZoom < expectedWidth) {
-            newZoom = this.zoomLevels[this.zoomLevels.indexOf(newZoom) - 1];
+        while (newZoom > this._zoomLevels[0] && newZoom > ((_c = (_b = this.settings.autoZoom) === null || _b === void 0 ? void 0 : _b.minZoomLevel) !== null && _c !== void 0 ? _c : 0) && zoomWrapperWidth / newZoom < expectedWidth) {
+            newZoom = this._zoomLevels[this._zoomLevels.indexOf(newZoom) - 1];
         }
         if (this._zoom == newZoom) {
             if (this.settings.localStorageZoomKey) {
@@ -80,6 +156,19 @@ var ZoomManager = /** @class */ (function () {
         else {
             this.setZoom(newZoom);
         }
+    };
+    /**
+     * Sets the available zoomLevels and new zoom to the provided values.
+     * @param zoomLevels the new array of zoomLevels that can be used.
+     * @param newZoom if provided the zoom will be set to this value, if not the last element of the zoomLevels array will be set as the new zoom
+     */
+    ZoomManager.prototype.setZoomLevels = function (zoomLevels, newZoom) {
+        if (!zoomLevels || zoomLevels.length <= 0) {
+            return;
+        }
+        this._zoomLevels = zoomLevels;
+        var zoomIndex = newZoom && zoomLevels.includes(newZoom) ? this._zoomLevels.indexOf(newZoom) : this._zoomLevels.length - 1;
+        this.setZoom(this._zoomLevels[zoomIndex]);
     };
     /**
      * Set the zoom level. Ideally, use a zoom level in the zoomLevels range.
@@ -92,8 +181,8 @@ var ZoomManager = /** @class */ (function () {
         if (this.settings.localStorageZoomKey) {
             localStorage.setItem(this.settings.localStorageZoomKey, '' + this._zoom);
         }
-        var newIndex = this.zoomLevels.indexOf(this._zoom);
-        (_a = this.zoomInButton) === null || _a === void 0 ? void 0 : _a.classList.toggle('disabled', newIndex === this.zoomLevels.length - 1);
+        var newIndex = this._zoomLevels.indexOf(this._zoom);
+        (_a = this.zoomInButton) === null || _a === void 0 ? void 0 : _a.classList.toggle('disabled', newIndex === this._zoomLevels.length - 1);
         (_b = this.zoomOutButton) === null || _b === void 0 ? void 0 : _b.classList.toggle('disabled', newIndex === 0);
         this.settings.element.style.transform = zoom === 1 ? '' : "scale(".concat(zoom, ")");
         (_d = (_c = this.settings).onZoomChange) === null || _d === void 0 ? void 0 : _d.call(_c, this._zoom);
@@ -110,32 +199,33 @@ var ZoomManager = /** @class */ (function () {
     };
     /**
      * Everytime the element dimensions changes, we update the style. And call the optional callback.
+     * Unsafe method as this is not protected by throttle. Surround with  `advThrottle(() => this.zoomOrDimensionChanged(), this.throttleTime, { leading: true, trailing: true, })` to avoid spamming recomputation.
      */
     ZoomManager.prototype.zoomOrDimensionChanged = function () {
         var _a, _b;
-        this.settings.element.style.width = "".concat(this.wrapper.getBoundingClientRect().width / this._zoom, "px");
-        this.wrapper.style.height = "".concat(this.settings.element.getBoundingClientRect().height, "px");
+        this.settings.element.style.width = "".concat(this.wrapper.offsetWidth / this._zoom, "px");
+        this.wrapper.style.height = "".concat(this.settings.element.offsetHeight, "px");
         (_b = (_a = this.settings).onDimensionsChange) === null || _b === void 0 ? void 0 : _b.call(_a, this._zoom);
     };
     /**
      * Simulates a click on the Zoom-in button.
      */
     ZoomManager.prototype.zoomIn = function () {
-        if (this._zoom === this.zoomLevels[this.zoomLevels.length - 1]) {
+        if (this._zoom === this._zoomLevels[this._zoomLevels.length - 1]) {
             return;
         }
-        var newIndex = this.zoomLevels.indexOf(this._zoom) + 1;
-        this.setZoom(newIndex === -1 ? 1 : this.zoomLevels[newIndex]);
+        var newIndex = this._zoomLevels.indexOf(this._zoom) + 1;
+        this.setZoom(newIndex === -1 ? 1 : this._zoomLevels[newIndex]);
     };
     /**
      * Simulates a click on the Zoom-out button.
      */
     ZoomManager.prototype.zoomOut = function () {
-        if (this._zoom === this.zoomLevels[0]) {
+        if (this._zoom === this._zoomLevels[0]) {
             return;
         }
-        var newIndex = this.zoomLevels.indexOf(this._zoom) - 1;
-        this.setZoom(newIndex === -1 ? 1 : this.zoomLevels[newIndex]);
+        var newIndex = this._zoomLevels.indexOf(this._zoom) - 1;
+        this.setZoom(newIndex === -1 ? 1 : this._zoomLevels[newIndex]);
     };
     /**
      * Changes the color of the zoom controls.
@@ -189,15 +279,6 @@ var ZoomManager = /** @class */ (function () {
     };
     return ZoomManager;
 }());
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 /**
  * Jump to entry.
  */
@@ -435,6 +516,62 @@ var BgaSlideAnimation = /** @class */ (function (_super) {
     }
     return BgaSlideAnimation;
 }(BgaAnimation));
+/**
+ * Linear slide of the element from origin to destination.
+ *
+ * @param animationManager the animation manager
+ * @param animation a `BgaAnimation` object
+ * @returns a promise when animation ends
+ */
+function slideToAnimation(animationManager, animation) {
+    var promise = new Promise(function (success) {
+        var _a, _b, _c, _d;
+        var settings = animation.settings;
+        var element = settings.element;
+        var _e = getDeltaCoordinates(element, settings), x = _e.x, y = _e.y;
+        var duration = (_a = settings === null || settings === void 0 ? void 0 : settings.duration) !== null && _a !== void 0 ? _a : 500;
+        var originalZIndex = element.style.zIndex;
+        var originalTransition = element.style.transition;
+        element.style.zIndex = "".concat((_b = settings === null || settings === void 0 ? void 0 : settings.zIndex) !== null && _b !== void 0 ? _b : 10);
+        var timeoutId = null;
+        var cleanOnTransitionEnd = function () {
+            element.style.zIndex = originalZIndex;
+            element.style.transition = originalTransition;
+            success();
+            element.removeEventListener('transitioncancel', cleanOnTransitionEnd);
+            element.removeEventListener('transitionend', cleanOnTransitionEnd);
+            document.removeEventListener('visibilitychange', cleanOnTransitionEnd);
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+        var cleanOnTransitionCancel = function () {
+            var _a;
+            element.style.transition = "";
+            element.offsetHeight;
+            element.style.transform = (_a = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _a !== void 0 ? _a : null;
+            element.offsetHeight;
+            cleanOnTransitionEnd();
+        };
+        element.addEventListener('transitioncancel', cleanOnTransitionEnd);
+        element.addEventListener('transitionend', cleanOnTransitionEnd);
+        document.addEventListener('visibilitychange', cleanOnTransitionCancel);
+        element.offsetHeight;
+        element.style.transition = "transform ".concat(duration, "ms linear");
+        element.offsetHeight;
+        element.style.transform = "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_c = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _c !== void 0 ? _c : 0, "deg) scale(").concat((_d = settings.scale) !== null && _d !== void 0 ? _d : 1, ")");
+        // safety in case transitionend and transitioncancel are not called
+        timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
+    });
+    return promise;
+}
+var BgaSlideToAnimation = /** @class */ (function (_super) {
+    __extends(BgaSlideToAnimation, _super);
+    function BgaSlideToAnimation(settings) {
+        return _super.call(this, slideToAnimation, settings) || this;
+    }
+    return BgaSlideToAnimation;
+}(BgaAnimation));
 function shouldAnimate(settings) {
     var _a;
     return document.visibilityState !== 'hidden' && !((_a = settings === null || settings === void 0 ? void 0 : settings.game) === null || _a === void 0 ? void 0 : _a.instantaneousMode);
@@ -572,24 +709,24 @@ var AnimationManager = /** @class */ (function () {
      * @returns the animation promise.
      */
     AnimationManager.prototype.play = function (animation) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         return __awaiter(this, void 0, void 0, function () {
-            var settings, _m;
+            var settings, _a;
+            var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
             return __generator(this, function (_o) {
                 switch (_o.label) {
                     case 0:
                         animation.played = animation.playWhenNoAnimation || this.animationsActive();
                         if (!animation.played) return [3 /*break*/, 2];
                         settings = animation.settings;
-                        (_a = settings.animationStart) === null || _a === void 0 ? void 0 : _a.call(settings, animation);
-                        (_b = settings.element) === null || _b === void 0 ? void 0 : _b.classList.add((_c = settings.animationClass) !== null && _c !== void 0 ? _c : 'bga-animations_animated');
-                        animation.settings = __assign(__assign({}, animation.settings), { duration: (_e = (_d = this.settings) === null || _d === void 0 ? void 0 : _d.duration) !== null && _e !== void 0 ? _e : 500, scale: (_g = (_f = this.zoomManager) === null || _f === void 0 ? void 0 : _f.zoom) !== null && _g !== void 0 ? _g : undefined });
-                        _m = animation;
+                        (_b = settings.animationStart) === null || _b === void 0 ? void 0 : _b.call(settings, animation);
+                        (_c = settings.element) === null || _c === void 0 ? void 0 : _c.classList.add((_d = settings.animationClass) !== null && _d !== void 0 ? _d : 'bga-animations_animated');
+                        animation.settings = __assign(__assign({}, animation.settings), { duration: (_f = (_e = this.settings) === null || _e === void 0 ? void 0 : _e.duration) !== null && _f !== void 0 ? _f : 500, scale: (_h = (_g = this.zoomManager) === null || _g === void 0 ? void 0 : _g.zoom) !== null && _h !== void 0 ? _h : undefined });
+                        _a = animation;
                         return [4 /*yield*/, animation.animationFunction(this, animation)];
                     case 1:
-                        _m.result = _o.sent();
-                        (_j = (_h = animation.settings).animationEnd) === null || _j === void 0 ? void 0 : _j.call(_h, animation);
-                        (_k = settings.element) === null || _k === void 0 ? void 0 : _k.classList.remove((_l = settings.animationClass) !== null && _l !== void 0 ? _l : 'bga-animations_animated');
+                        _a.result = _o.sent();
+                        (_k = (_j = animation.settings).animationEnd) === null || _k === void 0 ? void 0 : _k.call(_j, animation);
+                        (_l = settings.element) === null || _l === void 0 ? void 0 : _l.classList.remove((_m = settings.animationClass) !== null && _m !== void 0 ? _m : 'bga-animations_animated');
                         return [3 /*break*/, 3];
                     case 2: return [2 /*return*/, Promise.resolve(animation)];
                     case 3: return [2 /*return*/];
@@ -891,11 +1028,11 @@ var CardStock = /** @class */ (function () {
      * @param settings a `AddCardSettings` object
      * @param shift if number, the number of milliseconds between each card. if true, chain animations
      */
-    CardStock.prototype.addCards = function (cards, animation, settings, shift) {
-        if (shift === void 0) { shift = false; }
-        return __awaiter(this, void 0, void 0, function () {
+    CardStock.prototype.addCards = function (cards_1, animation_1, settings_1) {
+        return __awaiter(this, arguments, void 0, function (cards, animation, settings, shift) {
             var promises, result, others, _loop_2, i, results;
             var _this = this;
+            if (shift === void 0) { shift = false; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1144,9 +1281,9 @@ var CardStock = /** @class */ (function () {
      * @param fromElement The HTMLElement to animate from.
      */
     CardStock.prototype.animationFromElement = function (element, fromRect, settings) {
-        var _a;
         return __awaiter(this, void 0, void 0, function () {
             var side, cardSides_1, animation, result;
+            var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -1249,9 +1386,8 @@ var SlideAndBackAnimation = /** @class */ (function (_super) {
 var Deck = /** @class */ (function (_super) {
     __extends(Deck, _super);
     function Deck(manager, element, settings) {
-        var _this = this;
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
-        _this = _super.call(this, manager, element) || this;
+        var _this = _super.call(this, manager, element) || this;
         _this.manager = manager;
         _this.element = element;
         element.classList.add('deck');
@@ -1367,11 +1503,11 @@ var Deck = /** @class */ (function (_super) {
      * @param fakeCardSetter a function to generate a fake card for animation. Required if the card id is not based on a numerci `id` field, or if you want to set custom card back
      * @returns promise when animation ends
      */
-    Deck.prototype.shuffle = function (animatedCardsMax, fakeCardSetter) {
-        if (animatedCardsMax === void 0) { animatedCardsMax = 10; }
-        return __awaiter(this, void 0, void 0, function () {
+    Deck.prototype.shuffle = function () {
+        return __awaiter(this, arguments, void 0, function (animatedCardsMax, fakeCardSetter) {
             var animatedCards, elements, i, newCard, newElement;
             var _this = this;
+            if (animatedCardsMax === void 0) { animatedCardsMax = 10; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1416,9 +1552,8 @@ var LineStock = /** @class */ (function (_super) {
      * @param settings a `LineStockSettings` object
      */
     function LineStock(manager, element, settings) {
-        var _this = this;
         var _a, _b, _c, _d;
-        _this = _super.call(this, manager, element, settings) || this;
+        var _this = _super.call(this, manager, element, settings) || this;
         _this.manager = manager;
         _this.element = element;
         element.classList.add('line-stock');
@@ -1441,9 +1576,8 @@ var SlotStock = /** @class */ (function (_super) {
      * @param settings a `SlotStockSettings` object
      */
     function SlotStock(manager, element, settings) {
-        var _this = this;
         var _a, _b;
-        _this = _super.call(this, manager, element, settings) || this;
+        var _this = _super.call(this, manager, element, settings) || this;
         _this.manager = manager;
         _this.element = element;
         _this.slotsIds = [];
@@ -1609,6 +1743,39 @@ var VoidStock = /** @class */ (function (_super) {
     };
     return VoidStock;
 }(CardStock));
+function sortFunction() {
+    var sortedFields = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        sortedFields[_i] = arguments[_i];
+    }
+    return function (a, b) {
+        for (var i = 0; i < sortedFields.length; i++) {
+            var direction = 1;
+            var field = sortedFields[i];
+            if (field[0] == '-') {
+                direction = -1;
+                field = field.substring(1);
+            }
+            else if (field[0] == '+') {
+                field = field.substring(1);
+            }
+            var type = typeof a[field];
+            if (type === 'string') {
+                var compare = a[field].localeCompare(b[field]);
+                if (compare !== 0) {
+                    return compare;
+                }
+            }
+            else if (type === 'number') {
+                var compare = (a[field] - b[field]) * direction;
+                if (compare !== 0) {
+                    return compare * direction;
+                }
+            }
+        }
+        return 0;
+    };
+}
 var CardManager = /** @class */ (function () {
     /**
      * @param game the BGA game class, usually it will be `this`
@@ -1834,44 +2001,44 @@ var FRAME_GROUP_FIX = {
     1: {
         1: {
             1: {
-                0: [32, null],
+                0: [32, null], // row
                 1: [19, null], // row
             },
             2: {
-                0: [19, null],
+                0: [19, null], // row
                 2: [7, null], // row
             },
             3: {
-                0: [null, 8],
-                1: [19, null],
+                0: [null, 8], // row
+                1: [19, null], // row
                 2: [8, null], // row
             },
             5: {
-                0: [null, 17],
+                0: [null, 17], // row
                 1: [null, 27], // row
             },
             6: {
-                0: [null, 18],
+                0: [null, 18], // row
                 1: [null, 35], // row
             },
             7: {
                 1: [null, 15], // row
             },
             8: {
-                0: [26, null],
+                0: [26, null], // row
                 1: [23, null], // row
             },
             9: {
-                0: [24, null],
-                1: [40, null],
+                0: [24, null], // row
+                1: [40, null], // row
                 2: [8, null], // row
             },
             11: {
-                0: [null, 6],
+                0: [null, 6], // row
                 1: [10, null], // row
             },
             12: {
-                0: [12, null],
+                0: [12, null], // row
                 2: [4, null], // row
             },
             13: {
@@ -1881,69 +2048,69 @@ var FRAME_GROUP_FIX = {
                 1: [0, 51], // row
             },
             15: {
-                0: [72, 0],
+                0: [72, 0], // row
                 2: [0, 48], // row
             },
             17: {
-                0: [null, 8],
+                0: [null, 8], // row
                 2: [15, null], // row
             },
             18: {
-                0: [2, null],
+                0: [2, null], // row
                 1: [9, null], // row
             },
         },
         2: {
             1: {
-                0: [32, 13],
-                1: [31, null],
+                0: [32, 13], // row
+                1: [31, null], // row
                 2: [41, null], // row
             },
             2: {
-                0: [-2, null],
-                1: [null, 15],
+                0: [-2, null], // row
+                1: [null, 15], // row
                 2: [-2, null], // row
             },
             3: {
-                0: [30, 1],
+                0: [30, 1], // row
                 2: [0, 0], // row
             },
             4: {
-                1: [37, null],
+                1: [37, null], // row
                 2: [12, null], // row
             },
             5: {
-                0: [32, 5],
+                0: [32, 5], // row
                 1: [33, null], // row
             },
             6: {
-                0: [30, null],
-                1: [25, null],
+                0: [30, null], // row
+                1: [25, null], // row
                 2: [39, null], // row
             },
             7: {
-                0: [33, null],
+                0: [33, null], // row
                 1: [42, null], // row
             },
             8: {
-                0: [8, 8],
+                0: [8, 8], // row
                 2: [null, 33], // row
             },
             9: {
-                0: [31, null],
+                0: [31, null], // row
                 2: [13, null], // row
             },
             10: {
-                0: [28, null],
-                1: [10, null],
+                0: [28, null], // row
+                1: [10, null], // row
                 2: [37, null], // row
             },
             11: {
-                0: [58, null],
+                0: [58, null], // row
                 1: [36, null], // row
             },
             12: {
-                0: [8, 8],
+                0: [8, 8], // row
                 1: [41, 41], // row
             },
         },
@@ -1969,12 +2136,12 @@ var FRAME_GROUP_FIX = {
                 1: [8, null], // row
             },
             8: {
-                0: [32, 4],
+                0: [32, 4], // row
                 1: [null, 37], // row
             },
             9: {
-                0: [20, null],
-                1: [2, null],
+                0: [20, null], // row
+                1: [2, null], // row
                 2: [25, null], // row
             },
             10: {
@@ -1993,15 +2160,15 @@ var FRAME_GROUP_FIX = {
                 0: [39, 0], // row
             },
             15: {
-                0: [8, null],
+                0: [8, null], // row
                 1: [41, null], // row
             },
             16: {
-                0: [null, 10],
+                0: [null, 10], // row
                 2: [16, null], // row
             },
             17: {
-                0: [8, null],
+                0: [8, null], // row
                 1: [null, 8], // row
             },
             18: {
@@ -2010,51 +2177,51 @@ var FRAME_GROUP_FIX = {
         },
         2: {
             1: {
-                0: [null, 24],
-                1: [32, null],
+                0: [null, 24], // row
+                1: [32, null], // row
                 2: [10, null], // row
             },
             2: {
-                1: [4, 1],
+                1: [4, 1], // row
                 2: [28, null], // row
             },
             3: {
-                0: [null, 20],
-                1: [40, null],
+                0: [null, 20], // row
+                1: [40, null], // row
                 2: [41, null], // row
             },
             4: {
-                0: [null, 20],
-                1: [40, null],
+                0: [null, 20], // row
+                1: [40, null], // row
                 2: [41, null], // row
             },
             5: {
-                0: [2, 32],
+                0: [2, 32], // row
                 1: [22, null], // row
             },
             6: {
-                0: [40, 0],
+                0: [40, 0], // row
                 1: [38, 2], // row
             },
             7: {
-                0: [32, 1],
+                0: [32, 1], // row
                 1: [40, null], // row
             },
             8: {
-                0: [18, null],
+                0: [18, null], // row
                 1: [10, null], // row
             },
             10: {
-                0: [32, null],
+                0: [32, null], // row
                 1: [40, null], // row
             },
             11: {
-                1: [39, 2],
+                1: [39, 2], // row
                 2: [39, null], // row
             },
             12: {
-                0: [null, 20],
-                1: [39, null],
+                0: [null, 20], // row
+                1: [39, null], // row
                 2: [16, null], // row
             },
         },
@@ -2074,7 +2241,7 @@ var FRAME_GROUP_FIX = {
                 0: [13, 32], // row
             },
             8: {
-                0: [32, 2],
+                0: [32, 2], // row
                 2: [47, 39], // row
             },
             9: {
@@ -2084,18 +2251,18 @@ var FRAME_GROUP_FIX = {
                 1: [0, 32], // row
             },
             11: {
-                1: [0, 48],
+                1: [0, 48], // row
                 2: [6, null], // row
             },
             12: {
-                0: [12, 30],
+                0: [12, 30], // row
                 1: [0, 46], // row
             },
             13: {
                 2: [0, 56], // row
             },
             15: {
-                0: [32, 2],
+                0: [32, 2], // row
                 1: [0, 48], // row
             },
             16: {
@@ -2113,49 +2280,49 @@ var FRAME_GROUP_FIX = {
                 2: [null, 33], // row
             },
             2: {
-                0: [null, 24],
-                1: [28, null],
+                0: [null, 24], // row
+                1: [28, null], // row
                 2: [5, 0], // row
             },
             3: {
-                0: [0, 36],
-                1: [38, null],
+                0: [0, 36], // row
+                1: [38, null], // row
                 2: [null, 36], // row
             },
             4: {
-                0: [4, 32],
-                1: [null, 41],
+                0: [4, 32], // row
+                1: [null, 41], // row
                 2: [null, 36], // row
             },
             5: {
-                0: [50, 0],
+                0: [50, 0], // row
                 2: [7, 37], // row
             },
             6: {
-                0: [null, 3],
-                1: [8, null],
+                0: [null, 3], // row
+                1: [8, null], // row
                 2: [44, null], // row
             },
             7: {
-                0: [19, null],
+                0: [19, null], // row
                 1: [null, 6], // row
             },
             8: {
-                0: [44, 0],
+                0: [44, 0], // row
                 1: [34, null], // row
             },
             9: {
-                0: [null, 32],
-                1: [null, 20],
+                0: [null, 32], // row
+                1: [null, 20], // row
                 2: [4, 0], // row
             },
             10: {
-                0: [null, 32],
+                0: [null, 32], // row
                 1: [null, 6], // row
             },
             11: {
-                0: [27, null],
-                1: [null, 34],
+                0: [27, null], // row
+                1: [null, 34], // row
                 2: [2, 2], // row
             },
             12: {
@@ -2166,19 +2333,19 @@ var FRAME_GROUP_FIX = {
     4: {
         1: {
             1: {
-                0: [16, 16],
+                0: [16, 16], // row
                 1: [26, null], // row
             },
             4: {
-                0: [null, 0],
-                1: [9, 41],
+                0: [null, 0], // row
+                1: [9, 41], // row
                 2: [0, null], // row
             },
             5: {
                 0: [null, 20], // row
             },
             6: {
-                0: [12, null],
+                0: [12, null], // row
                 1: [18, null], // row
             },
             10: {
@@ -2188,12 +2355,12 @@ var FRAME_GROUP_FIX = {
                 1: [0, null], // row
             },
             12: {
-                0: [null, 0],
+                0: [null, 0], // row
                 1: [16, null], // row
             },
             14: {
-                0: [null, 1],
-                1: [11, null],
+                0: [null, 1], // row
+                1: [11, null], // row
                 2: [35, null], // row
             },
             15: {
@@ -2220,42 +2387,42 @@ var FRAME_GROUP_FIX = {
                 0: [16, null], // row
             },
             4: {
-                1: [32, null],
+                1: [32, null], // row
                 2: [34, null], // row
             },
             5: {
-                0: [null, 5],
+                0: [null, 5], // row
                 2: [41, null], // row
             },
             6: {
-                0: [null, 9],
+                0: [null, 9], // row
                 1: [2, null], // row
             },
             7: {
-                0: [null, 28],
-                1: [null, 15],
+                0: [null, 28], // row
+                1: [null, 15], // row
                 2: [41, null], // row
             },
             8: {
-                1: [40, null],
+                1: [40, null], // row
                 2: [6, 6], // row
             },
             9: {
-                0: [null, 8],
-                1: [38, 4],
+                0: [null, 8], // row
+                1: [38, 4], // row
                 2: [42, null], // row
             },
             10: {
-                1: [21, null],
+                1: [21, null], // row
                 2: [40, null], // row
             },
             11: {
-                0: [null, 26],
-                1: [17, null],
+                0: [null, 26], // row
+                1: [17, null], // row
                 2: [41, null], // row
             },
             12: {
-                1: [40, null],
+                1: [40, null], // row
                 2: [2, 2], // row
             },
         },
@@ -2523,12 +2690,12 @@ var ObjectsManager = /** @class */ (function (_super) {
     return ObjectsManager;
 }(CardManager));
 var STATE_TO_PHASE = {
-    25: 11,
-    26: 12,
-    40: 21,
+    25: 11, // ST_PRIVATE_ORDER_CARDS
+    26: 12, // ST_PRIVATE_ACTIVATE_EFFECT
+    40: 21, // ST_MULTIPLAYER_CHOOSE_TOKEN
     //60: 21, // ST_MULTIPLAYER_PHASE2
     80: 0,
-    90: 31,
+    90: 31, // ST_MULTIPLAYER_PHASE3
     95: 0, //ST_END_ROUND
 };
 var OBJECT_ACTIVE_PHASES = {
