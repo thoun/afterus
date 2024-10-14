@@ -566,7 +566,7 @@ class AfterUs implements AfterUsGame {
             elem.classList.add('icon', 'point');
         });
 
-        const players = Object.values(gamedatas.players);
+        const players = Object.values(gamedatas.players).sort((a, b) => a.playerNo - b.playerNo);
         players.forEach((player, index) => {
             const playerId = Number(player.id);
 
