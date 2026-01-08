@@ -103,6 +103,19 @@ class AfterUs implements AfterUsGame {
 
     public setup(gamedatas: AfterUsGamedatas) {
         log( "Starting game setup" );
+
+        (this as any).bga.gameArea.getElement().insertAdjacentHTML('beforeend', `
+            <div id="table">
+                <div id="tables-and-center">
+                    <div id="current-player-table"></div>
+                    <div id="table-center">
+                        <div id="objects" class="card-line"></div>
+                        <div id="center-board"></div>
+                    </div>
+                    <div id="tables"></div>
+                </div>
+            </div>
+        `);
         
         this.gamedatas = gamedatas;
 
@@ -148,7 +161,7 @@ class AfterUs implements AfterUsGame {
         }
 
         this.setupNotifications();
-        this.setupPreferences();
+        (this as any).bga.userPreferences.onChange = (prefId, prefValue) => this.onPreferenceChange(prefId, prefValue);
 
         log( "Ending game setup" );
     }
@@ -514,29 +527,6 @@ class AfterUs implements AfterUsGame {
 
     public getCurrentPlayerEnergy(): number {
         return this.energyCounters[this.getPlayerId()]?.getValue() ?? 0;
-    }
-
-    private setupPreferences() {
-        // Extract the ID and value from the UI control
-        const onchange = (e) => {
-          var match = e.target.id.match(/^preference_[cf]ontrol_(\d+)$/);
-          if (!match) {
-            return;
-          }
-          var prefId = +match[1];
-          var prefValue = +e.target.value;
-          (this as any).prefs[prefId].value = prefValue;
-          this.onPreferenceChange(prefId, prefValue);
-        }
-        
-        // Call onPreferenceChange() when any value changes
-        dojo.query(".preference_control").connect("onchange", onchange);
-        
-        // Call onPreferenceChange() now
-        dojo.forEach(
-          dojo.query("#ingame_menu_content .preference_control"),
-          el => onchange({ target: el })
-        );
     }
       
     private onPreferenceChange(prefId: number, prefValue: number) {
@@ -926,8 +916,7 @@ class AfterUs implements AfterUsGame {
 
     public takeAction(action: string, data?: any) {
         data = data || {};
-        data.lock = true;
-        (this as any).ajaxcall(`/afterus/afterus/${action}.html`, data, this, () => {});
+        (this as any).bga.actions.performAction(action, data, { checkAction: false });
     }
     public takeNoLockAction(action: string, data?: any, invisible: boolean = false) {
         if (!invisible && (this as any).isCurrentPlayerActive()) {   
@@ -937,7 +926,7 @@ class AfterUs implements AfterUsGame {
         }
 
         data = data || {};
-        (this as any).ajaxcall(`/afterus/afterus/${action}.html`, data, this, () => {});
+        (this as any).bga.actions.performAction(action, data, { checkAction: false, lock: false });
     }
 
     ///////////////////////////////////////////////////

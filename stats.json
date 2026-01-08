@@ -1,0 +1,196 @@
+{
+    "table": {
+        "roundNumber": {
+            "id": 10,
+            "name": "Number of rounds",
+            "type": "int"
+        }
+    },
+    "player": {
+        "activatedEffects": {
+            "id": 30,
+            "name": "Activated effects",
+            "type": "int"
+        },
+        "activatedEffectsFree": {
+            "id": 31,
+            "name": "Activated effects (free)",
+            "type": "int"
+        },
+        "activatedEffectsCost": {
+            "id": 32,
+            "name": "Activated effects (trade)",
+            "type": "int"
+        },
+        "activatedEffectsToken": {
+            "id": 33,
+            "name": "Activated effects (chimpanzee token)",
+            "type": "int"
+        },
+        "skippedEffects": {
+            "id": 34,
+            "name": "Skipped effects",
+            "type": "int"
+        },
+        "resourcesGained": {
+            "id": 40,
+            "name": "Resources gained (of any type)",
+            "type": "int"
+        },
+        "resourcesGained1": {
+            "id": 41,
+            "name": "Flower gained",
+            "type": "int"
+        },
+        "resourcesGained2": {
+            "id": 42,
+            "name": "Fruit gained",
+            "type": "int"
+        },
+        "resourcesGained3": {
+            "id": 43,
+            "name": "Grain gained",
+            "type": "int"
+        },
+        "resourcesGained4": {
+            "id": 44,
+            "name": "Energy gained",
+            "type": "int"
+        },
+        "resourcesGained5": {
+            "id": 45,
+            "name": "Point gained",
+            "type": "int"
+        },
+        "resourcesGained6": {
+            "id": 46,
+            "name": "Rage gained",
+            "type": "int"
+        },
+        "resourcesSpent": {
+            "id": 50,
+            "name": "Resources spent (of any type)",
+            "type": "int"
+        },
+        "resourcesSpent1": {
+            "id": 51,
+            "name": "Flower spent",
+            "type": "int"
+        },
+        "resourcesSpent2": {
+            "id": 52,
+            "name": "Fruit spent",
+            "type": "int"
+        },
+        "resourcesSpent3": {
+            "id": 53,
+            "name": "Grain spent",
+            "type": "int"
+        },
+        "resourcesSpent4": {
+            "id": 54,
+            "name": "Energy spent",
+            "type": "int"
+        },
+        "activatedTokens": {
+            "id": 60,
+            "name": "Tokens activated (of any type)",
+            "type": "int"
+        },
+        "activatedTokens1": {
+            "id": 61,
+            "name": "Mandrill tokens activated",
+            "type": "int"
+        },
+        "activatedTokens2": {
+            "id": 62,
+            "name": "Orangutan tokens activated",
+            "type": "int"
+        },
+        "activatedTokens3": {
+            "id": 63,
+            "name": "Gorilla tokens activated",
+            "type": "int"
+        },
+        "activatedTokens4": {
+            "id": 64,
+            "name": "Chimpanzee tokens activated",
+            "type": "int"
+        },
+        "cardsBought1": {
+            "id": 71,
+            "name": "Level 1 cards bought",
+            "type": "int"
+        },
+        "cardsBought2": {
+            "id": 72,
+            "name": "Level 2 cards bought",
+            "type": "int"
+        },
+        "addedCards": {
+            "id": 73,
+            "name": "Added cards",
+            "type": "int"
+        },
+        "finalCardCount": {
+            "id": 75,
+            "name": "Final card count",
+            "type": "int"
+        },
+        "removedCards": {
+            "id": 80,
+            "name": "Removed cards",
+            "type": "int"
+        },
+        "removedCards0": {
+            "id": 81,
+            "name": "Removed tamarins cards",
+            "type": "int"
+        },
+        "removedCards1": {
+            "id": 82,
+            "name": "Removed cards of level 1",
+            "type": "int"
+        },
+        "removedCards2": {
+            "id": 83,
+            "name": "Removed cards of level 2",
+            "type": "int"
+        },
+        "rageGain": {
+            "id": 90,
+            "name": "Resources gained (of any type) with rage",
+            "type": "int"
+        },
+        "rageGain1": {
+            "id": 91,
+            "name": "Flower gained with rage",
+            "type": "int"
+        },
+        "rageGain2": {
+            "id": 92,
+            "name": "Fruit gained with rage",
+            "type": "int"
+        },
+        "rageGain3": {
+            "id": 93,
+            "name": "Grain gained with rage",
+            "type": "int"
+        },
+        "rageGain4": {
+            "id": 94,
+            "name": "Energy gained with rage",
+            "type": "int"
+        },
+        "rageGain5": {
+            "id": 95,
+            "name": "Point gained with rage",
+            "type": "int"
+        },
+        "usedObjects": {
+            "id": 100,
+            "name": "Used objects",
+            "type": "int"
+        }
+    }
+}

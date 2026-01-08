@@ -2905,8 +2905,7 @@ var PlayerTable = /** @class */ (function () {
     };
     PlayerTable.prototype.onRemoveCardClick = function (card) {
         var _this = this;
-        var _a;
-        var pref = Number((_a = this.game.prefs[202]) === null || _a === void 0 ? void 0 : _a.value);
+        var pref = this.game.bga.userPreferences.get(202);
         if (pref == 3 || (pref == 2 && card.type == 0)) {
             this.game.useRage(card.id);
         }
@@ -3195,7 +3194,9 @@ var AfterUs = /** @class */ (function () {
         "gamedatas" argument contains all datas retrieved by your "getAllDatas" PHP method.
     */
     AfterUs.prototype.setup = function (gamedatas) {
+        var _this = this;
         log("Starting game setup");
+        this.bga.gameArea.getElement().insertAdjacentHTML('beforeend', "\n            <div id=\"table\">\n                <div id=\"tables-and-center\">\n                    <div id=\"current-player-table\"></div>\n                    <div id=\"table-center\">\n                        <div id=\"objects\" class=\"card-line\"></div>\n                        <div id=\"center-board\"></div>\n                    </div>\n                    <div id=\"tables\"></div>\n                </div>\n            </div>\n        ");
         this.gamedatas = gamedatas;
         log('gamedatas', gamedatas);
         this.cardsManager = new CardsManager(this);
@@ -3235,7 +3236,7 @@ var AfterUs = /** @class */ (function () {
             this.notif_lastTurn(false);
         }
         this.setupNotifications();
-        this.setupPreferences();
+        this.bga.userPreferences.onChange = function (prefId, prefValue) { return _this.onPreferenceChange(prefId, prefValue); };
         log("Ending game setup");
     };
     ///////////////////////////////////////////////////
@@ -3575,24 +3576,6 @@ var AfterUs = /** @class */ (function () {
         var _a, _b;
         return (_b = (_a = this.energyCounters[this.getPlayerId()]) === null || _a === void 0 ? void 0 : _a.getValue()) !== null && _b !== void 0 ? _b : 0;
     };
-    AfterUs.prototype.setupPreferences = function () {
-        var _this = this;
-        // Extract the ID and value from the UI control
-        var onchange = function (e) {
-            var match = e.target.id.match(/^preference_[cf]ontrol_(\d+)$/);
-            if (!match) {
-                return;
-            }
-            var prefId = +match[1];
-            var prefValue = +e.target.value;
-            _this.prefs[prefId].value = prefValue;
-            _this.onPreferenceChange(prefId, prefValue);
-        };
-        // Call onPreferenceChange() when any value changes
-        dojo.query(".preference_control").connect("onchange", onchange);
-        // Call onPreferenceChange() now
-        dojo.forEach(dojo.query("#ingame_menu_content .preference_control"), function (el) { return onchange({ target: el }); });
-    };
     AfterUs.prototype.onPreferenceChange = function (prefId, prefValue) {
         switch (prefId) {
             case 201:
@@ -3878,8 +3861,7 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.takeAction = function (action, data) {
         data = data || {};
-        data.lock = true;
-        this.ajaxcall("/afterus/afterus/".concat(action, ".html"), data, this, function () { });
+        this.bga.actions.performAction(action, data, { checkAction: false });
     };
     AfterUs.prototype.takeNoLockAction = function (action, data, invisible) {
         if (invisible === void 0) { invisible = false; }
@@ -3889,7 +3871,7 @@ var AfterUs = /** @class */ (function () {
             dojo.style("gameaction_status_wrap", "display", "block");
         }
         data = data || {};
-        this.ajaxcall("/afterus/afterus/".concat(action, ".html"), data, this, function () { });
+        this.bga.actions.performAction(action, data, { checkAction: false, lock: false });
     };
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications

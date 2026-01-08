@@ -16,8 +16,8 @@
   *
   */
 
-
-require_once(APP_GAMEMODULE_PATH.'module/table/table.game.php');
+use Bga\GameFramework\Components\Deck;
+use Bga\GameFramework\Table;
 
 require_once('modules/php/objects/card.php');
 require_once('modules/php/objects/player.php');
@@ -36,6 +36,12 @@ class AfterUs extends Table {
     use ArgsTrait;
     use DebugUtilTrait;
 
+    public Deck $cards;
+
+    // from material.inc.php
+    public array $OBJECT_MIN_COST;
+    public array $CARDS;
+
 	function __construct() {
         // Your global variables labels:
         //  Here, you can assign labels to global variables you are using for this game.
@@ -51,15 +57,9 @@ class AfterUs extends Table {
             OBJECTS_OPTION => OBJECTS_OPTION,
         ]);   
 		
-        $this->cards = $this->getNew("module.common.deck");
-        $this->cards->init("card");
+        $this->cards = $this->deckFactory->createDeck("card");
         $this->cards->autoreshuffle = false;     
-	}
-	
-    protected function getGameName() {
-		// Used for translations and stuff. Please do not modify.
-        return "afterus";
-    }	
+	}	
 
     /*
         setupNewGame:
@@ -130,10 +130,7 @@ class AfterUs extends Table {
         // Activate first player (which is in general a good idea :) )
         $this->activeNextPlayer();
 
-        // TODO TEMP
-        $this->debugSetup();
-
-        /************ End of the game initialization *****/
+        return \ST_NEW_ROUND;
     }
 
     /*
@@ -145,7 +142,7 @@ class AfterUs extends Table {
         _ when the game starts
         _ when a player refreshes the game page (F5)
     */
-    protected function getAllDatas() {
+    protected function getAllDatas(): array {
         $result = [];
     
         $currentPlayerId = intval(self::getCurrentPlayerId());    // !! We must only return informations visible by this player !!

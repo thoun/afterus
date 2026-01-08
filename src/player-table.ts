@@ -129,7 +129,7 @@ class PlayerTable {
     }
 
     private onRemoveCardClick(card: Card) {
-        const pref = Number((this.game as any).prefs[202]?.value);
+        const pref = (this.game as any).bga.userPreferences.get(202);
         if (pref == 3 || (pref == 2 && card.type == 0)) {
             this.game.useRage(card.id);
         } else {
