@@ -3605,7 +3605,7 @@ var AfterUs = /** @class */ (function () {
         players.forEach(function (player, index) {
             var playerId = Number(player.id);
             var html = "\n            <div class=\"counters\">\n                <div id=\"flower-counter-wrapper-".concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon flower\"></div> \n                    <span id=\"flower-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"fruit-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon fruit\"></div> \n                    <span id=\"fruit-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"grain-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon grain\"></div> \n                    <span id=\"grain-counter-").concat(player.id, "\"></span>\n                </div>\n                <div id=\"energy-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon energy\"></div> \n                    <span id=\"energy-counter-").concat(player.id, "\"></span>\n                </div>\n            </div>\n            <div class=\"counters\">\n                <div id=\"rage-counter-wrapper-").concat(player.id, "\" class=\"counter\">\n                    <div class=\"icon rage\"></div> \n                    <span id=\"rage-counter-").concat(player.id, "\"></span> / 12\n                </div>\n            </div>");
-            dojo.place(html, "player_board_".concat(player.id));
+            _this.bga.playerPanels.getElement(playerId).insertAdjacentHTML('beforeend', html);
             _this.addTooltipHtml("flower-counter-wrapper-".concat(player.id), _("Flowers"));
             _this.addTooltipHtml("fruit-counter-wrapper-".concat(player.id), _("Fruits"));
             _this.addTooltipHtml("grain-counter-wrapper-".concat(player.id), _("Grains"));
@@ -3635,7 +3635,7 @@ var AfterUs = /** @class */ (function () {
                 var leftPlayer = players[index == players.length - 1 ? 0 : index + 1];
                 var rightPlayer = players[index == 0 ? players.length - 1 : index - 1];
                 var html_1 = "\n                <div class=\"neighbors\">\n                    <div id=\"neighbor-left-".concat(player.id, "\">\n                        \uD83E\uDC44 <span style=\"color: #").concat(leftPlayer.color, ";\">").concat(leftPlayer.name, "</span>\n                    </div>\n                    <div id=\"neighbor-right-").concat(player.id, "\">\n                        <span style=\"color: #").concat(rightPlayer.color, ";\">").concat(rightPlayer.name, "</span> \uD83E\uDC46\n                    </div>\n                </div>");
-                dojo.place(html_1, "player_board_".concat(player.id));
+                _this.bga.playerPanels.getElement(playerId).insertAdjacentHTML('beforeend', html_1);
                 _this.addTooltipHtml("neighbor-left-".concat(player.id), _("Left neighbor"));
                 _this.addTooltipHtml("neighbor-right-".concat(player.id), _("Right neighbor"));
             }
@@ -3646,7 +3646,7 @@ var AfterUs = /** @class */ (function () {
     };
     AfterUs.prototype.addShowFullDeckButton = function (playerId) {
         var _this = this;
-        dojo.place("<div>\n        <button class=\"bgabutton bgabutton_gray discarded-button\" id=\"show-full-deck-button-".concat(playerId, "\">").concat(_('Show full deck'), "</button>\n        </div>"), "player_board_".concat(playerId));
+        this.bga.playerPanels.getElement(playerId).insertAdjacentHTML('beforeend', "<div>\n            <button class=\"bgabutton bgabutton_gray discarded-button\" id=\"show-full-deck-button-".concat(playerId, "\">").concat(_('Show full deck'), "</button>\n        </div>"));
         document.getElementById("show-full-deck-button-".concat(playerId)).addEventListener('click', function () { return _this.showFullDeck(playerId); });
     };
     AfterUs.prototype.createPlayerTables = function (gamedatas) {
@@ -3661,8 +3661,7 @@ var AfterUs = /** @class */ (function () {
         this.playersTables.push(table);
     };
     AfterUs.prototype.setScore = function (playerId, score) {
-        var _a;
-        (_a = this.scoreCtrl[playerId]) === null || _a === void 0 ? void 0 : _a.toValue(score);
+        this.bga.playerPanels.getScoreCounter(playerId).toValue(score);
     };
     AfterUs.prototype.showFullDeck = function (playerId) {
         var _this = this;

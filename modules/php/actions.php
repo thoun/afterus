@@ -1,5 +1,7 @@
 <?php
 
+use Bga\GameFramework\UserException;
+
 trait ActionTrait {
 
     //////////////////////////////////////////////////////////////////////////////
@@ -156,7 +158,7 @@ trait ActionTrait {
             $closedFrameIndex = $frame->type == CLOSED ? $index : null;
 
             if ($currentEffect->row === $row && $currentEffect->cardIndex === $cardIndex && $currentEffect->closedFrameIndex === $closedFrameIndex) {
-                throw new BgaUserException(self::_('You must click on another frame to activate it, not the current frame'));
+                throw new UserException(clienttranslate('You must click on another frame to activate it, not the current frame'));
             }
 
             $appliedEffect = $this->array_find($rowEffects, fn($effect) => $effect->closedFrameIndex === $closedFrameIndex);
@@ -167,7 +169,7 @@ trait ActionTrait {
         }
 
         if (!$appliedEffect) {
-            throw new BgaUserException(self::_('Unknown effect, please report a bug'));
+            throw new UserException(clienttranslate('Unknown effect, please report a bug'));
         }
 
         $this->applyActivateEffect($playerId, $appliedEffect, $currentEffect, $line);
@@ -244,7 +246,7 @@ trait ActionTrait {
         self::checkAction('confirmActivations');
 
         $playerId = intval($this->getCurrentPlayerId());
-        $stateId = intval($this->gamestate->state_id());
+        $stateId = $this->gamestate->getCurrentMainStateId();
 
         // TODO TEMP until fixing how a player can be here without a chosen token
         if ($stateId == ST_MULTIPLAYER_TOKEN_SELECT_REACTIVATE) { 
@@ -442,7 +444,7 @@ trait ActionTrait {
     }
 
     function useRage(int $id) {
-        if (intval($this->gamestate->state_id()) >= ST_END_SCORE) {
+        if ($this->gamestate->getCurrentMainStateId() >= ST_END_SCORE) {
             throw new BgaUserException("You can't do actions after game end");
         }
 
@@ -513,7 +515,7 @@ trait ActionTrait {
     }  
 
     function useObject(int $number) {
-        if (intval($this->gamestate->state_id()) >= ST_END_SCORE) {
+        if ($this->gamestate->getCurrentMainStateId() >= ST_END_SCORE) {
             throw new BgaUserException("You can't do actions after game end");
         }
         
@@ -551,7 +553,7 @@ trait ActionTrait {
             throw new BgaUserException("You can only activate this object when assembling");
         }
 
-        $mainStateId = intval($this->gamestate->state_id());
+        $mainStateId = $this->gamestate->getCurrentMainStateId();
         if (($number == 4 && $mainStateId < ST_MULTIPLAYER_PHASE2) || ($number == 7 && $mainStateId < ST_MULTIPLAYER_CHOOSE_TOKEN)) {
             throw new BgaUserException("You can only activate this object at phase 2");
         }

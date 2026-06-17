@@ -154,7 +154,7 @@ class AfterUs extends Table {
   
         // Gather all information about current game situation (visible by player $current_player_id).
 
-        $isEndScore = intval($this->gamestate->state_id()) >= ST_END_SCORE;
+        $isEndScore = $this->gamestate->getCurrentMainStateId() >= ST_END_SCORE;
         
         foreach($result['players'] as $playerId => &$player) {
             $player['playerNo'] = intval($player['playerNo']);
@@ -164,7 +164,7 @@ class AfterUs extends Table {
             $player['energy'] = intval($player['energy']);
             $player['rage'] = intval($player['rage']);
 
-            if ($player['chosenToken'] !== null && intval($this->gamestate->state_id()) == ST_MULTIPLAYER_CHOOSE_TOKEN) {
+            if ($player['chosenToken'] !== null && $this->gamestate->getCurrentMainStateId() == ST_MULTIPLAYER_CHOOSE_TOKEN) {
                 $player['chosenToken'] = $currentPlayerId == $playerId ? intval($player['chosenToken']) : 0;
             }
             $player['line'] = $this->getCardsByLocation('line'.$playerId);

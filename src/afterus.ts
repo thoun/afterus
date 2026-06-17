@@ -82,6 +82,8 @@ class AfterUs implements AfterUsGame {
     private energyCounters: Counter[] = [];
     private rageCounters: Counter[] = [];
     private lastSelectedToken: number | null | undefined = undefined;
+
+    public bga: Bga;
     
     private TOOLTIP_DELAY = document.body.classList.contains('touch-device') ? 1500 : undefined;
 
@@ -585,7 +587,7 @@ class AfterUs implements AfterUsGame {
                     <span id="rage-counter-${player.id}"></span> / 12
                 </div>
             </div>`;
-            dojo.place(html, `player_board_${player.id}`);
+            this.bga.playerPanels.getElement(playerId).insertAdjacentHTML('beforeend', html);
 
             (this as any).addTooltipHtml(`flower-counter-wrapper-${player.id}`, _("Flowers"));
             (this as any).addTooltipHtml(`fruit-counter-wrapper-${player.id}`, _("Fruits"));
@@ -630,7 +632,7 @@ class AfterUs implements AfterUsGame {
                         <span style="color: #${rightPlayer.color};">${rightPlayer.name}</span> 🡆
                     </div>
                 </div>`;
-                dojo.place(html, `player_board_${player.id}`);
+                this.bga.playerPanels.getElement(playerId).insertAdjacentHTML('beforeend', html);
                 (this as any).addTooltipHtml(`neighbor-left-${player.id}`, _("Left neighbor"));
                 (this as any).addTooltipHtml(`neighbor-right-${player.id}`, _("Right neighbor"));
             }
@@ -642,9 +644,9 @@ class AfterUs implements AfterUsGame {
     }
     
     private addShowFullDeckButton(playerId: number) {
-        dojo.place(`<div>
-        <button class="bgabutton bgabutton_gray discarded-button" id="show-full-deck-button-${playerId}">${_('Show full deck')}</button>
-        </div>`, `player_board_${playerId}`);
+        this.bga.playerPanels.getElement(playerId).insertAdjacentHTML('beforeend', `<div>
+            <button class="bgabutton bgabutton_gray discarded-button" id="show-full-deck-button-${playerId}">${_('Show full deck')}</button>
+        </div>`);
         document.getElementById(`show-full-deck-button-${playerId}`).addEventListener('click', () => this.showFullDeck(playerId));
     }
 
@@ -662,7 +664,7 @@ class AfterUs implements AfterUsGame {
     }
 
     private setScore(playerId: number, score: number) {
-        (this as any).scoreCtrl[playerId]?.toValue(score);
+        this.bga.playerPanels.getScoreCounter(playerId).toValue(score);
     }
 
     private showFullDeck(playerId: number) {
