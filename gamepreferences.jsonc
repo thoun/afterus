@@ -1,0 +1,39 @@
+/**
+ *------
+ * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
+ * AfterUs implementation : © <Your name here> <Your email address here>
+ *
+ * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
+ * See http://en.boardgamearena.com/#!doc/Studio for more information.
+ * -----
+ *
+ * gamepreferences.jsonc
+ *
+ * AfterUs user preferences description
+ *
+ * !! It is not a good idea to modify this file when a game is running !!
+ *
+ */
+
+{
+    "201": {
+        "name": "Automatically take free resources",
+        "needReload": false,
+        "values": {
+            "1": {"name": "Enabled"},
+            "0": {"name": "Disabled"}
+        },
+        "default": 0
+    },
+
+    "202": {
+        "name": "Confirmation before discarding a card",
+        "needReload": false,
+        "values": {
+            "1": {"name": "Enabled"},
+            "2": {"name": "Enabled (except for tamarins)"},
+            "3": {"name": "Disabled"}
+        },
+        "default": 1
+    }
+}

@@ -1,0 +1,534 @@
+<?php
+declare(strict_types=1);
+
+namespace Bga\Games\Afterus;
+
+use Bga\Games\Afterus\Models\Effect;
+use Bga\Games\Afterus\Models\Card;
+use Bga\Games\Afterus\Models\AfterUsPlayer;
+use Bga\Games\Afterus\Models\Undo;
+
+use Bga\GameFramework\NotificationMessage;
+use Bga\GameFramework\VisibleSystemException;
+
+trait UtilTrait {
+
+    //////////////////////////////////////////////////////////////////////////////
+    //////////// Utility functions
+    ////////////
+
+    function setGlobalVariable(string $name, /*object|array*/ $obj) {
+        /*if ($obj == null) {
+            throw new \Error('Global Variable null');
+        }*/
+        $jsonObj = json_encode($obj);
+        $this->DbQuery("INSERT INTO `global_variables`(`name`, `value`)  VALUES ('$name', '$jsonObj') ON DUPLICATE KEY UPDATE `value` = '$jsonObj'");
+    }
+
+    function getGlobalVariable(string $name, $asArray = null) {
+        $json_obj = $this->getUniqueValueFromDB("SELECT `value` FROM `global_variables` where `name` = '$name'");
+        if ($json_obj) {
+            $object = json_decode($json_obj, $asArray);
+            return $object;
+        } else {
+            return null;
+        }
+    }
+
+    function deleteGlobalVariable(string $name) {
+        $this->DbQuery("DELETE FROM `global_variables` where `name` = '$name'");
+    }
+
+    function getPlayersIds() {
+        return array_keys($this->loadPlayersBasicInfos());
+    }
+
+    function getRoundCardCount() {
+        return count($this->getPlayersIds()) + 2;
+    }
+
+    function getPlayerName(int $playerId) {
+        return self::getUniqueValueFromDB("SELECT player_name FROM player WHERE player_id = $playerId");
+    }
+
+    function getPlayer(int $id) {
+        $sql = "SELECT * FROM player WHERE player_id = $id";
+        $dbResults = $this->getCollectionFromDb($sql);
+        return array_map(fn($dbResult) => new AfterUsPlayer($dbResult), array_values($dbResults))[0];
+    }
+
+    function isEndScoreReached() {
+        return boolval($this->getGameStateValue((string) LAST_TURN));
+    }
+
+    function getCardById(int $id) {
+        $sql = "SELECT * FROM `card` WHERE `card_id` = $id";
+        $dbResults = $this->getCollectionFromDb($sql);
+        $cards = array_map(fn($dbCard) => $this->getCardFromDb($dbCard), array_values($dbResults));
+        return count($cards) > 0 ? $cards[0] : null;
+    }
+
+    function getCardFromDb(?array $dbCard) {
+        if ($dbCard == null) {
+            return null;
+        }
+        $card = new Card($dbCard, $this->CARDS);
+
+        if ($card->type === 0) {
+            $gameinfos = $this->getGameinfos();
+            $colorToIndex = array_flip($gameinfos['player_colors']);
+            $card->number += 8 * $colorToIndex[$this->getPlayerColorById($card->playerId)];
+        }
+
+        return $card;
+    }
+
+    function getCardsByLocation(string $location, /*int|null*/ $location_arg = null, /*int|null*/ $type = null, /*int|null*/ $number = null) {
+        $sql = "SELECT * FROM `card` WHERE `card_location` = '$location'";
+        if ($location_arg !== null) {
+            $sql .= " AND `card_location_arg` = $location_arg";
+        }
+        if ($type !== null) {
+            $sql .= " AND `card_type` = $type";
+        }
+        if ($number !== null) {
+            $sql .= " AND `card_type_arg` = $number";
+        }
+        $sql .= " ORDER BY `card_location_arg`";
+        $dbResults = $this->getCollectionFromDb($sql);
+        return array_map(fn($dbCard) => $this->getCardFromDb($dbCard), array_values($dbResults));
+    }
+
+    function getCardByLocation(string $location, int $location_arg, /*int|null*/ $type = null, /*int|null*/ $number = null) {
+        return $this->getCardsByLocation($location, $location_arg, $type, $number)[0];
+    }
+
+    function setupCards(array $playersIds) {
+        // number cards
+        foreach ($playersIds as $playerId) {
+            $cards = [];
+            foreach ($this->TAMARINS as $index => $card) {
+                $cards[] = [ 'type' => 0, 'type_arg' => $index + 1, 'nbr' => 1 ];
+            }
+            $this->cards->createCards($cards, 'pdeck'.$playerId);
+            $this->cards->shuffle('pdeck'.$playerId);
+        }
+
+        foreach ([ORANGUTANS, CHIMPANZEES, GORILLAS, MANDRILLS] as $monkeyType) {
+            foreach ([1, 2] as $level) {
+                $cards = [];
+                $type = $monkeyType * 10 + $level;
+                foreach ($this->CARDS[$type] as $subType => $card) {
+                    $cards[] = [ 'type' => $type, 'type_arg' => $subType, 'nbr' => 1 ];
+                }
+                $this->cards->createCards($cards, "deck-$monkeyType-$level");
+                $this->cards->shuffle("deck-$monkeyType-$level");
+            }
+        }
+    }
+
+    function setupObjects(bool $beginner) {
+        $objects = [];
+        if ($beginner) {
+            $objects = [3, 6, 7];
+        } else {
+            $availableObjects = [1, 2, 3, 4, 5, 6, 7];
+    
+            for ($i = 0; $i < 3; $i++) {
+                $index = bga_rand(1, count($availableObjects)) - 1;
+                $objects[] = $availableObjects[$index];
+                array_splice($availableObjects, $index, 1);
+            }
+        }
+
+        $this->setGlobalVariable(OBJECTS, $objects);
+    }
+    
+    function getEffects(array $playerLine) {
+        $effects = [];
+
+        for ($i = 0; $i < 3; $i++) {
+            $openedRightFrame = null;
+            $openedRightFrameCardIndex = null;
+
+            foreach ($playerLine as $card) {
+                $cardIndex = $card->locationArg;
+
+                foreach ($card->frames[$i] as $frameIndex => $frame) {
+                    if ($frame->type === OPENED_LEFT && $openedRightFrame !== null && $openedRightFrameCardIndex !== null && $openedRightFrameCardIndex === $cardIndex - 1) {
+                        //$this->debug([$cardIndex, $openedRightFrameCardIndex, $openedRightFrame]);
+                        $effects[] = new Effect($i, $openedRightFrame->left, $frame->right, $openedRightFrame->convertSign || $frame->convertSign, $openedRightFrameCardIndex);
+                    }
+                    $openedRightFrame = null;
+
+                    if ($frame->type === CLOSED) {
+                        $effects[] = new Effect($i, $frame->left, $frame->right, $frame->convertSign, $cardIndex, $frameIndex);
+                    } else if ($frame->type === OPENED_RIGHT) {
+                        $openedRightFrame = $frame;
+                        $openedRightFrameCardIndex = $cardIndex;
+                    }
+                }
+            }
+        }
+
+        return $effects;
+    }
+
+    /** Return the clicked frame for a legal closed or joined effect. */
+    public function getEffectFrameIndex(Effect $effect, array $line): int {
+        if ($effect->closedFrameIndex !== null) {
+            return $effect->closedFrameIndex;
+        }
+        $card = \array_find($line, fn($card) => $card->locationArg === $effect->cardIndex);
+        return count($card->frames[$effect->row]) - 1;
+    }
+
+    function isFreeEffect(Effect $effect) {
+        return !$effect->convertSign || 
+            count($effect->left) == 0 || 
+            (count($effect->left) == 1 && $effect->left[0][1] == DIFFERENT);
+    }
+
+    private function leftWithReactivateLeft(array $left, array $reactivateLeft) {
+        $merged = $left; // copy
+        foreach($reactivateLeft as $condition) {
+            $index = \array_find_key(array_values($merged), fn($c) => $c[1] === $condition[1]);
+            if ($index === null) {
+                $merged[] = $condition;
+            } else {
+                $merged[$index][0] += $condition[0];
+            }
+        }
+        return $merged;
+    }
+
+    public function getPossibleEffects(int $playerId, array $allEffects, array $line, bool $ignoreReactivate, ?array $reactivateLeft = []) {
+        $player = $this->getPlayer($playerId);
+        $possibleEffects = array_values(array_filter($allEffects, fn($effect) =>
+            !$effect->convertSign || 
+            count($effect->left) == 0 || 
+            \array_all($effect->left, fn($condition) => $this->playerMeetsCondition($player, $condition, $line))
+        ));
+
+        $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
+        if ($tamarins == 0) {
+            $possibleEffects = array_values(array_filter($possibleEffects, fn($effect) =>
+                count($effect->left) != 1 || 
+                !\array_any($effect->left, fn($condition) => $condition[1] == PER_TAMARINS)
+            ));
+        }
+
+        if ($ignoreReactivate) {
+            $possibleEffects = array_values(array_filter($possibleEffects, fn($effect) =>
+                count($effect->right) == 0 || !\array_any($effect->right, fn($condition) => $condition[1] == REACTIVATE)
+            ));
+
+            $possibleEffects = array_values(array_filter($possibleEffects, fn($effect) =>
+                !$effect->convertSign || 
+                count($effect->left) == 0 || 
+                \array_all($this->leftWithReactivateLeft($effect->left, $reactivateLeft), fn($condition) => $this->playerMeetsCondition($player, $condition, $line))
+            ));
+        }
+
+        return $possibleEffects;
+    }
+
+    public function getAppliedEffects(int $playerId) {
+        return json_decode($this->getUniqueValueFromDB("SELECT `applied_effects` FROM `player` WHERE `player_id` = $playerId") ?? '[]', true);
+    }
+
+    public function getRemainingEffects(int $playerId, array $allEffects) {
+        $appliedEffects = $this->getAppliedEffects($playerId);
+
+        $remainingEffects = $allEffects;
+        foreach($appliedEffects as $effect) {
+            $index = \array_find_key(array_values($remainingEffects), fn($remainingEffect) => $remainingEffect->row === $effect[0] && $remainingEffect->cardIndex === $effect[1] && $remainingEffect->closedFrameIndex === $effect[2]);
+            unset($remainingEffects[$index]); 
+            $remainingEffects = array_values($remainingEffects);
+        }
+
+        return $remainingEffects;
+    }
+
+    public function markedPlayedEffect(int $playerId, $effect) {
+        $appliedEffects = $this->getAppliedEffects($playerId);
+        
+        $appliedEffect = [$effect->row, $effect->cardIndex, $effect->closedFrameIndex];
+        $appliedEffects[] = $appliedEffect;
+        $jsonObj = json_encode($appliedEffects);
+        $this->DbQuery("UPDATE `player` SET `applied_effects` = '$jsonObj' WHERE `player_id` = $playerId");
+    }
+
+    public function playerMeetsCondition(AfterUsPlayer $player, array $condition, array $line) {
+        $quantity = $condition[0];
+
+        switch ($condition[1]) {
+            case FLOWER: return $quantity <= $player->flowers;
+            case FRUIT: return $quantity <= $player->fruits;
+            case GRAIN: return $quantity <= $player->grains;
+            case ENERGY: return $quantity <= $player->energy;
+            case POINT: return $quantity <= $player->score;
+            case RAGE: return $quantity <= $player->rage;
+            case DIFFERENT:
+                $groupByType = [];
+                foreach($line as $card) {
+                    $groupByType[$card->type][] = $card;
+                }
+                return count($groupByType) >= $quantity;
+            case PER_TAMARINS: return \array_any($line, fn($card) => $card->type == 0);
+            default: throw new VisibleSystemException('invalid condition');
+        }
+    }
+    
+    public function giveResource(int $playerId, array $resource) {
+        $type = $resource[1];
+        $quantity = $resource[0];
+
+        if ($type <= ENERGY) {
+            $this->bga->playerStats->inc('resourcesSpent', $quantity, $playerId);
+            $this->bga->playerStats->inc('resourcesSpent'.$type, $quantity, $playerId);
+        }
+
+        switch ($type) {
+            case FLOWER: $this->DbQuery("UPDATE `player` SET `player_flower` = `player_flower` - $quantity WHERE `player_id` = $playerId"); break;
+            case FRUIT: $this->DbQuery("UPDATE `player` SET `player_fruit` = `player_fruit` - $quantity WHERE `player_id` = $playerId"); break;
+            case GRAIN: $this->DbQuery("UPDATE `player` SET `player_grain` = `player_grain` - $quantity WHERE `player_id` = $playerId"); break;
+            case ENERGY: $this->DbQuery("UPDATE `player` SET `player_energy` = `player_energy` - $quantity WHERE `player_id` = $playerId"); break;
+            case POINT: $this->bga->playerScore->inc($playerId, -$quantity, null); break;
+            case RAGE: $this->DbQuery("UPDATE `player` SET `player_rage` = `player_rage` - $quantity WHERE `player_id` = $playerId"); break;
+            default: throw new VisibleSystemException('invalid giveResource');
+        }
+    }
+
+    private function checkLastTurn() {        
+        if (!boolval($this->getGameStateValue((string) LAST_TURN)) && intval($this->getUniqueValueFromDB("SELECT count(*) FROM player where `player_score` >= 80")) > 0) {
+            $this->setGameStateValue((string) LAST_TURN, 1);
+
+            $this->bga->notify->all('lastTurn', clienttranslate('A player reached 80 points, triggering the end of the game !'), []);
+        }
+    }
+
+    public function gainResource(int $playerId, array $resource, array $line) {
+        $type = $resource[1];
+        $quantity = $resource[0];
+
+        if ($type <= RAGE) {
+            $this->bga->playerStats->inc('resourcesGained', $quantity, $playerId);
+            $this->bga->playerStats->inc('resourcesGained'.$type, $quantity, $playerId);
+        }
+
+        switch ($type) {
+            case FLOWER: $this->DbQuery("UPDATE `player` SET `player_flower` = `player_flower` + $quantity WHERE `player_id` = $playerId"); break;
+            case FRUIT: $this->DbQuery("UPDATE `player` SET `player_fruit` = `player_fruit` + $quantity WHERE `player_id` = $playerId"); break;
+            case GRAIN: $this->DbQuery("UPDATE `player` SET `player_grain` = `player_grain` + $quantity WHERE `player_id` = $playerId"); break;
+            case ENERGY: $this->DbQuery("UPDATE `player` SET `player_energy` = `player_energy` + $quantity WHERE `player_id` = $playerId"); break;
+            case POINT: 
+                $this->bga->playerScore->inc($playerId, $quantity, null);
+                $this->checkLastTurn();
+                break;
+            case RAGE: 
+                $currentRage = $this->getPlayer($playerId)->rage;
+                $rage = min($currentRage + $quantity, 12);
+                $this->DbQuery("UPDATE `player` SET `player_rage` = $rage WHERE `player_id` = $playerId");
+                break;
+            case PER_TAMARINS: 
+                $tamarins = count(array_filter($line, fn($card) => $card->type == 0));
+                $newResource = $resource[0];
+                $newResource[0] *= $tamarins;
+                $this->gainResource($playerId, $newResource, $line);
+                break;
+            default: throw new VisibleSystemException("invalid gainResource $quantity ".$resource[1]);
+        }
+    }
+
+    private function getResourceCode(int $resource) {
+        switch ($resource) {
+            case FLOWER: return '[Flower]';
+            case FRUIT: return '[Fruit]';
+            case GRAIN: return '[Grain]';
+            case ENERGY: return '[Energy]';
+            case POINT: return '[Point]';
+            case RAGE: return '[Rage]';
+            case DIFFERENT: return '[Different]';
+            case PER_TAMARINS: return '/ [Tamarin]';
+            case REACTIVATE: return '[Reactivate]';
+            default: throw new VisibleSystemException('invalid getResourceCode');
+        }
+    }
+
+    public function getResourcesStr(array $resources) {
+        return implode(' ', array_map(fn($resource) => $resource[0] . ' ' . $this->getResourceCode($resource[1]), $resources));
+    }
+
+    function getPlayerSelectedToken(int $playerId) {
+        return $this->getPlayer($playerId)->chosenToken;
+    }
+
+    function setPlayerSelectedToken(int $playerId, /*int|null*/ $selectedToken) {
+        $selected = $selectedToken !== null;
+        $this->DbQuery("UPDATE `player` SET `chosen_token` = ". ($selected ? $selectedToken : 'NULL') ." WHERE `player_id` = $playerId");
+        $this->bga->notify->all('selectedToken', '', [
+            'playerId' => $playerId,
+            'token' => 0,
+            'cancel' => !$selected,
+        ]);
+        $this->bga->notify->player($playerId, 'selectedToken', '', [
+            'playerId' => $playerId,
+            'token' => $selectedToken,
+            'cancel' => !$selected,
+        ]);
+    }
+
+    function getMonkeyType(int $type) {
+        return match ($type) {
+            0 => clienttranslate('tamarin'),
+            1 => clienttranslate('mandrill'),
+            2 => clienttranslate('orangutan'),
+            3 => clienttranslate('gorilla'),
+            4 => clienttranslate('chimpanzee'),
+            default => null,
+        };
+    }
+
+    function getObjectName(int $number) {
+        return match ($number) {
+            1 => clienttranslate("Mobile phone"),
+            2 => clienttranslate("Minibar"),
+            3 => clienttranslate("Ghetto blaster"),
+            4 => clienttranslate("Game console"),
+            5 => clienttranslate("Pinball Machine"),
+            6 => clienttranslate("Computer"),
+            7 => clienttranslate("Moped"),
+            default => null,
+        };
+    }
+
+    function getPlayerPrivateState(int $playerId) {
+        //$this->gamestate->getPrivateState($playerId);
+        return $this->gamestate->isPlayerActive($playerId) ? intval($this->getUniqueValueFromDB("SELECT `player_state` FROM `player` WHERE `player_id` = $playerId")) : 0;
+    }
+
+    function savePrivateStateBeforeObject(int $playerId, int $stateId) {
+        $this->DbQuery("UPDATE `player` SET `private_state_before_object` = $stateId WHERE `player_id` = $playerId");        
+    }
+
+    function applyAutoGainEffects(int $playerId) {
+        $args = $this->argActivateEffect($playerId);
+        $currentEffect = $args['currentEffect'];
+
+        if ($this->getPlayer($playerId)->autoGain) {
+            while ($currentEffect != null && $this->isFreeEffect($currentEffect) && !\array_any($currentEffect->right, fn($resource) => $resource[1] == REACTIVATE)) {
+                $line = $this->getCardsByLocation('line'.$playerId);
+                $this->applyActivateEffect($playerId, $currentEffect, $currentEffect, $line);
+
+                $args = $this->argActivateEffect($playerId);
+                $currentEffect = $args['currentEffect'];
+            }
+        }
+
+        return $currentEffect != null;
+    }
+
+    function refillPlayerDeckIfEmpty(int $playerId) {
+        if (intval($this->cards->countCardInLocation('pdeck'.$playerId)) == 0) {
+            $this->cards->moveAllCardsInLocation('discard'.$playerId, 'pdeck'.$playerId);
+            $this->cards->shuffle('pdeck'.$playerId);
+
+            $this->bga->notify->all('refillDeck', new NotificationMessage(clienttranslate('${player_name} shuffles discarded cards back to form a new deck (deck was empty)'), [
+                'playerId' => $playerId,
+                'player_name' => $this->getPlayerName($playerId),
+                'deckCount' => intval($this->cards->countCardInLocation('pdeck'.$playerId)),
+                'deckTopCard' => Card::onlyId($this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId))),
+            ]));
+        }
+    }
+
+    function getUsedObjects(int $playerId) {
+        return json_decode($this->getUniqueValueFromDB("SELECT `used_objects` FROM `player` WHERE `player_id` = $playerId") ?? '[]', true);
+    }
+
+    public function saveUsedObject(int $playerId, int $object) {
+        $usedObjects = json_decode($this->getUniqueValueFromDB("SELECT `used_objects` FROM `player` WHERE `player_id` = $playerId") ?? '[]', true);
+
+        $usedObjects[] = $object;
+        $jsonObj = json_encode($usedObjects);
+        $this->DbQuery("UPDATE `player` SET `used_objects` = '$jsonObj' WHERE `player_id` = $playerId");
+
+        $this->bga->notify->player($playerId, 'useObject', '', [
+            'playerId' => $playerId,
+            'object' => $object,
+        ]);
+
+        $this->bga->playerStats->inc('usedObjects', 1, $playerId);
+    }
+
+    function saveForUndo(int $playerId, bool $erasePrevious, bool $logUndoPoint) {
+        $line = $this->getCardsByLocation('line'.$playerId);
+        $player = $this->getPlayer($playerId);
+        $appliedEffects = $this->getAppliedEffects($playerId);
+        $usedObjects = $this->getUsedObjects($playerId);
+        $stats = $this->getCollectionFromDb("SELECT stats_id, stats_value FROM `stats` WHERE stats_player_id = $playerId", true);
+
+        if ($logUndoPoint) {
+            $this->bga->notify->player($playerId, 'log', clienttranslate('As you revealed a hidden element, Cancel last moves will only allow to come back to this point'), []);
+        }
+
+        $lineIds = [];
+        foreach ($line as $card) {
+            $lineIds[$card->locationArg] = $card->id;
+        }
+
+        $privateStateId = $this->getPlayerPrivateState($playerId);
+        if ($privateStateId >= 80 && $privateStateId < 90) {
+            $privateStateId = $player->privateStateBeforeObject;
+        }
+        $undo = new Undo(
+            $privateStateId,
+            $lineIds,
+            $player,
+            $appliedEffects,
+            $usedObjects,
+            $stats,
+        );
+
+        $jsonObj = json_encode([$undo]);
+        if (!$erasePrevious) {
+            $undos = json_decode($this->getUniqueValueFromDB("SELECT `undo` FROM `player` WHERE `player_id` = $playerId"));
+            $jsonObj = json_encode(array_merge($undos, [$undo]));
+        }
+        
+        $this->DbQuery("UPDATE `player` SET `undo` = '$jsonObj' WHERE `player_id` = $playerId");
+    }
+
+    function getLastCard(int $playerId) {
+        $canSeeTopCard = boolval($this->getUniqueValueFromDB("SELECT can_see_top_card FROM `player` WHERE `player_id` = $playerId"));
+        return $canSeeTopCard ? $this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId)) : null;
+    }
+
+    function cardPickedFromDeck(int $playerId) {
+        $this->DbQuery("UPDATE `player` SET `can_see_top_card` = FALSE WHERE `player_id` = $playerId");
+
+        $this->bga->notify->player($playerId, 'deckTopCard', '', [
+            'playerId' => $playerId,
+            'card' => null,
+        ]);
+    }
+
+    function cardAddedToDeck(int $playerId) {
+        $this->DbQuery("UPDATE `player` SET `can_see_top_card` = TRUE WHERE `player_id` = $playerId");
+
+        $this->bga->notify->player($playerId, 'deckTopCard', '', [
+            'playerId' => $playerId,
+            'card' => $this->getCardFromDb($this->cards->getCardOnTop('pdeck'.$playerId)),
+        ]);
+    }
+
+    function getFullDeck(int $playerId) {
+        return array_merge(
+            $this->getCardsByLocation('pdeck'.$playerId),
+            $this->getCardsByLocation('line'.$playerId),
+            $this->getCardsByLocation('discard'.$playerId),
+        );
+    }
+    
+}

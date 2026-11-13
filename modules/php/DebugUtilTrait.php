@@ -1,0 +1,92 @@
+<?php
+declare(strict_types=1);
+
+namespace Bga\Games\Afterus;
+
+
+trait DebugUtilTrait {
+
+//////////////////////////////////////////////////////////////////////////////
+//////////// Utility functions
+////////////
+
+    function debugSetup() {
+        if ($this->getBgaEnvironment() != 'studio') { 
+            return;
+        } 
+
+		$this->debugSetRage(10);
+		$this->debugSetEnergy(10);
+		$this->debugSet('score', 78);
+        //$this->debugSetLastTurn();
+        
+        //$this->debugLastTurn();
+    }
+
+    function debugSetLastTurn() {
+        $this->setGameStateValue((string) LAST_TURN, 1);
+    }
+	
+    function debugSet(string $field, int $amount) {
+        if ($field === 'score' || $field === 'score_aux') {
+            $counter = $field === 'score' ? $this->bga->playerScore : $this->bga->playerScoreAux;
+            $counter->setAll($amount, null);
+            return;
+        }
+        $this->DbQuery("UPDATE player SET `player_$field` = $amount");
+    }
+    function debugSetPlayer(int $playerId, string $field, int $amount) {
+        if ($field === 'score' || $field === 'score_aux') {
+            $counter = $field === 'score' ? $this->bga->playerScore : $this->bga->playerScoreAux;
+            $counter->set($playerId, $amount, null);
+            return;
+        }
+        $this->DbQuery("UPDATE player SET `player_$field` = $amount where `player_id` = $playerId");
+    }
+
+    function debugSetFlower(int $amount) { $this->debugSet('flower', $amount); }
+    function debugSetPlayerFlower(int $playerId, int $amount) { $this->debugSetPlayer($playerId, 'flower', $amount); }
+    function debugSetEnergy(int $amount) { $this->debugSet('energy', $amount); }
+    function debugSetPlayerEnergy(int $playerId, int $amount) { $this->debugSetPlayer($playerId, 'energy', $amount); }
+    function debugSetRage(int $amount) { $this->debugSet('rage', $amount); }
+    function debugSetPlayerRage(int $playerId, int $amount) { $this->debugSetPlayer($playerId, 'rage', $amount); }
+
+    public function debugReplacePlayersIds() {
+        if ($this->getBgaEnvironment() != 'studio') { 
+            return;
+        } 
+
+		// These are the id's from the BGAtable I need to debug.
+		/*$ids = [
+            84319026,
+86175279
+		];*/
+        $ids = array_map(fn($dbPlayer) => intval($dbPlayer['player_id']), array_values($this->getCollectionFromDb('select player_id from player order by player_no')));
+
+		// Id of the first player in BGA Studio
+		$sid = 2343492;
+		
+		foreach ($ids as $id) {
+			// basic tables
+			$this->DbQuery("UPDATE player SET player_id=$sid WHERE player_id = $id" );
+			$this->DbQuery("UPDATE global SET global_value=$sid WHERE global_value = $id" );
+			$this->DbQuery("UPDATE card SET card_location_arg=$sid WHERE card_location_arg = $id" );
+
+			// 'other' game specific tables. example:
+			// tables specific to your schema that use player_ids
+			$this->DbQuery("UPDATE card SET card_location='line$sid' WHERE card_location='line$id'" );
+			$this->DbQuery("UPDATE card SET card_location='pdeck$sid' WHERE card_location='pdeck$id'" );
+			$this->DbQuery("UPDATE card SET card_location='discard$sid' WHERE card_location='discard$id'" );
+            
+			++$sid;
+		}
+
+        $this->reloadPlayersBasicInfos();
+	}
+
+    function debug($debugData) {
+        if ($this->getBgaEnvironment() != 'studio') { 
+            return;
+        }die('debug data : '.json_encode($debugData));
+    }
+}
